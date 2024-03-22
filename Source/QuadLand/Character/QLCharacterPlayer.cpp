@@ -36,6 +36,13 @@ AQLCharacterPlayer::AQLCharacterPlayer()
 		LookAction = LookActionRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> FightingActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_FightingAttack.IA_FightingAttack'"));
+
+	if (LookActionRef.Object)
+	{
+		FightingAction = FightingActionRef.Object;
+	}
+
 	//InputContext Mapping
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextMappingRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/QuadLand/Inputs/IMC_Shoulder.IMC_Shoulder'"));
 
@@ -47,34 +54,46 @@ AQLCharacterPlayer::AQLCharacterPlayer()
 void AQLCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	QL_LOG(QLNetLog, Log, TEXT("Begin"));
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
+	{
+		EnableInput(PlayerController);
+	}
 	SetCharacterControl();
+
 }
 
 void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Look);
+	EnhancedInputComponent->BindAction(FightingAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Fight);
 }
 
 void AQLCharacterPlayer::SetCharacterControl()
 {
 
-	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	
-	if (UEnhancedInputLocalPlayerSubsystem* SubSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+	if (PlayerController)
 	{
-		SubSystem->ClearAllMappings(); //모든 매핑 취소
-		UInputMappingContext* NewMappingContext = InputMappingContext;
-
-		if (NewMappingContext)
+		if (UEnhancedInputLocalPlayerSubsystem* SubSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			SubSystem->AddMappingContext(NewMappingContext,0);
+			SubSystem->ClearAllMappings(); //모든 매핑 취소
+			UInputMappingContext* NewMappingContext = InputMappingContext;
+
+			if (NewMappingContext)
+			{
+				SubSystem->AddMappingContext(NewMappingContext, 0);
+			}
 		}
 	}
-
 }
 
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)
@@ -102,10 +121,21 @@ void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookAxisVector.Y);
 }
 
+void AQLCharacterPlayer::Fight()
+{
+	QL_LOG(QLNetLog, Log, TEXT("left mouse button clicks"));
+}
+
 void AQLCharacterPlayer::FarmingItem()
 {
 }
 
 void AQLCharacterPlayer::Run()
 {
+}
+
+void AQLCharacterPlayer::PossessedBy(AController* NewController)
+{
+	QL_LOG(QLNetLog, Log, TEXT("Begin"));
+	Super::PossessedBy(NewController);
 }
