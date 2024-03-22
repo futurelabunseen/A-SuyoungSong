@@ -37,7 +37,7 @@ AQLCharacterBase::AQLCharacterBase()
 	}
 
 	//AnimInstance
-	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimInstanceRef(TEXT("/Game/Characters/Mannequins/Animations/ABP_Quinn.ABP_Quinn_C"));
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimInstanceRef(TEXT("/Game/QuadLand/Animations/Blueprint/ABQL_Character.ABQL_Character_C"));
 
 	if (AnimInstanceRef.Class)
 	{
