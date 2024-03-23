@@ -31,4 +31,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> CrunchAction;
 
+protected:
+	
+	virtual void DefaultAttack(); //NPC - Player 모두 총을 주웠을 때 사용할 예정
+
 };

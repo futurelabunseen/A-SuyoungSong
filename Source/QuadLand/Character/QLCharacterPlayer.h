@@ -10,6 +10,14 @@
 /**
  * 
  */
+
+UENUM()
+enum class ECharacterAttackType : uint8
+{
+	HookAttack,
+	GunAttack
+};
+
 UCLASS()
 class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase
 {
@@ -41,19 +49,45 @@ protected:
 	TObjectPtr<class UInputAction> LookAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> FightingAction;
+	TObjectPtr<class UInputAction> AttackAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<class UInputMappingContext> InputMappingContext;
 
 	void Move(const FInputActionValue& Value); //이동 매칭
 	void Look(const FInputActionValue& Value); //마우스 시선 이동
-	void Fight();
+	void Attack();
 	void FarmingItem();
-	void Run();
 
-	virtual void PossessedBy(AController* NewController) override;
+	//Run Section
 protected:
-	
+	void RunInputPressed();
+	void RunInputReleased();
 
+	uint8 bIsFirstRunSpeedSetting : 1;
+	//Attack Section
+protected:
+
+	//TMap으로 변경하자. Gun 없을 때 Montage와 Gun 있을 때 Montage 로 나누어서 관리 - enum으로 분류 예정
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
+	TMap<ECharacterAttackType, TObjectPtr<class UAnimMontage>> AttackAnimMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
+	TObjectPtr<class UQLPunchAttackData> PunchAttackData;
+
+	void PunchAttackComboBegin();
+	void PunchAttackComboEnd(class UAnimMontage* AnimMontage, bool IsProperlyEnded); //MontageDelegate 호출될 수 있도록 맞출 예정
+	
+	void SetPunchComboCheckTimer();
+	void PunchAttackComboCheck();
+
+	virtual void DefaultAttack() override;
+	
+	uint8 bHasGun : 1;
+	uint8 bHasNextPunchAttackCombo : 1;
+	
+	int CurrentCombo;
+
+	FTimerHandle PunchAttackComboTimer;
+	ECharacterAttackType CurrentAttackType;
 };

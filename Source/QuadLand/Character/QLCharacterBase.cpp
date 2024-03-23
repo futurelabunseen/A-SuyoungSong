@@ -13,7 +13,7 @@ AQLCharacterBase::AQLCharacterBase()
 	bUseControllerRotationYaw = false;
 
 	//Movement
-	GetCharacterMovement()->MaxWalkSpeed = 500.f; 
+	GetCharacterMovement()->MaxWalkSpeed = 450.f; 
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.0f; //조이스틱과 유사한 기기를 사용해서 미세컨트롤 가능하며, 걷기 속도를 의미함.
 	GetCharacterMovement()->JumpZVelocity = 600.f; //점프
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f); //FORCEINLINE TRotator(T InPitch, T InYaw, T InRoll);
@@ -44,3 +44,8 @@ AQLCharacterBase::AQLCharacterBase()
 		GetMesh()->SetAnimClass(AnimInstanceRef.Class);
 	}
 }
+
+void AQLCharacterBase::DefaultAttack()
+{
+}
+

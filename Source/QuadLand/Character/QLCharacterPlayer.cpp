@@ -8,8 +8,10 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "QuadLand.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "AttackActionData/QLPunchAttackData.h"
 
-AQLCharacterPlayer::AQLCharacterPlayer()
+AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasGun(0), bHasNextPunchAttackCombo(0), CurrentCombo(0), CurrentAttackType(ECharacterAttackType::HookAttack)
 {
 	//springArm에 Camera를 매달을 예정
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -36,11 +38,18 @@ AQLCharacterPlayer::AQLCharacterPlayer()
 		LookAction = LookActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> FightingActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_FightingAttack.IA_FightingAttack'"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> AttackActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Attack.IA_Attack'"));
 
-	if (LookActionRef.Object)
+	if (AttackActionRef.Object)
 	{
-		FightingAction = FightingActionRef.Object;
+		AttackAction= AttackActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> RunActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Run.IA_Run'"));
+
+	if (RunActionRef.Object)
+	{
+		RunAction = RunActionRef.Object;
 	}
 
 	//InputContext Mapping
@@ -55,7 +64,6 @@ void AQLCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	QL_LOG(QLNetLog, Log, TEXT("Begin"));
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (PlayerController)
 	{
@@ -73,7 +81,10 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Look);
-	EnhancedInputComponent->BindAction(FightingAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Fight);
+	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Attack);
+
+	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::RunInputPressed);
+	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::RunInputReleased);
 }
 
 void AQLCharacterPlayer::SetCharacterControl()
@@ -121,21 +132,134 @@ void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookAxisVector.Y);
 }
 
-void AQLCharacterPlayer::Fight()
+void AQLCharacterPlayer::Attack()
 {
 	QL_LOG(QLNetLog, Log, TEXT("left mouse button clicks"));
+
+	if (bHasGun)
+	{
+		CurrentAttackType = ECharacterAttackType::GunAttack;
+	}
+	else
+	{
+		CurrentAttackType = ECharacterAttackType::HookAttack;
+	}
+
+	DefaultAttack();
+}
+
+void AQLCharacterPlayer::DefaultAttack()
+{
+
+	if (bHasGun)
+	{
+		Super::DefaultAttack(); //Default 총 공격 애니메이션 
+	}
+	else
+	{
+		QL_LOG(QLNetLog, Log, TEXT("Hook Attack ,left mouse button clicks"));
+
+		if (CurrentCombo == 0)
+		{
+			PunchAttackComboBegin();
+			return;
+		}
+
+		if (PunchAttackComboTimer.IsValid())
+		{
+			bHasNextPunchAttackCombo = true;
+			//유효시간 확인 후 CurrentCombo +1 해준다.
+		}
+		else
+		{
+			bHasNextPunchAttackCombo = false;
+		}
+	}
+}
+void AQLCharacterPlayer::PunchAttackComboBegin()
+{
+	CurrentCombo = 1;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (IsValid(AnimInstance))
+	{
+		//여기서 연결
+		const float AttackSpeedRate = PunchAttackData->AttackSpeedRate;
+		AnimInstance->Montage_Play(AttackAnimMontage[CurrentAttackType], AttackSpeedRate);
+
+		FOnMontageEnded MontageEnded;
+
+		MontageEnded.BindUObject(this, &AQLCharacterPlayer::PunchAttackComboEnd);
+		AnimInstance->Montage_SetEndDelegate(MontageEnded, AttackAnimMontage[CurrentAttackType]);
+		PunchAttackComboTimer.Invalidate();
+		SetPunchComboCheckTimer();
+	}
+
+}
+
+void AQLCharacterPlayer::PunchAttackComboEnd(UAnimMontage* AnimMontage, bool IsProperlyEnded)
+{
+	ensure(CurrentCombo != 0); //0면 에러 
+	CurrentCombo = 0;
+}
+
+void AQLCharacterPlayer::SetPunchComboCheckTimer()
+{
+	//현재 CurrentCombo 값이 몇인지 확인
+	int32 ComboIndex = CurrentCombo - 1; //실질적 인덱스는 하나 작음
+	ensure(PunchAttackData->EffectiveFrameCount.IsValidIndex(ComboIndex));
+
+	const float AttackSpeedRate = PunchAttackData->AttackSpeedRate;
+	float ComboEffectiveTime = (PunchAttackData->EffectiveFrameCount[ComboIndex] / PunchAttackData->FrameRate) / AttackSpeedRate;
+
+	QL_LOG(QLNetLog, Log, TEXT("current effective time : %f"),ComboEffectiveTime);
+
+	if (ComboEffectiveTime > 0.0f)
+	{
+		//다음 액션으로 수행
+		GetWorld()->GetTimerManager().SetTimer(PunchAttackComboTimer, this,
+			&AQLCharacterPlayer::PunchAttackComboCheck, ComboEffectiveTime, false);
+	}
+
+}
+
+void AQLCharacterPlayer::PunchAttackComboCheck()
+{
+	PunchAttackComboTimer.Invalidate(); 
+
+	if (bHasNextPunchAttackCombo)
+	{
+		CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, PunchAttackData->MaxFrameCount); //다음으로 이동
+
+		FName NextPunchSection = *FString::Printf(TEXT("%s%d"), *PunchAttackData->MontageSectionNamePrefix, CurrentCombo);
+
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		AnimInstance->Montage_JumpToSection(NextPunchSection);
+		SetPunchComboCheckTimer(); //두개밖에 없지만 다음 기획을 위해서 일단 걸어둠.
+		bHasNextPunchAttackCombo = false;
+	}
+
 }
 
 void AQLCharacterPlayer::FarmingItem()
 {
+	bHasGun = true;
 }
 
-void AQLCharacterPlayer::Run()
+void AQLCharacterPlayer::RunInputPressed()
 {
+
+	if (bIsFirstRunSpeedSetting == false)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 600.f;
+		bIsFirstRunSpeedSetting = true;
+	}
+
 }
 
-void AQLCharacterPlayer::PossessedBy(AController* NewController)
+void AQLCharacterPlayer::RunInputReleased()
 {
-	QL_LOG(QLNetLog, Log, TEXT("Begin"));
-	Super::PossessedBy(NewController);
+	bIsFirstRunSpeedSetting = false;
+	GetCharacterMovement()->MaxWalkSpeed = 450.f;
 }
