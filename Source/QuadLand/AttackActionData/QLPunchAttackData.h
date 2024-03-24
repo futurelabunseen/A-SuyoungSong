@@ -26,8 +26,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = Name)
 	float FrameRate;
 
-	UPROPERTY(EditAnywhere, Category = Name)
+	UPROPERTY(EditAnywhere, Category = Attack)
 	float AttackSpeedRate;
+
+	UPROPERTY(EditAnywhere, Category = Attack)
+	float AttackPunchRange;
 
 	UPROPERTY(EditAnywhere, Category = Name)
 	TArray<float> EffectiveFrameCount;

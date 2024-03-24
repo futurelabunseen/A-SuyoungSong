@@ -4,6 +4,7 @@
 #include "Character/QLCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Physics/QLCollision.h"
 
 AQLCharacterBase::AQLCharacterBase()
 {
@@ -23,7 +24,7 @@ AQLCharacterBase::AQLCharacterBase()
 
 	//CapsuleComponent
 	GetCapsuleComponent()->InitCapsuleSize(35.f, 90.0f);
-	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn")); //나중에 변경 예정 -> object가 추가 되고 등등..
+	GetCapsuleComponent()->SetCollisionProfileName(CPROFILE_QLCAPSULE); //나중에 변경 예정 -> object가 추가 되고 등등..
 
 	//SkeletalMesh
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.f,0.f,-100.f), FRotator(0.0f,-90.f,0.f));
@@ -46,6 +47,15 @@ AQLCharacterBase::AQLCharacterBase()
 }
 
 void AQLCharacterBase::DefaultAttack()
+{
+}
+
+void AQLCharacterBase::AttackHitCheckUsingPunch()
+{
+}
+
+
+void AQLCharacterBase::AttackHitCheckUsingGun()
 {
 }
 

@@ -9,7 +9,9 @@
 #include "InputMappingContext.h"
 #include "QuadLand.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "AttackActionData/QLPunchAttackData.h"
+#include "Physics/QLCollision.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasGun(0), bHasNextPunchAttackCombo(0), CurrentCombo(0), CurrentAttackType(ECharacterAttackType::HookAttack)
 {
@@ -176,6 +178,8 @@ void AQLCharacterPlayer::DefaultAttack()
 		}
 	}
 }
+
+
 void AQLCharacterPlayer::PunchAttackComboBegin()
 {
 	CurrentCombo = 1;
@@ -192,6 +196,7 @@ void AQLCharacterPlayer::PunchAttackComboBegin()
 
 		MontageEnded.BindUObject(this, &AQLCharacterPlayer::PunchAttackComboEnd);
 		AnimInstance->Montage_SetEndDelegate(MontageEnded, AttackAnimMontage[CurrentAttackType]);
+	
 		PunchAttackComboTimer.Invalidate();
 		SetPunchComboCheckTimer();
 	}
@@ -230,10 +235,11 @@ void AQLCharacterPlayer::PunchAttackComboCheck()
 
 	if (bHasNextPunchAttackCombo)
 	{
+		
 		CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, PunchAttackData->MaxFrameCount); //다음으로 이동
 
 		FName NextPunchSection = *FString::Printf(TEXT("%s%d"), *PunchAttackData->MontageSectionNamePrefix, CurrentCombo);
-
+		
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		AnimInstance->Montage_JumpToSection(NextPunchSection);
 		SetPunchComboCheckTimer(); //두개밖에 없지만 다음 기획을 위해서 일단 걸어둠.
@@ -262,4 +268,41 @@ void AQLCharacterPlayer::RunInputReleased()
 {
 	bIsFirstRunSpeedSetting = false;
 	GetCharacterMovement()->MaxWalkSpeed = 450.f;
+}
+
+
+void AQLCharacterPlayer::AttackHitCheckUsingPunch()
+{
+	FName SocketName = *FString::Printf(TEXT("hand_%s%d"), *PunchAttackData->MontageSectionNamePrefix, CurrentCombo);
+	
+	UE_LOG(LogTemp, Log, TEXT("%s"), *SocketName.ToString());
+	const USkeletalMeshSocket* ResultSocket = GetMesh()->GetSocketByName(SocketName);
+
+	if (ResultSocket)
+	{
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this); //식별자 
+
+		FVector SocketLocation = ResultSocket->GetSocketLocation(GetMesh());
+		float AttackRadius = PunchAttackData->AttackPunchRange;
+
+		UE_LOG(LogTemp, Log, TEXT("%s"), *SocketLocation.ToString());
+	
+		FHitResult OutHitResult;
+
+		bool bResult = GetWorld()->SweepSingleByChannel(
+			OutHitResult,
+			SocketLocation,
+			SocketLocation,
+			FQuat::Identity,
+			CCHANNEL_QLACTION,
+			FCollisionShape::MakeSphere(AttackRadius),
+			Params
+		);
+
+#if ENABLE_DRAW_DEBUG
+		FColor Color = bResult ? FColor::Green : FColor::Red;
+		DrawDebugSphere(GetWorld(), SocketLocation, AttackRadius, 10.0f, Color, false, 5.0f);
+#endif
+	}
+	
 }
