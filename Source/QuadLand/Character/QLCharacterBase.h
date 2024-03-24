@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interface/AttackHitCheckInterface.h"
 #include "QLCharacterBase.generated.h"
 
 UCLASS()
-class QUADLAND_API AQLCharacterBase : public ACharacter
+class QUADLAND_API AQLCharacterBase : public ACharacter, public IAttackHitCheckInterface
 {
 	GENERATED_BODY()
 
@@ -34,5 +35,7 @@ protected:
 protected:
 	
 	virtual void DefaultAttack(); //NPC - Player 모두 총을 주웠을 때 사용할 예정
+	virtual void AttackHitCheckUsingPunch() override;
+	virtual void AttackHitCheckUsingGun() override;
 
 };

@@ -25,9 +25,7 @@ class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase
 	
 public:
 	AQLCharacterPlayer();
-
 	//Default
-
 	virtual void BeginPlay() override;
 //Input Section
 	//Enhanced Input - Action ¿¬°á
@@ -90,4 +88,6 @@ protected:
 
 	FTimerHandle PunchAttackComboTimer;
 	ECharacterAttackType CurrentAttackType;
+
+	virtual void AttackHitCheckUsingPunch() override;
 };
