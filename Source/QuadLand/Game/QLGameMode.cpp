@@ -3,6 +3,7 @@
 
 #include "Game/QLGameMode.h"
 #include "QuadLand.h"
+#include "Player/QLPlayerState.h"
 
 AQLGameMode::AQLGameMode()
 {
@@ -19,6 +20,7 @@ AQLGameMode::AQLGameMode()
 		PlayerControllerClass = PlayerControllerClassRef.Class;
 	}
 
+	PlayerStateClass = AQLPlayerState::StaticClass();
 }
 
 void AQLGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
