@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Character/QLCharacterBase.h"
 #include "InputActionValue.h"
+#include "AbilitySystemInterface.h"
 #include "QLCharacterPlayer.generated.h"
 
 /**
@@ -19,7 +20,7 @@ enum class ECharacterAttackType : uint8
 };
 
 UCLASS()
-class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase
+class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase , public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
@@ -27,11 +28,26 @@ public:
 	AQLCharacterPlayer();
 	//Default
 	virtual void BeginPlay() override;
-//Input Section
+	virtual void PossessedBy(AController* NewController) override;
+
 	//Enhanced Input - Action 연결
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 	void SetCharacterControl();
+
+	//ASC
+	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	//FORCEINLINE
+	 class UAnimMontage* GetAnimMontageUsingPunch() const { return AttackAnimMontage[ECharacterAttackType::HookAttack]; }
+
+	//FORCEINLINE
+	 class UAnimMontage* GetAnimMontageUsingGun() const { return AttackAnimMontage[ECharacterAttackType::GunAttack]; }
+	
+	 const ECharacterAttackType& GetCurrentAttackType() const { return CurrentAttackType; }
+
+	 class UQLPunchAttackData* GetPunchAttackData() { return PunchAttackData; }
+
+
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
@@ -73,14 +89,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
 	TObjectPtr<class UQLPunchAttackData> PunchAttackData;
 
-	void PunchAttackComboBegin();
-	void PunchAttackComboEnd(class UAnimMontage* AnimMontage, bool IsProperlyEnded); //MontageDelegate 호출될 수 있도록 맞출 예정
-	
-	void SetPunchComboCheckTimer();
-	void PunchAttackComboCheck();
+	//void PunchAttackComboBegin();
+	//void PunchAttackComboEnd(class UAnimMontage* AnimMontage, bool IsProperlyEnded); //MontageDelegate 호출될 수 있도록 맞출 예정
+	//
+	//void SetPunchComboCheckTimer();
+	//void PunchAttackComboCheck();
 
-	virtual void DefaultAttack() override;
-	
+	//virtual void DefaultAttack() override;
+	//virtual void AttackHitCheckUsingPunch() override;
+
 	uint8 bHasGun : 1;
 	uint8 bHasNextPunchAttackCombo : 1;
 	
@@ -89,5 +106,22 @@ protected:
 	FTimerHandle PunchAttackComboTimer;
 	ECharacterAttackType CurrentAttackType;
 
-	virtual void AttackHitCheckUsingPunch() override;
+
+	//GAS
+protected:
+
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TObjectPtr<class UAbilitySystemComponent> ASC;
+
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TArray<TSubclassOf<class UGameplayAbility>> StartAbilities;
+
+	//GAS - Input Abilities
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TMap<int32, TSubclassOf<class UGameplayAbility>> InputAbilities;
+
+	void GASInputPressed(int32 InputID);
+	void GASInputReleased(int32 InputID);
+	void SetupGASInputComponent();
+
 };

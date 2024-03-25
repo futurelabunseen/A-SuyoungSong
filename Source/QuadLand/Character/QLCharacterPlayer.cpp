@@ -12,9 +12,13 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "AttackActionData/QLPunchAttackData.h"
 #include "Physics/QLCollision.h"
+#include "Player/QLPlayerState.h"
+#include "AbilitySystemComponent.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasGun(0), bHasNextPunchAttackCombo(0), CurrentCombo(0), CurrentAttackType(ECharacterAttackType::HookAttack)
 {
+	ASC = nullptr;
+
 	//springArm에 Camera를 매달을 예정
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	CameraSpringArm->TargetArmLength = 450.0f;
@@ -75,6 +79,37 @@ void AQLCharacterPlayer::BeginPlay()
 
 }
 
+void AQLCharacterPlayer::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	AQLPlayerState* QLPlayerState = Cast<AQLPlayerState>(GetPlayerState());
+
+	if (QLPlayerState)
+	{
+		ASC = QLPlayerState->GetAbilitySystemComponent();
+		ASC->InitAbilityActorInfo(QLPlayerState, this);
+
+		for (const auto& Ability : StartAbilities)
+		{
+			FGameplayAbilitySpec Spec(Ability);
+			ASC->GiveAbility(Spec);
+		}
+
+		for (const auto& Ability : InputAbilities)
+		{
+			FGameplayAbilitySpec Spec(Ability.Value);
+			Spec.InputID = Ability.Key;
+			ASC->GiveAbility(Spec);
+		}
+
+		SetupGASInputComponent();
+
+		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
+		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+	}
+}
+
 void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -83,12 +118,21 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Look);
-	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Attack);
-
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::RunInputPressed);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::RunInputReleased);
+
+	SetupGASInputComponent();
 }
 
+void AQLCharacterPlayer::SetupGASInputComponent()
+{
+	if (IsValid(ASC)&&IsValid(InputComponent))
+	{
+		UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
+
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::GASInputPressed, 0);
+	}
+}
 void AQLCharacterPlayer::SetCharacterControl()
 {
 
@@ -107,6 +151,11 @@ void AQLCharacterPlayer::SetCharacterControl()
 			}
 		}
 	}
+}
+
+UAbilitySystemComponent* AQLCharacterPlayer::GetAbilitySystemComponent() const
+{
+	return ASC;
 }
 
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)
@@ -134,6 +183,44 @@ void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookAxisVector.Y);
 }
 
+void AQLCharacterPlayer::Attack()
+{
+}
+
+void AQLCharacterPlayer::GASInputPressed(int32 InputID)
+{
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+	
+	if (Spec)
+	{
+		Spec->InputPressed = true; //해당키를 눌렀음을 알려줌 
+
+		if (Spec->IsActive())
+		{
+			ASC->AbilitySpecInputPressed(*Spec);
+		}
+		else
+		{
+			ASC->TryActivateAbility(Spec->Handle);
+		}
+	}
+}
+
+void AQLCharacterPlayer::GASInputReleased(int32 InputID)
+{
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+
+	if (Spec)
+	{
+		Spec->InputPressed = false; //해당키를 눌렀음을 알려줌
+		if (Spec->IsActive())
+		{
+			ASC->AbilitySpecInputReleased(*Spec);
+		}
+	}
+}
+
+/* Attack -> GAS 변경"
 void AQLCharacterPlayer::Attack()
 {
 	QL_LOG(QLNetLog, Log, TEXT("left mouse button clicks"));
@@ -180,74 +267,43 @@ void AQLCharacterPlayer::DefaultAttack()
 }
 
 
-void AQLCharacterPlayer::PunchAttackComboBegin()
+
+void AQLCharacterPlayer::AttackHitCheckUsingPunch()
 {
-	CurrentCombo = 1;
+	FName SocketName = *FString::Printf(TEXT("hand_%s%d"), *PunchAttackData->MontageSectionNamePrefix, CurrentCombo);
 
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	UE_LOG(LogTemp, Log, TEXT("%s"), *SocketName.ToString());
+	const USkeletalMeshSocket* ResultSocket = GetMesh()->GetSocketByName(SocketName);
 
-	if (IsValid(AnimInstance))
+	if (ResultSocket)
 	{
-		//여기서 연결
-		const float AttackSpeedRate = PunchAttackData->AttackSpeedRate;
-		AnimInstance->Montage_Play(AttackAnimMontage[CurrentAttackType], AttackSpeedRate);
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this); //식별자 
 
-		FOnMontageEnded MontageEnded;
+		FVector SocketLocation = ResultSocket->GetSocketLocation(GetMesh());
+		float AttackRadius = PunchAttackData->AttackPunchRange;
 
-		MontageEnded.BindUObject(this, &AQLCharacterPlayer::PunchAttackComboEnd);
-		AnimInstance->Montage_SetEndDelegate(MontageEnded, AttackAnimMontage[CurrentAttackType]);
-	
-		PunchAttackComboTimer.Invalidate();
-		SetPunchComboCheckTimer();
+		UE_LOG(LogTemp, Log, TEXT("%s"), *SocketLocation.ToString());
+
+		FHitResult OutHitResult;
+
+		bool bResult = GetWorld()->SweepSingleByChannel(
+			OutHitResult,
+			SocketLocation,
+			SocketLocation,
+			FQuat::Identity,
+			CCHANNEL_QLACTION,
+			FCollisionShape::MakeSphere(AttackRadius),
+			Params
+		);
+
+#if ENABLE_DRAW_DEBUG
+		FColor Color = bResult ? FColor::Green : FColor::Red;
+		DrawDebugSphere(GetWorld(), SocketLocation, AttackRadius, 10.0f, Color, false, 5.0f);
+#endif
 	}
 
 }
-
-void AQLCharacterPlayer::PunchAttackComboEnd(UAnimMontage* AnimMontage, bool IsProperlyEnded)
-{
-	ensure(CurrentCombo != 0); //0면 에러 
-	CurrentCombo = 0;
-}
-
-void AQLCharacterPlayer::SetPunchComboCheckTimer()
-{
-	//현재 CurrentCombo 값이 몇인지 확인
-	int32 ComboIndex = CurrentCombo - 1; //실질적 인덱스는 하나 작음
-	ensure(PunchAttackData->EffectiveFrameCount.IsValidIndex(ComboIndex));
-
-	const float AttackSpeedRate = PunchAttackData->AttackSpeedRate;
-	float ComboEffectiveTime = (PunchAttackData->EffectiveFrameCount[ComboIndex] / PunchAttackData->FrameRate) / AttackSpeedRate;
-
-	QL_LOG(QLNetLog, Log, TEXT("current effective time : %f"),ComboEffectiveTime);
-
-	if (ComboEffectiveTime > 0.0f)
-	{
-		//다음 액션으로 수행
-		GetWorld()->GetTimerManager().SetTimer(PunchAttackComboTimer, this,
-			&AQLCharacterPlayer::PunchAttackComboCheck, ComboEffectiveTime, false);
-	}
-
-}
-
-void AQLCharacterPlayer::PunchAttackComboCheck()
-{
-	PunchAttackComboTimer.Invalidate(); 
-
-	if (bHasNextPunchAttackCombo)
-	{
-		
-		CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, PunchAttackData->MaxFrameCount); //다음으로 이동
-
-		FName NextPunchSection = *FString::Printf(TEXT("%s%d"), *PunchAttackData->MontageSectionNamePrefix, CurrentCombo);
-		
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		AnimInstance->Montage_JumpToSection(NextPunchSection);
-		SetPunchComboCheckTimer(); //두개밖에 없지만 다음 기획을 위해서 일단 걸어둠.
-		bHasNextPunchAttackCombo = false;
-	}
-
-}
-
+*/
 void AQLCharacterPlayer::FarmingItem()
 {
 	bHasGun = true;
@@ -270,39 +326,3 @@ void AQLCharacterPlayer::RunInputReleased()
 	GetCharacterMovement()->MaxWalkSpeed = 450.f;
 }
 
-
-void AQLCharacterPlayer::AttackHitCheckUsingPunch()
-{
-	FName SocketName = *FString::Printf(TEXT("hand_%s%d"), *PunchAttackData->MontageSectionNamePrefix, CurrentCombo);
-	
-	UE_LOG(LogTemp, Log, TEXT("%s"), *SocketName.ToString());
-	const USkeletalMeshSocket* ResultSocket = GetMesh()->GetSocketByName(SocketName);
-
-	if (ResultSocket)
-	{
-		FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this); //식별자 
-
-		FVector SocketLocation = ResultSocket->GetSocketLocation(GetMesh());
-		float AttackRadius = PunchAttackData->AttackPunchRange;
-
-		UE_LOG(LogTemp, Log, TEXT("%s"), *SocketLocation.ToString());
-	
-		FHitResult OutHitResult;
-
-		bool bResult = GetWorld()->SweepSingleByChannel(
-			OutHitResult,
-			SocketLocation,
-			SocketLocation,
-			FQuat::Identity,
-			CCHANNEL_QLACTION,
-			FCollisionShape::MakeSphere(AttackRadius),
-			Params
-		);
-
-#if ENABLE_DRAW_DEBUG
-		FColor Color = bResult ? FColor::Green : FColor::Red;
-		DrawDebugSphere(GetWorld(), SocketLocation, AttackRadius, 10.0f, Color, false, 5.0f);
-#endif
-	}
-	
-}
