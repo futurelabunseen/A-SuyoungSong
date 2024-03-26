@@ -3,6 +3,10 @@
 
 #include "Animation/QLAN_AttackHitCheck.h"
 #include "Interface/AttackHitCheckInterface.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayTag/GamplayTags.h"
+#include "Engine/SkeletalMeshSocket.h"
+
 UQLAN_AttackHitCheck::UQLAN_AttackHitCheck()
 {
 }
@@ -16,13 +20,21 @@ void UQLAN_AttackHitCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenc
 {
 	Super::Notify(MeshComp,Animation,EventReference);
 
-	UE_LOG(LogTemp, Warning, TEXT("Notify Check"));
-
 	IAttackHitCheckInterface* AttackHitCheckActor = Cast<IAttackHitCheckInterface>(MeshComp->GetOwner());
-	
+
 	if (AttackHitCheckActor)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Current Character Actor is CharacterPlayer"));
-		AttackHitCheckActor->AttackHitCheckUsingPunch(); //펀치 충돌 체크 
+		//AttackHitCheckActor->AttackHitCheckUsingPunch(); //펀치 충돌 체크 
+		
+		FName SocketName = *FString::Printf(TEXT("hand_%s"), *CurrentSectionName);
+
+		UE_LOG(LogTemp, Log, TEXT("%s"), *SocketName.ToString());
+		const USkeletalMeshSocket* ResultSocket = MeshComp->GetSocketByName(SocketName);
+		FGameplayEventData Payload;
+
+		//Payload.EventTag = AttackHitCheckActor->GetCurrentAttackTag(); //현재 얘에 의해서 트리거 되었음을 전달 
+		Payload.OptionalObject = ResultSocket;
+		
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(MeshComp->GetOwner(), CHARACTER_ATTACK_HITCHECK, Payload);
 	}
 }

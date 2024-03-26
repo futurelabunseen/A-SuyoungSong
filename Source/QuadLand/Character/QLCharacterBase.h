@@ -38,4 +38,10 @@ protected:
 	virtual void AttackHitCheckUsingPunch() override;
 	virtual void AttackHitCheckUsingGun() override;
 
+	ECharacterAttackType CurrentAttackType;
+
+
+
+	virtual FGameplayTag GetCurrentAttackTag() const override;
+
 };

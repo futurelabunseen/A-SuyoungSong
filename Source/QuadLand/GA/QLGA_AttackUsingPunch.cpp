@@ -9,7 +9,7 @@
 #include "AbilitySystemComponent.h"
 #include "GA/QLGA_Attack.h"
 
-UQLGA_AttackUsingPunch::UQLGA_AttackUsingPunch() : bHasNextPunchAttackCombo(0), CurrentCombo(0)
+UQLGA_AttackUsingPunch::UQLGA_AttackUsingPunch() : CurrentCombo(0), bHasNextPunchAttackCombo(0)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
@@ -20,8 +20,6 @@ void UQLGA_AttackUsingPunch::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
 
-	UE_LOG(LogTemp, Log, TEXT("QLGA_AttackUsingPunch Class is running 1"));
-
 	if (Player)
 	{
 		UAnimMontage* AnimMontageUsingPunch = Player->GetAnimMontageUsingPunch();
@@ -31,7 +29,7 @@ void UQLGA_AttackUsingPunch::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 
 		/*
 		현재 목표 : 연속으로 눌렀는지를 확인하기 위해서 Attack을 찾아서 Delegate 연결을 해주는 것을 목표로 한다.
-
+		TrrigerEventData로 전달된 OptionObject 는 Parent 를 담아서 다이나믹 연결 완.
 		*/
 		UAbilityTask_PlayMontageAndWait* AttackUsingPunchMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PunchAnimMontage"), AnimMontageUsingPunch, AnimSpeedRate , GetNextSection());
 		AttackUsingPunchMontage->OnCompleted.AddDynamic(this, &UQLGA_AttackUsingPunch::OnCompleted);
