@@ -4,7 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "GameplayTagContainer.h"
 #include "AttackHitCheckInterface.generated.h"
+
+
+UENUM()
+enum class ECharacterAttackType : uint8
+{
+	HookAttack,
+	GunAttack
+};
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
@@ -25,5 +34,7 @@ public:
 	
 	virtual void AttackHitCheckUsingPunch() = 0;
 	virtual void AttackHitCheckUsingGun() = 0;
+
+	virtual FGameplayTag GetCurrentAttackTag() const = 0;
 
 };

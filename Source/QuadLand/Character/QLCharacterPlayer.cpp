@@ -9,15 +9,14 @@
 #include "InputMappingContext.h"
 #include "QuadLand.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Engine/SkeletalMeshSocket.h"
 #include "AttackActionData/QLPunchAttackData.h"
-#include "Physics/QLCollision.h"
 #include "Player/QLPlayerState.h"
 #include "AbilitySystemComponent.h"
 
-AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasGun(0), bHasNextPunchAttackCombo(0), CurrentCombo(0), CurrentAttackType(ECharacterAttackType::HookAttack)
+AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasGun(0), bHasNextPunchAttackCombo(0), CurrentCombo(0)
 {
 	ASC = nullptr;
+	CurrentAttackType = ECharacterAttackType::HookAttack; //default
 
 	//springArm에 Camera를 매달을 예정
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));

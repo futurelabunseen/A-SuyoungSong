@@ -12,12 +12,6 @@
  * 
  */
 
-UENUM()
-enum class ECharacterAttackType : uint8
-{
-	HookAttack,
-	GunAttack
-};
 
 UCLASS()
 class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase , public IAbilitySystemInterface
@@ -104,7 +98,6 @@ protected:
 	int CurrentCombo;
 
 	FTimerHandle PunchAttackComboTimer;
-	ECharacterAttackType CurrentAttackType;
 
 
 	//GAS

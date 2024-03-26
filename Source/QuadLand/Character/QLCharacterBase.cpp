@@ -4,9 +4,10 @@
 #include "Character/QLCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "GameplayTag/GamplayTags.h"
 #include "Physics/QLCollision.h"
 
-AQLCharacterBase::AQLCharacterBase()
+AQLCharacterBase::AQLCharacterBase() : CurrentAttackType(ECharacterAttackType::GunAttack)
 {
 	//Pawn 
 	bUseControllerRotationPitch = false;
@@ -57,5 +58,17 @@ void AQLCharacterBase::AttackHitCheckUsingPunch()
 
 void AQLCharacterBase::AttackHitCheckUsingGun()
 {
+}
+
+FGameplayTag AQLCharacterBase::GetCurrentAttackTag() const
+{
+	if (CurrentAttackType == ECharacterAttackType::GunAttack)
+	{
+		return CHARACTER_EQUIP_GUNTYPEA;
+	}
+	else
+	{
+		return CHARACTER_EQUIP_NON;
+	}
 }
 
