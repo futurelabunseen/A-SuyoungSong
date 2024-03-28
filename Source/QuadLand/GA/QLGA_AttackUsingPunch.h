@@ -9,6 +9,8 @@
 /**
  * 
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAttackEndedDelegate);
+
 UCLASS()
 class QUADLAND_API UQLGA_AttackUsingPunch : public UGameplayAbility
 {
@@ -26,6 +28,8 @@ public:
 	void PunchAttackComboCheck();
 	FName GetNextSection();
 
+	FAttackEndedDelegate OnAttackCompleted;
+	FAttackEndedDelegate OnAttackInterrupted;
 protected:
 	UFUNCTION()
 	void OnCompleted();
@@ -40,4 +44,10 @@ protected:
 	TObjectPtr<class UQLPunchAttackData> PunchAttackData;
 
 	void OnDoubleCheckedCallback();
+
+	UPROPERTY()
+	TObjectPtr<class UQLGA_Attack> PreferredAttackAbility;
+protected:
+
+	void PlayAttackAnimation();
 };

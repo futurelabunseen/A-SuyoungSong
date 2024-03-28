@@ -21,7 +21,7 @@ void UQLAN_AttackHitCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenc
 	Super::Notify(MeshComp,Animation,EventReference);
 
 	IAttackHitCheckInterface* AttackHitCheckActor = Cast<IAttackHitCheckInterface>(MeshComp->GetOwner());
-
+	UE_LOG(LogTemp, Log, TEXT("Norify is running"));
 	if (AttackHitCheckActor)
 	{
 		//AttackHitCheckActor->AttackHitCheckUsingPunch(); //펀치 충돌 체크 

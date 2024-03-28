@@ -8,6 +8,7 @@
 
 UQLAT_SweepTrace::UQLAT_SweepTrace()
 {
+	bSimulatedTask = true; //Simulated 호출을 위함..
 }
 
 UQLAT_SweepTrace* UQLAT_SweepTrace::CreateTask(UGameplayAbility* OwningAbility, TSubclassOf<class AQLTA_SweepTraceResult> TargetActorClass, FVector& SocketPos)
@@ -76,4 +77,10 @@ void UQLAT_SweepTrace::OnCompletedCallback(const FGameplayAbilityTargetDataHandl
 	}
 
 	EndTask();
+}
+
+void UQLAT_SweepTrace::InitSimulatedTask(UGameplayTasksComponent& InGameplayTasksComponent)
+{
+	Super::InitSimulatedTask(InGameplayTasksComponent);
+	UE_LOG(LogTemp, Log, TEXT("여기 실행돼?"));
 }
