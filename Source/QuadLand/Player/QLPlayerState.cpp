@@ -6,7 +6,9 @@
 AQLPlayerState::AQLPlayerState()
 {
     ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
+    ASC->SetIsReplicated(true);
 }
+
 
 UAbilitySystemComponent* AQLPlayerState::GetAbilitySystemComponent() const
 {

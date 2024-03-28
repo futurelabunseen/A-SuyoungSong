@@ -7,6 +7,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Character/QLCharacterPlayer.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "QuadLand.h"
 
 UQLGA_AttackHitCheck::UQLGA_AttackHitCheck()
 {
@@ -18,8 +19,6 @@ void UQLGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
 	ResultSocket = Cast<USkeletalMeshSocket>(TriggerEventData->OptionalObject);
-	UE_LOG(LogTemp, Log, TEXT("hello, activate Notify. %s"), *(TriggerEventData->OptionalObject.GetName()));
-
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
 
 	if (Player)
@@ -27,7 +26,6 @@ void UQLGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		FVector SocketPos = ResultSocket->GetSocketLocation(Player->GetMesh());
 		UQLAT_SweepTrace* SweepTrace = UQLAT_SweepTrace::CreateTask(this, AQLTA_SweepTraceResult::StaticClass(), SocketPos);	
 		SweepTrace->OnCompleted.AddDynamic(this, &UQLGA_AttackHitCheck::OnCompletedCallback);  //결과값이 전달될 예정
-		
 		SweepTrace->ReadyForActivation(); //답변 올때까지 대기
 	}
 }
@@ -40,10 +38,13 @@ void UQLGA_AttackHitCheck::EndAbility(const FGameplayAbilitySpecHandle Handle, c
 
 void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataHandle& TargetDataHandle)
 {
-	if (UAbilitySystemBlueprintLibrary::TargetDataHasHitResult(TargetDataHandle,0))
+	if (GetOwningActorFromActorInfo()->GetLocalRole() == ROLE_Authority)
 	{
-		FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(TargetDataHandle, 0);
-		UE_LOG(LogTemp, Log, TEXT("Current Hit Result is %s"),*(HitResult.GetActor()->GetName()));
+		if (UAbilitySystemBlueprintLibrary::TargetDataHasHitResult(TargetDataHandle, 0))
+		{
+			FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(TargetDataHandle, 0);
+			QL_GASLOG(QLNetLog, Log, TEXT("Current Hit Result is %s"), *(HitResult.GetActor()->GetName()));
+		}
 	}
 
 	bool bReplicateEndAbility = true;

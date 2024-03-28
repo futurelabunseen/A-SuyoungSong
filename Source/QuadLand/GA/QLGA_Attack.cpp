@@ -15,6 +15,7 @@ UQLGA_Attack::UQLGA_Attack()
 void UQLGA_Attack::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
+
 	if (OnCheckedAttack.IsBound())
 	{
 		// 델리게이트가 바운드되어 있음
@@ -29,7 +30,6 @@ void UQLGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	AQLCharacterPlayer* Player = CastChecked<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
 	ECharacterAttackType AttackType= Player->GetCurrentAttackType();
-	UAbilitySystemComponent* ASC = Player->GetAbilitySystemComponent();
 
 	if (AttackType == ECharacterAttackType::HookAttack)
 	{
@@ -50,6 +50,7 @@ void UQLGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 void UQLGA_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	OnCheckedAttack = nullptr;
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 

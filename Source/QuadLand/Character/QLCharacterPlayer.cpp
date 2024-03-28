@@ -78,6 +78,10 @@ void AQLCharacterPlayer::BeginPlay()
 
 }
 
+/// <summary>
+/// PossessedBy 자체가 서버에서만 호출되기 때문에, 아래 Ability System 등록은 서버에서만 수행
+/// </summary>
+/// <param name="NewController"></param>
 void AQLCharacterPlayer::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -157,6 +161,22 @@ UAbilitySystemComponent* AQLCharacterPlayer::GetAbilitySystemComponent() const
 	return ASC;
 }
 
+//Client Only 
+void AQLCharacterPlayer::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	AQLPlayerState* QLPlayerState = GetPlayerState<AQLPlayerState>();
+
+	if (QLPlayerState)
+	{
+		ASC = Cast<UAbilitySystemComponent>(QLPlayerState->GetAbilitySystemComponent());
+
+		ASC->InitAbilityActorInfo(QLPlayerState, this);
+		QL_LOG(QLNetLog, Log, TEXT("Current Class is called by Client only"));
+	}
+}
+
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 {
 	//이동 벡터
@@ -219,90 +239,6 @@ void AQLCharacterPlayer::GASInputReleased(int32 InputID)
 	}
 }
 
-/* Attack -> GAS 변경"
-void AQLCharacterPlayer::Attack()
-{
-	QL_LOG(QLNetLog, Log, TEXT("left mouse button clicks"));
-
-	if (bHasGun)
-	{
-		CurrentAttackType = ECharacterAttackType::GunAttack;
-	}
-	else
-	{
-		CurrentAttackType = ECharacterAttackType::HookAttack;
-	}
-
-	DefaultAttack();
-}
-
-void AQLCharacterPlayer::DefaultAttack()
-{
-
-	if (bHasGun)
-	{
-		Super::DefaultAttack(); //Default 총 공격 애니메이션 
-	}
-	else
-	{
-		QL_LOG(QLNetLog, Log, TEXT("Hook Attack ,left mouse button clicks"));
-
-		if (CurrentCombo == 0)
-		{
-			PunchAttackComboBegin();
-			return;
-		}
-
-		if (PunchAttackComboTimer.IsValid())
-		{
-			bHasNextPunchAttackCombo = true;
-			//유효시간 확인 후 CurrentCombo +1 해준다.
-		}
-		else
-		{
-			bHasNextPunchAttackCombo = false;
-		}
-	}
-}
-
-
-
-void AQLCharacterPlayer::AttackHitCheckUsingPunch()
-{
-	FName SocketName = *FString::Printf(TEXT("hand_%s%d"), *PunchAttackData->MontageSectionNamePrefix, CurrentCombo);
-
-	UE_LOG(LogTemp, Log, TEXT("%s"), *SocketName.ToString());
-	const USkeletalMeshSocket* ResultSocket = GetMesh()->GetSocketByName(SocketName);
-
-	if (ResultSocket)
-	{
-		FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this); //식별자 
-
-		FVector SocketLocation = ResultSocket->GetSocketLocation(GetMesh());
-		float AttackRadius = PunchAttackData->AttackPunchRange;
-
-		UE_LOG(LogTemp, Log, TEXT("%s"), *SocketLocation.ToString());
-
-		FHitResult OutHitResult;
-
-		bool bResult = GetWorld()->SweepSingleByChannel(
-			OutHitResult,
-			SocketLocation,
-			SocketLocation,
-			FQuat::Identity,
-			CCHANNEL_QLACTION,
-			FCollisionShape::MakeSphere(AttackRadius),
-			Params
-		);
-
-#if ENABLE_DRAW_DEBUG
-		FColor Color = bResult ? FColor::Green : FColor::Red;
-		DrawDebugSphere(GetWorld(), SocketLocation, AttackRadius, 10.0f, Color, false, 5.0f);
-#endif
-	}
-
-}
-*/
 void AQLCharacterPlayer::FarmingItem()
 {
 	bHasGun = true;

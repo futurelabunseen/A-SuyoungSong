@@ -6,6 +6,8 @@
 #include "Character/QLCharacterPlayer.h"
 #include "Physics/QLCollision.h"
 #include "DrawDebugHelpers.h"
+#include "QuadLand.h"
+
 AQLTA_SweepTraceResult::AQLTA_SweepTraceResult()
 {
 }

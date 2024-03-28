@@ -34,14 +34,13 @@ public:
 	//FORCEINLINE
 	 class UAnimMontage* GetAnimMontageUsingPunch() const { return AttackAnimMontage[ECharacterAttackType::HookAttack]; }
 
-	//FORCEINLINE
 	 class UAnimMontage* GetAnimMontageUsingGun() const { return AttackAnimMontage[ECharacterAttackType::GunAttack]; }
 	
 	 const ECharacterAttackType& GetCurrentAttackType() const { return CurrentAttackType; }
 
 	 class UQLPunchAttackData* GetPunchAttackData() { return PunchAttackData; }
 
-
+	 virtual void OnRep_PlayerState() override;
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))

@@ -42,5 +42,6 @@ protected:
 	TObjectPtr<class AQLTA_SweepTraceResult> TargetActor;
 	FVector CurrentSocketPos;
 
-	//결과
+	//동기화를 위함
+	virtual void InitSimulatedTask(UGameplayTasksComponent& InGameplayTasksComponent) override;
 };
