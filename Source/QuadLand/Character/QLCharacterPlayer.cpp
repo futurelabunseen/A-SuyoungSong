@@ -11,16 +11,19 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AttackActionData/QLPunchAttackData.h"
 #include "Player/QLPlayerState.h"
+#include "Player/QLPlayerController.h"
 #include "AbilitySystemComponent.h"
+#include "Camera/CameraComponent.h"
 
-AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasGun(0), bHasNextPunchAttackCombo(0), CurrentCombo(0)
+
+AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasGun(0), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0)
 {
 	ASC = nullptr;
 	CurrentAttackType = ECharacterAttackType::HookAttack; //default
 
 	//springArm에 Camera를 매달을 예정
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	CameraSpringArm->TargetArmLength = 450.0f;
+	CameraSpringArm->TargetArmLength = 300.0f;
 	CameraSpringArm->SetupAttachment(RootComponent);
 	CameraSpringArm->bUsePawnControlRotation = true; //Pawn이동에 따라서 회전 예정
 
@@ -28,6 +31,8 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasG
 	Camera->SetupAttachment(CameraSpringArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false; //spring Arm에 따라서 조절될 예정
 
+	CameraSpringArm->SetRelativeLocation(FVector(0.0f,0.0f,30.0f));
+	CameraSpringArm->SocketOffset = FVector(0.0f, 40.0f, 40.0f);
 	//EnhancedInput 연결
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Move.IA_Move'"));
 
@@ -55,6 +60,13 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasG
 	if (RunActionRef.Object)
 	{
 		RunAction = RunActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> FarmingActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Faming.IA_Faming'"));
+
+	if (RunActionRef.Object)
+	{
+		FarmingAction = FarmingActionRef.Object;
 	}
 
 	//InputContext Mapping
@@ -121,6 +133,7 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Look);
+	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::FarmingItem);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::RunInputPressed);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::RunInputReleased);
 
@@ -175,6 +188,20 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 		ASC->InitAbilityActorInfo(QLPlayerState, this);
 		QL_LOG(QLNetLog, Log, TEXT("Current Class is called by Client only"));
 	}
+}
+
+void AQLCharacterPlayer::PickupItem()
+{
+	if (bPressedFarmingKey)
+	{
+		//카메라의 월드 위치를 가져온다.
+		//FVector StartPos = Camera->GetCameraLoc
+		//카메라의 방향을 가져온다.
+		//카메라 위치에서 거리 50cm로 라인트레이스를 쏜다.
+		//해당 결과에 오브젝트가 있는지 여부를 확인한다.
+	}
+	//무조건 false로 만듬.
+	bPressedFarmingKey = false;
 }
 
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)
@@ -241,12 +268,16 @@ void AQLCharacterPlayer::GASInputReleased(int32 InputID)
 
 void AQLCharacterPlayer::FarmingItem()
 {
-	bHasGun = true;
+	bPressedFarmingKey = true;
+	PickupItem();
+	//Raycast 를 사용해서 해당 오브젝트 파악하기
+//	FVector Start = Get
+	
 }
 
 void AQLCharacterPlayer::RunInputPressed()
 {
-
+	
 	if (bIsFirstRunSpeedSetting == false)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = 600.f;
