@@ -16,4 +16,16 @@ class QUADLAND_API AQLPlayerController : public APlayerController
 	
 public:
 	AQLPlayerController();
+
+	const UUserWidget* GetUserHUDWidget() const { return UserHUDWidget; }
+protected:
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Widget)
+	TSubclassOf<class UUserWidget> UserHUDWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Widget)
+	TObjectPtr<class UUserWidget> UserHUDWidget;
+
+
+	virtual void BeginPlay() override;
 };

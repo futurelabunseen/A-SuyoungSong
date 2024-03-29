@@ -6,6 +6,7 @@
 #include "Character/QLCharacterBase.h"
 #include "InputActionValue.h"
 #include "AbilitySystemInterface.h"
+#include "Interface/ItemFarmingInterface.h"
 #include "QLCharacterPlayer.generated.h"
 
 /**
@@ -14,7 +15,7 @@
 
 
 UCLASS()
-class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase , public IAbilitySystemInterface
+class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase ,public IItemFarmingInterface, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
@@ -41,6 +42,8 @@ public:
 	 class UQLPunchAttackData* GetPunchAttackData() { return PunchAttackData; }
 
 	 virtual void OnRep_PlayerState() override;
+
+	 virtual void PickupItem() override;
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
@@ -115,5 +118,9 @@ protected:
 	void GASInputPressed(int32 InputID);
 	void GASInputReleased(int32 InputID);
 	void SetupGASInputComponent();
+
+//파밍 시스템을 위한 변수
+protected:
+	uint8 bPressedFarmingKey : 1;
 
 };
