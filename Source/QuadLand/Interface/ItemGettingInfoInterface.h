@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "ItemFarmingInterface.generated.h"
+#include "ItemGettingInfoInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UItemFarmingInterface : public UInterface
+class UItemGettingInfoInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -16,12 +16,14 @@ class UItemFarmingInterface : public UInterface
 /**
  * 
  */
-class QUADLAND_API IItemFarmingInterface
+class QUADLAND_API IItemGettingInfoInterface
 {
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	virtual void PickupItem() = 0;
+	virtual class UStaticMeshComponent* GetMesh() const = 0;
+	virtual class UQLWeaponStat* GetStat() const = 0;
+
 };

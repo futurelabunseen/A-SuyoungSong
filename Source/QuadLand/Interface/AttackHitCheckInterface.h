@@ -5,15 +5,9 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "GameplayTagContainer.h"
+#include "GameData/WeaponType.h"
 #include "AttackHitCheckInterface.generated.h"
 
-
-UENUM()
-enum class ECharacterAttackType : uint8
-{
-	HookAttack,
-	GunAttack
-};
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)

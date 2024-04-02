@@ -14,6 +14,21 @@
 UQLGA_AttackUsingPunch::UQLGA_AttackUsingPunch() : CurrentCombo(0), bHasNextPunchAttackCombo(0)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+}
+
+void UQLGA_AttackUsingPunch::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	UE_LOG(LogTemp, Log, TEXT("AttackUsingPunch Current Input Pressed"));
+
+	if (PunchAttackComboTimer.IsValid())
+	{
+		bHasNextPunchAttackCombo = true;
+	}
+	else
+	{
+		bHasNextPunchAttackCombo = false;
+	}
 }
 
 void UQLGA_AttackUsingPunch::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -25,13 +40,6 @@ void UQLGA_AttackUsingPunch::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 	if (Player)
 	{
 		PunchAttackData = Player->GetPunchAttackData();
-		PreferredAttackAbility = Cast<UQLGA_Attack>(TriggerEventData->OptionalObject); //약참조로 연결, 어빌리티가 살아있는 동안 이전 어빌리티도 살아있을 것이라고 일단...예상해봄 ^^!
-		
-		if (PreferredAttackAbility) //약포인터가 유효한지를 체크한다.
-		{
-			UE_LOG(LogTemp, Log, TEXT("3"));
-			PreferredAttackAbility->OnCheckedAttack.BindUObject(this, &UQLGA_AttackUsingPunch::OnDoubleCheckedCallback);
-		}
 		/*
 		현재 목표 : 연속으로 눌렀는지를 확인하기 위해서 Attack을 찾아서 Delegate 연결을 해주는 것을 목표로 한다.
 		TrrigerEventData로 전달된 OptionObject 는 Parent 를 담아서 다이나믹 연결 완.
@@ -44,11 +52,8 @@ void UQLGA_AttackUsingPunch::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 void UQLGA_AttackUsingPunch::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	PunchAttackData = nullptr;
-	PreferredAttackAbility = nullptr;
-
 	CurrentCombo = 0;
 	bHasNextPunchAttackCombo = false;
-	PunchAttackComboTimer.Invalidate(); 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -74,20 +79,6 @@ void UQLGA_AttackUsingPunch::OnInterrupted()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UQLGA_AttackUsingPunch::OnDoubleCheckedCallback()
-{
-	//UE_LOG(LogTemp, Log, TEXT("double Click"));
-
-	if (PunchAttackComboTimer.IsValid())
-	{
-		bHasNextPunchAttackCombo = true;
-	}
-	else
-	{
-		bHasNextPunchAttackCombo = false;
-	}
-}
-
 void UQLGA_AttackUsingPunch::PlayAttackAnimation()
 {
 
@@ -103,13 +94,6 @@ void UQLGA_AttackUsingPunch::PlayAttackAnimation()
 	UAbilityTask_PlayMontageAndWait* AttackUsingPunchMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PunchAnimMontage"), AnimMontageUsingPunch, AnimSpeedRate , GetNextSection());
 	AttackUsingPunchMontage->OnCompleted.AddDynamic(this, &UQLGA_AttackUsingPunch::OnCompleted);
 	AttackUsingPunchMontage->OnInterrupted.AddDynamic(this, &UQLGA_AttackUsingPunch::OnInterrupted);
-
-	if (PreferredAttackAbility)
-	{
-		AttackUsingPunchMontage->OnCompleted.AddDynamic(PreferredAttackAbility, &UQLGA_Attack::OnCompleted);
-		AttackUsingPunchMontage->OnInterrupted.AddDynamic(PreferredAttackAbility, &UQLGA_Attack::OnInterrupted);
-	}
-
 	AttackUsingPunchMontage->ReadyForActivation();
 	SetPunchComboCheckTimer();
 }

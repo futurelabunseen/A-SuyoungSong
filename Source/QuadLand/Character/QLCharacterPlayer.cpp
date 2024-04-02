@@ -7,16 +7,17 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
-#include "QuadLand.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AttackActionData/QLPunchAttackData.h"
 #include "Player/QLPlayerState.h"
 #include "Player/QLPlayerController.h"
 #include "AbilitySystemComponent.h"
-#include "Camera/CameraComponent.h"
+#include "Physics/QLCollision.h"
+#include "GameData/QLWeaponStat.h"
+#include "Interface/ItemGettingInfoInterface.h"
+#include "QuadLand.h"
 
-
-AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasGun(0), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0)
+AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasGun(0), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f)
 {
 	ASC = nullptr;
 	CurrentAttackType = ECharacterAttackType::HookAttack; //default
@@ -76,6 +77,8 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasG
 	{
 		InputMappingContext = InputContextMappingRef.Object;
 	}
+
+	
 }
 void AQLCharacterPlayer::BeginPlay()
 {
@@ -133,7 +136,8 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Look);
-	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::FarmingItem);
+	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::FarmingItemPressed);
+	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::FarmingItemReleased);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::RunInputPressed);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::RunInputReleased);
 
@@ -146,7 +150,8 @@ void AQLCharacterPlayer::SetupGASInputComponent()
 	{
 		UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
 
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::GASInputPressed, 0);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::GASInputPressed);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased);
 	}
 }
 void AQLCharacterPlayer::SetCharacterControl()
@@ -190,18 +195,87 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 	}
 }
 
-void AQLCharacterPlayer::PickupItem()
+void AQLCharacterPlayer::EquipWeapon(UQLWeaponStat *ItemInfo)
 {
-	if (bPressedFarmingKey)
+
+	//Weapon 위치는 소켓 
+	WeaponStat = ItemInfo;
+	if (WeaponStat)
 	{
-		//카메라의 월드 위치를 가져온다.
-		//FVector StartPos = Camera->GetCameraLoc
-		//카메라의 방향을 가져온다.
-		//카메라 위치에서 거리 50cm로 라인트레이스를 쏜다.
-		//해당 결과에 오브젝트가 있는지 여부를 확인한다.
+		if (WeaponStat->Mesh.IsPending())
+		{
+			WeaponStat->Mesh.LoadSynchronous();
+		}
+
+		Weapon->SetStaticMesh(WeaponStat->Mesh.Get());
 	}
-	//무조건 false로 만듬.
-	bPressedFarmingKey = false;
+	//Mesh 를 생성해서 부착함.
+
+	CurrentAttackType = ECharacterAttackType::GunAttack;
+}
+
+void AQLCharacterPlayer::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	FVector Forward = Camera->GetForwardVector();
+	FVector CameraLocStart = Camera->GetComponentLocation() + Forward * CameraSpringArm->TargetArmLength; //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
+
+	FVector LocEnd = CameraLocStart + (Forward * FarmingTraceDist);
+
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(ItemFarmingLineTrace), false, this); //식별자 
+
+	FHitResult OutHitResult;
+
+	bool bResult = GetWorld()->LineTraceSingleByChannel(
+		OutHitResult,
+		CameraLocStart,
+		LocEnd,
+		CCHANNEL_QLITEMACTION,
+		Params
+	);
+
+	
+	if (bResult)
+	{
+		AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
+
+		if (!PC)
+		{
+			return;
+		}
+		PC->SetVisibleFarming();
+		if (bPressedFarmingKey)
+		{
+			bPressedFarmingKey = false;
+
+			OutHitResult.GetActor()->SetActorHiddenInGame(true);
+			IItemGettingInfoInterface* Item = Cast<IItemGettingInfoInterface>(OutHitResult.GetActor());
+			if (Item == nullptr)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Weapon is not founded"));
+				return;
+			}
+			EquipWeapon(Item->GetStat());
+			UE_LOG(LogTemp, Log, TEXT("Item Get"));
+		}
+	}
+	else
+	{
+		AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
+		if (!PC)
+		{
+			return;
+		}
+		PC->SetInvisibleFarming();
+		
+	}
+
+//#if ENABLE_DRAW_DEBUG
+//	FColor Color = bResult ? FColor::Green : FColor::Red;
+//	DrawDebugLine(GetWorld(), CameraLocStart, LocEnd, Color, false, 5.0f);
+//#endif
+
 }
 
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)
@@ -229,13 +303,14 @@ void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookAxisVector.Y);
 }
 
-void AQLCharacterPlayer::Attack()
+void AQLCharacterPlayer::GASInputPressed()
 {
-}
+	
+	uint8 InputAttackSpecNumber = static_cast<uint8>(CurrentAttackType);
 
-void AQLCharacterPlayer::GASInputPressed(int32 InputID)
-{
-	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+	QL_LOG(QLNetLog, Log, TEXT("GAS current ID %d"), InputAttackSpecNumber);
+
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
 	
 	if (Spec)
 	{
@@ -252,9 +327,13 @@ void AQLCharacterPlayer::GASInputPressed(int32 InputID)
 	}
 }
 
-void AQLCharacterPlayer::GASInputReleased(int32 InputID)
+void AQLCharacterPlayer::GASInputReleased()
 {
-	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+	uint8 InputAttackSpecNumber = static_cast<uint8>(CurrentAttackType);
+
+	QL_LOG(QLNetLog, Log, TEXT("GAS current ID %d"), InputAttackSpecNumber);
+
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
 
 	if (Spec)
 	{
@@ -266,15 +345,20 @@ void AQLCharacterPlayer::GASInputReleased(int32 InputID)
 	}
 }
 
-void AQLCharacterPlayer::FarmingItem()
+void AQLCharacterPlayer::FarmingItemPressed()
 {
 	bPressedFarmingKey = true;
-	PickupItem();
 	//Raycast 를 사용해서 해당 오브젝트 파악하기
 //	FVector Start = Get
 	
 }
+void AQLCharacterPlayer::FarmingItemReleased()
+{
+	bPressedFarmingKey = false;
+	//Raycast 를 사용해서 해당 오브젝트 파악하기
+//	FVector Start = Get
 
+}
 void AQLCharacterPlayer::RunInputPressed()
 {
 	

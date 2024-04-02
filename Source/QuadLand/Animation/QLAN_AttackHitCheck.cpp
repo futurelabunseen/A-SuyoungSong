@@ -32,7 +32,6 @@ void UQLAN_AttackHitCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenc
 		const USkeletalMeshSocket* ResultSocket = MeshComp->GetSocketByName(SocketName);
 		FGameplayEventData Payload;
 
-		//Payload.EventTag = AttackHitCheckActor->GetCurrentAttackTag(); //현재 얘에 의해서 트리거 되었음을 전달 
 		Payload.OptionalObject = ResultSocket;
 		
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(MeshComp->GetOwner(), CHARACTER_ATTACK_HITCHECK, Payload);

@@ -45,6 +45,10 @@ AQLCharacterBase::AQLCharacterBase() : CurrentAttackType(ECharacterAttackType::G
 	{
 		GetMesh()->SetAnimClass(AnimInstanceRef.Class);
 	}
+
+	// Weapon Component
+	Weapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Weapon"));
+	Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
 }
 
 void AQLCharacterBase::DefaultAttack()

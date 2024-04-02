@@ -5,7 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Physics/QLCollision.h"
-#include "Interface/ItemFarmingInterface.h"
+
 // Sets default values
 AQLWeapon::AQLWeapon()
 {
@@ -22,24 +22,15 @@ AQLWeapon::AQLWeapon()
 	Mesh->SetRelativeLocationAndRotation(FVector(-20.0f, -10.0f, 0.f),FRotator(90.f,0.f,0.f));
 	Mesh->SetCollisionProfileName(TEXT("NoCollision"));
 
-	Trigger->OnComponentEndOverlap.AddDynamic(this, &AQLWeapon::OnOverlapEnd);
 }
 
-void AQLWeapon::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult)
+UStaticMeshComponent* AQLWeapon::GetMesh() const
 {
-	
-	IItemFarmingInterface* ItemPickupActor = Cast<IItemFarmingInterface>(OtherComp);
-
-	if (ItemPickupActor)
-	{
-		ItemPickupActor->PickupItem();
-	}
-
+	return Mesh;
 }
 
-void AQLWeapon::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+UQLWeaponStat* AQLWeapon::GetStat() const
 {
-
-	UE_LOG(LogTemp, Log, TEXT("?????"));
+	return WeaponStat;
 }
 

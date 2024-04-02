@@ -17,14 +17,16 @@ class QUADLAND_API AQLPlayerController : public APlayerController
 public:
 	AQLPlayerController();
 
-	const UUserWidget* GetUserHUDWidget() const { return UserHUDWidget; }
+	void SetVisibleFarming();
+	void SetInvisibleFarming();
+	const UUserWidget* GetCrossHairHUDWidget() const { return CrossHairHUD; }
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Widget)
 	TSubclassOf<class UUserWidget> UserHUDWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Widget)
-	TObjectPtr<class UUserWidget> UserHUDWidget;
+	TObjectPtr<class UUserWidget> CrossHairHUD;
 
 
 	virtual void BeginPlay() override;
