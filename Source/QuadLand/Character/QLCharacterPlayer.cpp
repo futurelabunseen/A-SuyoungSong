@@ -14,11 +14,13 @@
 #include "AbilitySystemComponent.h"
 #include "Physics/QLCollision.h"
 #include "GameData/QLWeaponStat.h"
+#include "Item/QLItemObject.h"
 #include "Interface/ItemGettingInfoInterface.h"
 #include "QuadLand.h"
 
-AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasGun(0), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f)
+AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f)
 {
+	bHasGun = false;
 	ASC = nullptr;
 	CurrentAttackType = ECharacterAttackType::HookAttack; //default
 
@@ -78,7 +80,7 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasG
 		InputMappingContext = InputContextMappingRef.Object;
 	}
 
-	
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this,&AQLCharacterPlayer::EquipWeapon)));
 }
 void AQLCharacterPlayer::BeginPlay()
 {
@@ -195,24 +197,6 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 	}
 }
 
-void AQLCharacterPlayer::EquipWeapon(UQLWeaponStat *ItemInfo)
-{
-
-	//Weapon 위치는 소켓 
-	WeaponStat = ItemInfo;
-	if (WeaponStat)
-	{
-		if (WeaponStat->Mesh.IsPending())
-		{
-			WeaponStat->Mesh.LoadSynchronous();
-		}
-
-		Weapon->SetStaticMesh(WeaponStat->Mesh.Get());
-	}
-	//Mesh 를 생성해서 부착함.
-
-	CurrentAttackType = ECharacterAttackType::GunAttack;
-}
 
 void AQLCharacterPlayer::Tick(float DeltaSeconds)
 {
@@ -235,40 +219,34 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 		Params
 	);
 
-	
+	AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
+
+	if (!PC)
+	{
+		return;
+	}
+
 	if (bResult)
 	{
-		AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
-
-		if (!PC)
-		{
-			return;
-		}
 		PC->SetVisibleFarming();
-		if (bPressedFarmingKey)
+		if (bPressedFarmingKey) //꼭 무기라고 단정 지을 수는 없음. 
 		{
 			bPressedFarmingKey = false;
 
 			OutHitResult.GetActor()->SetActorHiddenInGame(true);
-			IItemGettingInfoInterface* Item = Cast<IItemGettingInfoInterface>(OutHitResult.GetActor());
+			AQLItemObject* Item = Cast<AQLItemObject>(OutHitResult.GetActor());
 			if (Item == nullptr)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Weapon is not founded"));
+				UE_LOG(LogTemp, Warning, TEXT("Item is not founded"));
 				return;
 			}
-			EquipWeapon(Item->GetStat());
+			TakeItemActions[static_cast<uint8>(Item->ItemType)].ItemDelegate.ExecuteIfBound(Item);
 			UE_LOG(LogTemp, Log, TEXT("Item Get"));
 		}
 	}
 	else
 	{
-		AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
-		if (!PC)
-		{
-			return;
-		}
 		PC->SetInvisibleFarming();
-		
 	}
 
 //#if ENABLE_DRAW_DEBUG
@@ -277,7 +255,27 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 //#endif
 
 }
+void AQLCharacterPlayer::EquipWeapon(AQLItemObject* InItemInfo)
+{
+	//CurrentAttackType = ECharacterAttackType::GunAttack;
+	//Weapon 위치는 소켓 
+	AQLPlayerState* PS = Cast<AQLPlayerState>(GetPlayerState());
+	IItemGettingInfoInterface* ItemInfo = Cast< IItemGettingInfoInterface>(InItemInfo);
+	PS->WeaponStat = ItemInfo->GetStat();
+	if (PS->WeaponStat)
+	{
+		if (PS->WeaponStat->Mesh.IsPending())
+		{
+			PS->WeaponStat->Mesh.LoadSynchronous();
+		}
 
+		Weapon->SetStaticMesh(PS->WeaponStat->Mesh.Get());
+	}
+	//Mesh 를 생성해서 부착함.
+	bHasGun = true;
+	CurrentAttackType = ECharacterAttackType::GunAttack;
+
+}
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 {
 	//이동 벡터

@@ -2,11 +2,13 @@
 
 
 #include "Player/QLPlayerState.h"
+#include "GameData/QLWeaponStat.h"
 #include "AbilitySystemComponent.h"
 AQLPlayerState::AQLPlayerState()
 {
     ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
     ASC->SetIsReplicated(true);
+
 }
 
 
@@ -14,3 +16,4 @@ UAbilitySystemComponent* AQLPlayerState::GetAbilitySystemComponent() const
 {
     return ASC;
 }
+

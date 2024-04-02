@@ -9,6 +9,8 @@
 // Sets default values
 AQLWeapon::AQLWeapon()
 {
+	ItemType = EItemType::Weapon;
+
 	Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 

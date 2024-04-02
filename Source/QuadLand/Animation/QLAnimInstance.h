@@ -22,8 +22,10 @@ protected:
 	
 	//이 두 함수를 가져와서 GetOwningActor 함수를 사용해서 현재 어떤 상태를 가지고 있는지를 파악함. 
 	//저장된 변수를 애님 그래프에서 사용, 애니메이션 자동 재생 
-	
 	//현재 이 애니메이션을 소유하고 있는 객체 선언
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
+	TObjectPtr<class AQLCharacterPlayer> Player;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
 	TObjectPtr<class ACharacter> Owner;
 	//MovementComponent를 사용해서 해당 
@@ -42,4 +44,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float MovingThreshold;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bHasGun : 1;
+
 };

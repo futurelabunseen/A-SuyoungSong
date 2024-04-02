@@ -3,6 +3,7 @@
 
 #include "Animation/QLAnimInstance.h"
 #include "GameFramework/Character.h"
+#include "Character/QLCharacterPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 UQLAnimInstance::UQLAnimInstance()
@@ -15,7 +16,7 @@ void UQLAnimInstance::NativeInitializeAnimation()
 	Super::NativeInitializeAnimation();
 
 	Owner = Cast<ACharacter>(GetOwningActor());
-
+	Player = Cast<AQLCharacterPlayer>(GetOwningActor());
 	if (Owner)
 	{
 		Movement = Owner->GetCharacterMovement();
@@ -25,6 +26,11 @@ void UQLAnimInstance::NativeInitializeAnimation()
 void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
+
+	if (Player)
+	{
+		bHasGun = Player->bHasGun;
+	}
 
 	if (Movement)
 	{

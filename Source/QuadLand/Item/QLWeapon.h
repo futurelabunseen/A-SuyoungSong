@@ -3,12 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Item/QLItemObject.h"
 #include "GameFramework/Actor.h"
 #include "Interface/ItemGettingInfoInterface.h"
 #include "QLWeapon.generated.h"
 
 UCLASS()
-class QUADLAND_API AQLWeapon : public AActor , public IItemGettingInfoInterface
+class QUADLAND_API AQLWeapon : public AQLItemObject, public IItemGettingInfoInterface
 {
 	GENERATED_BODY()
 	
