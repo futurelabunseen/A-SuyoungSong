@@ -9,7 +9,6 @@
 /**
  * 
  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FAttackEndedDelegate);
 
 UCLASS()
 class QUADLAND_API UQLGA_AttackUsingPunch : public UGameplayAbility
@@ -18,6 +17,8 @@ class QUADLAND_API UQLGA_AttackUsingPunch : public UGameplayAbility
 	
 public:
 	UQLGA_AttackUsingPunch();
+	/** Input binding stub. */
+	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	/** Native function, called if an ability ends normally or abnormally. If bReplicate is set to true, try to replicate the ending to the client/server */
@@ -28,8 +29,6 @@ public:
 	void PunchAttackComboCheck();
 	FName GetNextSection();
 
-	FAttackEndedDelegate OnAttackCompleted;
-	FAttackEndedDelegate OnAttackInterrupted;
 protected:
 	UFUNCTION()
 	void OnCompleted();
@@ -38,7 +37,7 @@ protected:
 
 	//Attack Check에 필요한 요소 
 	int32 CurrentCombo;
-	int8 bHasNextPunchAttackCombo : 1;
+	uint8 bHasNextPunchAttackCombo : 1;
 	FTimerHandle PunchAttackComboTimer;
 	UPROPERTY()
 	TObjectPtr<class UQLPunchAttackData> PunchAttackData;

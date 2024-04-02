@@ -39,9 +39,13 @@ protected:
 	virtual void AttackHitCheckUsingGun() override;
 
 	ECharacterAttackType CurrentAttackType;
-
-
-
 	virtual FGameplayTag GetCurrentAttackTag() const override;
+
+	//공격을 이용하기 위한 WeaponStat이 존재해야할듯 - 개인마다 다르기 때문에 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UQLWeaponStat> WeaponStat;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UStaticMeshComponent> Weapon;
 
 };

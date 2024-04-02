@@ -14,17 +14,36 @@ AQLPlayerController::AQLPlayerController()
 	}
 }
 
+void AQLPlayerController::SetInvisibleFarming()
+{
+
+	if (IsLocalController())
+	{
+		CrossHairHUD->SetVisibility(ESlateVisibility::Hidden); //보이도록 함.
+	}
+}
+
+void AQLPlayerController::SetVisibleFarming()
+{
+	if (IsLocalController())
+	{
+		CrossHairHUD->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
+	}
+}
+
 void AQLPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (UserHUDWidgetClass)
+	if (IsLocalController())
 	{
-		UserHUDWidget = CreateWidget<UUserWidget>(this, UserHUDWidgetClass);
+		if (UserHUDWidgetClass)
+		{
+			CrossHairHUD = CreateWidget<UUserWidget>(this, UserHUDWidgetClass);
+		}
+		CrossHairHUD->AddToViewport();
+		CrossHairHUD->SetVisibility(ESlateVisibility::Hidden); //보이도록 함.
 	}
-	UserHUDWidget->AddToViewport();
-	UserHUDWidget->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
-
 }
 
 

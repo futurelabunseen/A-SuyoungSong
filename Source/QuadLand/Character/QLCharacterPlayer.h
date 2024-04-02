@@ -6,7 +6,6 @@
 #include "Character/QLCharacterBase.h"
 #include "InputActionValue.h"
 #include "AbilitySystemInterface.h"
-#include "Interface/ItemFarmingInterface.h"
 #include "QLCharacterPlayer.generated.h"
 
 /**
@@ -15,7 +14,7 @@
 
 
 UCLASS()
-class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase ,public IItemFarmingInterface, public IAbilitySystemInterface
+class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
@@ -43,7 +42,7 @@ public:
 
 	 virtual void OnRep_PlayerState() override;
 
-	 virtual void PickupItem() override;
+	 virtual void Tick(float DeltaSeconds) override;
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
@@ -66,8 +65,6 @@ protected:
 
 	void Move(const FInputActionValue& Value); //이동 매칭
 	void Look(const FInputActionValue& Value); //마우스 시선 이동
-	void Attack();
-	void FarmingItem();
 
 	//Run Section
 protected:
@@ -84,15 +81,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
 	TObjectPtr<class UQLPunchAttackData> PunchAttackData;
-
-	//void PunchAttackComboBegin();
-	//void PunchAttackComboEnd(class UAnimMontage* AnimMontage, bool IsProperlyEnded); //MontageDelegate 호출될 수 있도록 맞출 예정
-	//
-	//void SetPunchComboCheckTimer();
-	//void PunchAttackComboCheck();
-
-	//virtual void DefaultAttack() override;
-	//virtual void AttackHitCheckUsingPunch() override;
 
 	uint8 bHasGun : 1;
 	uint8 bHasNextPunchAttackCombo : 1;
@@ -115,12 +103,18 @@ protected:
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TMap<int32, TSubclassOf<class UGameplayAbility>> InputAbilities;
 
-	void GASInputPressed(int32 InputID);
-	void GASInputReleased(int32 InputID);
+	void GASInputPressed();
+	void GASInputReleased();
 	void SetupGASInputComponent();
 
 //파밍 시스템을 위한 변수
 protected:
 	uint8 bPressedFarmingKey : 1;
 
+	int32 FarmingTraceDist;
+
+	void EquipWeapon(UQLWeaponStat* ItemInfo);
+
+	void FarmingItemPressed();
+	void FarmingItemReleased();
 };
