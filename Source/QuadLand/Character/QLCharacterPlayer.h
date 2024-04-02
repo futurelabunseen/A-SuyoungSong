@@ -11,7 +11,16 @@
 /**
  * 
  */
-
+DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class AQLItemObject*);
+DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class AQLItemObject*);
+USTRUCT(BlueprintType)
+struct FTakeItemDelegateWrapper
+{
+	GENERATED_BODY()
+	FTakeItemDelegateWrapper() {}
+	FTakeItemDelegateWrapper(const FOnTakeItemDelegate& InItemDelegate) : ItemDelegate(InItemDelegate) {}
+	FOnTakeItemDelegate ItemDelegate;
+};
 
 UCLASS()
 class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase, public IAbilitySystemInterface
@@ -43,6 +52,7 @@ public:
 	 virtual void OnRep_PlayerState() override;
 
 	 virtual void Tick(float DeltaSeconds) override;
+
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
@@ -82,13 +92,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
 	TObjectPtr<class UQLPunchAttackData> PunchAttackData;
 
-	uint8 bHasGun : 1;
 	uint8 bHasNextPunchAttackCombo : 1;
 	
 	int CurrentCombo;
 
 	FTimerHandle PunchAttackComboTimer;
-
 
 	//GAS
 protected:
@@ -113,8 +121,13 @@ protected:
 
 	int32 FarmingTraceDist;
 
-	void EquipWeapon(UQLWeaponStat* ItemInfo);
-
 	void FarmingItemPressed();
 	void FarmingItemReleased();
+
+	void EquipWeapon(class AQLItemObject* ItemInfo);
+
+
+	//Take
+	UPROPERTY()
+	TArray<FTakeItemDelegateWrapper> TakeItemActions;
 };

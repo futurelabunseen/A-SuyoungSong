@@ -9,6 +9,7 @@
 
 AQLCharacterBase::AQLCharacterBase() : CurrentAttackType(ECharacterAttackType::GunAttack)
 {
+	bHasGun = true;
 	//Pawn 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
@@ -75,4 +76,3 @@ FGameplayTag AQLCharacterBase::GetCurrentAttackTag() const
 		return CHARACTER_EQUIP_NON;
 	}
 }
-

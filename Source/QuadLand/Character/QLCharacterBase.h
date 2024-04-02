@@ -16,6 +16,7 @@ public:
 	// Sets default values for this character's properties
 	AQLCharacterBase();
 
+	uint8 bHasGun : 1;
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
@@ -41,11 +42,9 @@ protected:
 	ECharacterAttackType CurrentAttackType;
 	virtual FGameplayTag GetCurrentAttackTag() const override;
 
-	//공격을 이용하기 위한 WeaponStat이 존재해야할듯 - 개인마다 다르기 때문에 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UQLWeaponStat> WeaponStat;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UStaticMeshComponent> Weapon;
 
+	//Attack
+protected:
 };

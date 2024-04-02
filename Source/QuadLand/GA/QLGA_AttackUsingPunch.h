@@ -44,8 +44,6 @@ protected:
 
 	void OnDoubleCheckedCallback();
 
-	UPROPERTY()
-	TObjectPtr<class UQLGA_Attack> PreferredAttackAbility;
 protected:
 
 	void PlayAttackAnimation();

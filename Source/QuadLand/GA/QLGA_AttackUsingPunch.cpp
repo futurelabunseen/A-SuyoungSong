@@ -7,7 +7,6 @@
 #include "AttackActionData/QLPunchAttackData.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "GA/QLGA_Attack.h"
 #include "GameFramework/GameState.h"
 #include "EngineUtils.h"
 
