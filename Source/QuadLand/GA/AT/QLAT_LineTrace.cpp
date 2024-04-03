@@ -6,6 +6,12 @@
 #include "GA/TA/QLTA_TraceResult.h"
 #include "AbilitySystemComponent.h"
 
+
+UQLAT_LineTrace::UQLAT_LineTrace()
+{
+	
+}
+
 UQLAT_LineTrace* UQLAT_LineTrace::CreateTask(UGameplayAbility* OwningAbility, TSubclassOf<AQLTA_LineTraceResult> InTargetActorClass)
 {
     UQLAT_LineTrace * NewTask = NewAbilityTask<UQLAT_LineTrace>(OwningAbility);

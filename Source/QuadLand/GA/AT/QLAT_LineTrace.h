@@ -19,6 +19,7 @@ class QUADLAND_API UQLAT_LineTrace : public UAbilityTask
 	GENERATED_BODY()
 	
 public:
+	UQLAT_LineTrace();
 
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (DisplayName = "LineTraceUsingGun", HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
 	static UQLAT_LineTrace* CreateTask(UGameplayAbility* OwningAbility,TSubclassOf<class AQLTA_LineTraceResult> InTargetActorClass);

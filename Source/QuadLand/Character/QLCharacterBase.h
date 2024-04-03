@@ -18,6 +18,8 @@ public:
 
 	uint8 bHasGun : 1;
 
+	FORCEINLINE const class UStaticMeshComponent* GetWeaponMesh() const { return Weapon; }
+
 	/*AI와 같이 사용, InputAction*/
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))

@@ -60,6 +60,7 @@ public:
 	
 	FVector GetCameraForward();
 
+	FORCEINLINE const class UQLWeaponStat* GetWeaponStat() const;
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))

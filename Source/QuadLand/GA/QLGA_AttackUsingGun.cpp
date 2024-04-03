@@ -4,8 +4,11 @@
 #include "QLGA_AttackUsingGun.h"
 #include "Character/QLCharacterPlayer.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "AT/QLAT_LineTrace.h"
 #include "TA/QLTA_LineTraceResult.h"
+#include "GameplayTag/GamplayTags.h"
 UQLGA_AttackUsingGun::UQLGA_AttackUsingGun()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -31,13 +34,28 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	UAbilityTask_PlayMontageAndWait* AttackUsingGunMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("GunAnimMontage"), AnimMontageUsingGun, AnimSpeedRate);
 	AttackUsingGunMontage->OnCompleted.AddDynamic(this, &UQLGA_AttackUsingGun::OnCompletedCallback);
 	AttackUsingGunMontage->OnInterrupted.AddDynamic(this, &UQLGA_AttackUsingGun::OnInterruptedCallback);
+	/*
+	여기서 발동
+	*/
+	FGameplayCueParameters CueParams;
+	CueParams.SourceObject = Player;
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
+
+	//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
+	SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_CHARACTER_FIREEFFECT, CueParams);
 	AttackUsingGunMontage->ReadyForActivation();
 
+	//태그를 부착해서 실행해볼까?
+	
 	/*Ability Task 생성*/
-	UQLAT_LineTrace* AttackLineTrace = UQLAT_LineTrace::CreateTask(this,AQLTA_LineTraceResult::StaticClass());
+	/*
+
+	UQLAT_LineTrace* AttackLineTrace = UQLAT_LineTrace::CreateTask(this, AQLTA_LineTraceResult::StaticClass());
 	AttackLineTrace->OnCompleted.AddDynamic(this, &UQLGA_AttackUsingGun::OnLineTraceCompletedCallback);
 	AttackLineTrace->ReadyForActivation();
+	*/
 	/*도착할 때까지 대기한다.*/
+	
 }
 
 void UQLGA_AttackUsingGun::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -47,6 +65,10 @@ void UQLGA_AttackUsingGun::EndAbility(const FGameplayAbilitySpecHandle Handle, c
 
 void UQLGA_AttackUsingGun::OnCompletedCallback()
 {
+	UQLAT_LineTrace* AttackLineTrace = UQLAT_LineTrace::CreateTask(this, AQLTA_LineTraceResult::StaticClass());
+	AttackLineTrace->OnCompleted.AddDynamic(this, &UQLGA_AttackUsingGun::OnLineTraceCompletedCallback);
+	AttackLineTrace->ReadyForActivation();
+
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = false;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);

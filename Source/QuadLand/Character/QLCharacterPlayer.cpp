@@ -265,6 +265,12 @@ FVector AQLCharacterPlayer::GetCameraForward()
 	return  Camera->GetForwardVector();
 }
 
+const UQLWeaponStat* AQLCharacterPlayer::GetWeaponStat() const
+{
+	AQLPlayerState* PS = Cast<AQLPlayerState>(GetPlayerState());
+	return PS->WeaponStat;
+}
+
 void AQLCharacterPlayer::EquipWeapon(AQLItemObject* InItemInfo)
 {
 	//CurrentAttackType = ECharacterAttackType::GunAttack;
@@ -306,6 +312,7 @@ void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 {
 	//마우스 시선 이동 처리
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
+
 
 	AddControllerYawInput(LookAxisVector.X);
 	AddControllerPitchInput(LookAxisVector.Y);
