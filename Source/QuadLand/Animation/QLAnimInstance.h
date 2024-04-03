@@ -46,6 +46,11 @@ protected:
 	float MovingThreshold;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bIsCrunched : 1;
+
+	/* 총기 소지 유무 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bHasGun : 1;
 
+	
 };

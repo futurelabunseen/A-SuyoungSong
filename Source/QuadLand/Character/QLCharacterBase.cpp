@@ -52,19 +52,6 @@ AQLCharacterBase::AQLCharacterBase() : CurrentAttackType(ECharacterAttackType::G
 	Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
 }
 
-void AQLCharacterBase::DefaultAttack()
-{
-}
-
-void AQLCharacterBase::AttackHitCheckUsingPunch()
-{
-}
-
-
-void AQLCharacterBase::AttackHitCheckUsingGun()
-{
-}
-
 FGameplayTag AQLCharacterBase::GetCurrentAttackTag() const
 {
 	if (CurrentAttackType == ECharacterAttackType::GunAttack)

@@ -41,10 +41,8 @@ public:
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	//FORCEINLINE
-	 class UAnimMontage* GetAnimMontageUsingPunch() const { return AttackAnimMontage[ECharacterAttackType::HookAttack]; }
+	 class UAnimMontage* GetAnimMontage() const { return AttackAnimMontage[CurrentAttackType]; }
 
-	 class UAnimMontage* GetAnimMontageUsingGun() const { return AttackAnimMontage[ECharacterAttackType::GunAttack]; }
-	
 	 const ECharacterAttackType& GetCurrentAttackType() const { return CurrentAttackType; }
 
 	 class UQLPunchAttackData* GetPunchAttackData() { return PunchAttackData; }
@@ -53,6 +51,8 @@ public:
 
 	 virtual void Tick(float DeltaSeconds) override;
 
+	 //Crunch를 위한 변수
+	uint8 bIsCrunched : 1;
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
@@ -84,16 +84,11 @@ protected:
 	uint8 bIsFirstRunSpeedSetting : 1;
 	//Attack Section
 protected:
-
-	//TMap으로 변경하자. Gun 없을 때 Montage와 Gun 있을 때 Montage 로 나누어서 관리 - enum으로 분류 예정
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
-	TMap<ECharacterAttackType, TObjectPtr<class UAnimMontage>> AttackAnimMontage;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
 	TObjectPtr<class UQLPunchAttackData> PunchAttackData;
 
 	uint8 bHasNextPunchAttackCombo : 1;
-	
+
 	int CurrentCombo;
 
 	FTimerHandle PunchAttackComboTimer;
@@ -130,4 +125,5 @@ protected:
 	//Take
 	UPROPERTY()
 	TArray<FTakeItemDelegateWrapper> TakeItemActions;
+
 };
