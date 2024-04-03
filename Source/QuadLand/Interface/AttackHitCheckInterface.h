@@ -26,9 +26,6 @@ class QUADLAND_API IAttackHitCheckInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	
-	virtual void AttackHitCheckUsingPunch() = 0;
-	virtual void AttackHitCheckUsingGun() = 0;
-
 	virtual FGameplayTag GetCurrentAttackTag() const = 0;
 
 };

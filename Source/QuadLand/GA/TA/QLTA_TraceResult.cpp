@@ -1,25 +1,25 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GA/TA/QLTA_SweepTraceResult.h"
+#include "GA/TA/QLTA_TraceResult.h"
 #include "Abilities/GameplayAbility.h"
 #include "Character/QLCharacterPlayer.h"
 #include "Physics/QLCollision.h"
 #include "DrawDebugHelpers.h"
 #include "QuadLand.h"
 
-AQLTA_SweepTraceResult::AQLTA_SweepTraceResult()
+AQLTA_TraceResult::AQLTA_TraceResult()
 {
 }
 
-void AQLTA_SweepTraceResult::StartTargeting(UGameplayAbility* Ability)
+void AQLTA_TraceResult::StartTargeting(UGameplayAbility* Ability)
 {
 	Super::StartTargeting(Ability);
 
 	SourceActor = Ability->GetCurrentActorInfo()->AvatarActor.Get();
 }
 
-void AQLTA_SweepTraceResult::ConfirmTargetingAndContinue()
+void AQLTA_TraceResult::ConfirmTargetingAndContinue()
 {
 	if (SourceActor)
 	{
@@ -33,12 +33,12 @@ void AQLTA_SweepTraceResult::ConfirmTargetingAndContinue()
 }
 
 
-FGameplayAbilityTargetDataHandle AQLTA_SweepTraceResult::MakeTargetData() const
+FGameplayAbilityTargetDataHandle AQLTA_TraceResult::MakeTargetData() const
 {
 	ACharacter* Character = CastChecked<ACharacter>(SourceActor);
 
 	const float AttackRadius = 15.0f;
-	
+
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(SweepTraceResult), false, Character); //½Äº°ÀÚ 
 
 	FHitResult OutHitResult;
@@ -52,7 +52,7 @@ FGameplayAbilityTargetDataHandle AQLTA_SweepTraceResult::MakeTargetData() const
 		FCollisionShape::MakeSphere(AttackRadius),
 		Params
 	);
-	
+
 	FGameplayAbilityTargetDataHandle DataHandle;
 	if (bResult)
 	{
@@ -64,6 +64,6 @@ FGameplayAbilityTargetDataHandle AQLTA_SweepTraceResult::MakeTargetData() const
 	FColor Color = bResult ? FColor::Green : FColor::Red;
 	DrawDebugSphere(GetWorld(), SocketLocation, AttackRadius, 10.0f, Color, false, 5.0f);
 #endif
-	
+
 	return DataHandle;
 }

@@ -17,13 +17,6 @@ public:
 	AQLCharacterBase();
 
 	uint8 bHasGun : 1;
-protected:
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USpringArmComponent> CameraSpringArm;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UCameraComponent> Camera;
 
 	/*AI와 같이 사용, InputAction*/
 protected:
@@ -34,11 +27,6 @@ protected:
 	TObjectPtr<class UInputAction> CrunchAction;
 
 protected:
-	
-	virtual void DefaultAttack(); //NPC - Player 모두 총을 주웠을 때 사용할 예정
-	virtual void AttackHitCheckUsingPunch() override;
-	virtual void AttackHitCheckUsingGun() override;
-
 	ECharacterAttackType CurrentAttackType;
 	virtual FGameplayTag GetCurrentAttackTag() const override;
 
@@ -47,4 +35,9 @@ protected:
 
 	//Attack
 protected:
+
+	//TMap으로 변경하자. Gun 없을 때 Montage와 Gun 있을 때 Montage 로 나누어서 관리 - enum으로 분류 예정
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
+	TMap<ECharacterAttackType, TObjectPtr<class UAnimMontage>> AttackAnimMontage;
+
 };

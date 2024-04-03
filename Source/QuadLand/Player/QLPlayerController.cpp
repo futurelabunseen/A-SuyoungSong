@@ -42,7 +42,7 @@ void AQLPlayerController::BeginPlay()
 			CrossHairHUD = CreateWidget<UUserWidget>(this, UserHUDWidgetClass);
 		}
 		CrossHairHUD->AddToViewport();
-		CrossHairHUD->SetVisibility(ESlateVisibility::Hidden); //보이도록 함.
+		CrossHairHUD->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
 	}
 }
 

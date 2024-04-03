@@ -3,7 +3,7 @@
 
 #include "GA/QLGA_AttackHitCheck.h"
 #include "AT/QLAT_SweepTrace.h"
-#include "TA/QLTA_SweepTraceResult.h"
+#include "TA/QLTA_TraceResult.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Character/QLCharacterPlayer.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -24,7 +24,7 @@ void UQLGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	if (Player)
 	{
 		FVector SocketPos = ResultSocket->GetSocketLocation(Player->GetMesh());
-		UQLAT_SweepTrace* SweepTrace = UQLAT_SweepTrace::CreateTask(this, AQLTA_SweepTraceResult::StaticClass(), SocketPos);	
+		UQLAT_SweepTrace* SweepTrace = UQLAT_SweepTrace::CreateTask(this, AQLTA_TraceResult::StaticClass(), SocketPos);	
 		SweepTrace->OnCompleted.AddDynamic(this, &UQLGA_AttackHitCheck::OnCompletedCallback);  //결과값이 전달될 예정
 		SweepTrace->ReadyForActivation(); //답변 올때까지 대기
 	}

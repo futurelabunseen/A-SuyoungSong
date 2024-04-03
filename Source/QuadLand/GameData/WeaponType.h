@@ -8,5 +8,6 @@ UENUM()
 enum class ECharacterAttackType : uint8
 {
 	HookAttack,
-	GunAttack
+	GunAttack,
+	None
 };

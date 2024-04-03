@@ -16,6 +16,7 @@
 #include "GameData/QLWeaponStat.h"
 #include "Item/QLItemObject.h"
 #include "Interface/ItemGettingInfoInterface.h"
+#include "GameFramework/GameStateBase.h"
 #include "QuadLand.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f)
@@ -202,10 +203,9 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	FVector Forward = Camera->GetForwardVector();
-	FVector CameraLocStart = Camera->GetComponentLocation() + Forward * CameraSpringArm->TargetArmLength; //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
+	FVector CameraLocStart = CalPlayerLocalCameraStartPos(); //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
 
-	FVector LocEnd = CameraLocStart + (Forward * FarmingTraceDist);
+	FVector LocEnd = CameraLocStart + (GetCameraForward() * FarmingTraceDist);
 
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(ItemFarmingLineTrace), false, this); //식별자 
 
@@ -228,7 +228,7 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 
 	if (bResult)
 	{
-		PC->SetVisibleFarming();
+		//PC->SetVisibleFarming();
 		if (bPressedFarmingKey) //꼭 무기라고 단정 지을 수는 없음. 
 		{
 			bPressedFarmingKey = false;
@@ -246,7 +246,7 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 	}
 	else
 	{
-		PC->SetInvisibleFarming();
+		//PC->SetInvisibleFarming();
 	}
 
 //#if ENABLE_DRAW_DEBUG
@@ -255,6 +255,16 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 //#endif
 
 }
+FVector AQLCharacterPlayer::CalPlayerLocalCameraStartPos()
+{
+	return  Camera->GetComponentLocation() + GetCameraForward() * CameraSpringArm->TargetArmLength;
+}
+
+FVector AQLCharacterPlayer::GetCameraForward()
+{
+	return  Camera->GetForwardVector();
+}
+
 void AQLCharacterPlayer::EquipWeapon(AQLItemObject* InItemInfo)
 {
 	//CurrentAttackType = ECharacterAttackType::GunAttack;
@@ -303,15 +313,19 @@ void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 
 void AQLCharacterPlayer::GASInputPressed()
 {
-	
+	if(bIsFirstRunSpeedSetting && CurrentAttackType == ECharacterAttackType::GunAttack)
+	{
+		return;
+	}
 	uint8 InputAttackSpecNumber = static_cast<uint8>(CurrentAttackType);
 
-	QL_LOG(QLNetLog, Log, TEXT("GAS current ID %d"), InputAttackSpecNumber);
-
+	
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
 	
 	if (Spec)
 	{
+		QL_LOG(QLNetLog, Log, TEXT("GAS current ID %d"), InputAttackSpecNumber);
+
 		Spec->InputPressed = true; //해당키를 눌렀음을 알려줌 
 
 		if (Spec->IsActive())
@@ -360,7 +374,7 @@ void AQLCharacterPlayer::FarmingItemReleased()
 void AQLCharacterPlayer::RunInputPressed()
 {
 	
-	if (bIsFirstRunSpeedSetting == false)
+	if (bIsFirstRunSpeedSetting == false&&IsLocallyControlled())
 	{
 		GetCharacterMovement()->MaxWalkSpeed = 600.f;
 		bIsFirstRunSpeedSetting = true;
@@ -371,6 +385,11 @@ void AQLCharacterPlayer::RunInputPressed()
 void AQLCharacterPlayer::RunInputReleased()
 {
 	bIsFirstRunSpeedSetting = false;
-	GetCharacterMovement()->MaxWalkSpeed = 450.f;
+
+	if (IsLocallyControlled())
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 400.f;
+	}
+	//타이머를 통해서 MaxWalkSpeed를 줄이자	
 }
 

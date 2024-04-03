@@ -85,7 +85,7 @@ void UQLGA_AttackUsingPunch::PlayAttackAnimation()
 
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
 
-	UAnimMontage* AnimMontageUsingPunch = Player->GetAnimMontageUsingPunch();
+	UAnimMontage* AnimMontageUsingPunch = Player->GetAnimMontage();
 	float AnimSpeedRate = PunchAttackData->AttackSpeedRate;
 	
 	//몽타주를 클라이언트 - Server를 다르게 동작하도록 한다.
