@@ -2,7 +2,7 @@
 
 
 #include "GA/AT/QLAT_SweepTrace.h"
-#include "GA/TA/QLTA_SweepTraceResult.h"
+#include "GA/TA/QLTA_TraceResult.h"
 #include "Abilities/GameplayAbilityTargetActor.h"
 #include "AbilitySystemComponent.h"
 
@@ -11,7 +11,7 @@ UQLAT_SweepTrace::UQLAT_SweepTrace()
 	bSimulatedTask = true; //Simulated 호출을 위함..
 }
 
-UQLAT_SweepTrace* UQLAT_SweepTrace::CreateTask(UGameplayAbility* OwningAbility, TSubclassOf<class AQLTA_SweepTraceResult> TargetActorClass, FVector& SocketPos)
+UQLAT_SweepTrace* UQLAT_SweepTrace::CreateTask(UGameplayAbility* OwningAbility, TSubclassOf<class AQLTA_TraceResult> TargetActorClass, FVector& SocketPos)
 {
 	UQLAT_SweepTrace* NewTask = NewAbilityTask<UQLAT_SweepTrace>(OwningAbility);
 	NewTask->CurrentSocketPos = SocketPos;
@@ -33,7 +33,7 @@ void UQLAT_SweepTrace::Activate()
 
 void UQLAT_SweepTrace::SpawnAndInitTargetActor()
 {
-	TargetActor = Cast<AQLTA_SweepTraceResult>(Ability->GetWorld()->SpawnActorDeferred<AGameplayAbilityTargetActor>(TargetActorClass,FTransform::Identity,nullptr,nullptr,ESpawnActorCollisionHandlingMethod::AlwaysSpawn));
+	TargetActor = Cast<AQLTA_TraceResult>(Ability->GetWorld()->SpawnActorDeferred<AGameplayAbilityTargetActor>(TargetActorClass,FTransform::Identity,nullptr,nullptr,ESpawnActorCollisionHandlingMethod::AlwaysSpawn));
 	
 	if (TargetActor)
 	{

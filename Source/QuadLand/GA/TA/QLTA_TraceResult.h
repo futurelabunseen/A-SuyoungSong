@@ -4,19 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbilityTargetActor.h"
-#include "QLTA_SweepTraceResult.generated.h"
+#include "QLTA_TraceResult.generated.h"
 
 /**
  * 
+/**
+ *
  */
 UCLASS()
-class QUADLAND_API AQLTA_SweepTraceResult : public AGameplayAbilityTargetActor
+class QUADLAND_API AQLTA_TraceResult : public AGameplayAbilityTargetActor
 {
 	GENERATED_BODY()
 
 public:
 
-	AQLTA_SweepTraceResult();
+	AQLTA_TraceResult();
 
 	/** Initialize and begin targeting logic  */
 	virtual void StartTargeting(UGameplayAbility* Ability) override;

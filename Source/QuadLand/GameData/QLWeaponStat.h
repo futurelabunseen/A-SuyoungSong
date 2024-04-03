@@ -16,7 +16,8 @@ enum class EWeaponType : uint8
 	TypeB,
 	TypeC,
 	SpecialTypeA,
-	SpecialTypeB
+	SpecialTypeB,
+	None, //None은 Punch를 의미함.
 };
 
 

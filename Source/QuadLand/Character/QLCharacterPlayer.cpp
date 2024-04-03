@@ -203,10 +203,9 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	FVector Forward = Camera->GetForwardVector();
-	FVector CameraLocStart = Camera->GetComponentLocation() + Forward * CameraSpringArm->TargetArmLength; //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
+	FVector CameraLocStart = CalPlayerLocalCameraStartPos(); //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
 
-	FVector LocEnd = CameraLocStart + (Forward * FarmingTraceDist);
+	FVector LocEnd = CameraLocStart + (GetCameraForward() * FarmingTraceDist);
 
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(ItemFarmingLineTrace), false, this); //식별자 
 
@@ -256,6 +255,16 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 //#endif
 
 }
+FVector AQLCharacterPlayer::CalPlayerLocalCameraStartPos()
+{
+	return  Camera->GetComponentLocation() + GetCameraForward() * CameraSpringArm->TargetArmLength;
+}
+
+FVector AQLCharacterPlayer::GetCameraForward()
+{
+	return  Camera->GetForwardVector();
+}
+
 void AQLCharacterPlayer::EquipWeapon(AQLItemObject* InItemInfo)
 {
 	//CurrentAttackType = ECharacterAttackType::GunAttack;
@@ -365,7 +374,7 @@ void AQLCharacterPlayer::FarmingItemReleased()
 void AQLCharacterPlayer::RunInputPressed()
 {
 	
-	if (bIsFirstRunSpeedSetting == false&&IsLocallyControlled)
+	if (bIsFirstRunSpeedSetting == false&&IsLocallyControlled())
 	{
 		GetCharacterMovement()->MaxWalkSpeed = 600.f;
 		bIsFirstRunSpeedSetting = true;
@@ -377,7 +386,7 @@ void AQLCharacterPlayer::RunInputReleased()
 {
 	bIsFirstRunSpeedSetting = false;
 
-	if (IsLocallyControlled)
+	if (IsLocallyControlled())
 	{
 		GetCharacterMovement()->MaxWalkSpeed = 400.f;
 	}

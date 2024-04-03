@@ -22,7 +22,7 @@ public:
 	UQLAT_SweepTrace();
 
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (DisplayName = "SweepTraceUsingPunch", HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
-	static UQLAT_SweepTrace* CreateTask(UGameplayAbility* OwningAbility, TSubclassOf<class AQLTA_SweepTraceResult> TargetActorClass, FVector& SocketPos);
+	static UQLAT_SweepTrace* CreateTask(UGameplayAbility* OwningAbility, TSubclassOf<class AQLTA_TraceResult> TargetActorClass, FVector& SocketPos);
 	virtual void Activate() override;
 	virtual void OnDestroy(bool AbilityEnded) override;
 
@@ -37,9 +37,9 @@ public:
 protected:
 
 	UPROPERTY()
-	TSubclassOf<class AQLTA_SweepTraceResult> TargetActorClass;
+	TSubclassOf<class AQLTA_TraceResult> TargetActorClass;
 	UPROPERTY()
-	TObjectPtr<class AQLTA_SweepTraceResult> TargetActor;
+	TObjectPtr<class AQLTA_TraceResult> TargetActor;
 	FVector CurrentSocketPos;
 
 	//동기화를 위함

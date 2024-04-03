@@ -29,6 +29,7 @@ class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase, public IAbility
 	
 public:
 	AQLCharacterPlayer();
+
 	//Default
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
@@ -53,6 +54,20 @@ public:
 
 	 //Crunch를 위한 변수
 	uint8 bIsCrunched : 1;
+
+	//Attack을 위한 카메라 위치 가져오기
+	FVector CalPlayerLocalCameraStartPos();
+	
+	FVector GetCameraForward();
+
+protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class USpringArmComponent> CameraSpringArm;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UCameraComponent> Camera;
+
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))

@@ -17,13 +17,6 @@ public:
 	AQLCharacterBase();
 
 	uint8 bHasGun : 1;
-protected:
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USpringArmComponent> CameraSpringArm;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UCameraComponent> Camera;
 
 	/*AI와 같이 사용, InputAction*/
 protected:
