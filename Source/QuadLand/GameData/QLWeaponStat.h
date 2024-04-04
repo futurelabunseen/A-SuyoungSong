@@ -7,7 +7,7 @@
 #include "QLWeaponStat.generated.h"
 
 /**
- * 
+ * 얘네 나중에 Attribute Set으로도 설정해놔야함. 그리고 주웠을 때 해당 값으로 Reset 되도록 구현 !
  */
 UENUM()
 enum class EWeaponType : uint8
