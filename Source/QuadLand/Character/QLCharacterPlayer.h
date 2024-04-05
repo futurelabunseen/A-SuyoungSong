@@ -60,7 +60,10 @@ public:
 	
 	FVector GetCameraForward();
 
-	FORCEINLINE const class UQLWeaponStat* GetWeaponStat() const;
+	const class UQLWeaponStat* GetWeaponStat() const;
+	FORCEINLINE bool GetHasGun() const { return bHasGun; }
+
+
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
@@ -92,12 +95,17 @@ protected:
 	void Move(const FInputActionValue& Value); //이동 매칭
 	void Look(const FInputActionValue& Value); //마우스 시선 이동
 
-	//Run Section
+	//Movement Section
 protected:
 	void RunInputPressed();
 	void RunInputReleased();
 
 	uint8 bIsFirstRunSpeedSetting : 1;
+
+protected:
+	void JumpInputPressed();
+	void JumpInputReleased();
+
 	//Attack Section
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
@@ -142,4 +150,32 @@ protected:
 	UPROPERTY()
 	TArray<FTakeItemDelegateWrapper> TakeItemActions;
 
+protected:
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void PlayTurn(class UAnimMontage* TurnAnimMontage, float TurnRate, float TurnTimeDelay);
+
+	UPROPERTY(BlueprintReadWrite)
+	uint8 bIsTurning : 1;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void TurnLeft90();
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void TurnLeft180();
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void TurnRight90();
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void TurnRight180();
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void ClearMotion();
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void ClearTurninPlace(float Force);
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void TurnInPlace();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
+	TArray<TObjectPtr<class UAnimMontage>> TurnAnimMontages; //enum으로 설정 
 };

@@ -17,9 +17,10 @@
 #include "Item/QLItemObject.h"
 #include "Interface/ItemGettingInfoInterface.h"
 #include "GameFramework/GameStateBase.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "QuadLand.h"
 
-AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f)
+AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f)//, bIsTurning(false)
 {
 	bHasGun = false;
 	ASC = nullptr;
@@ -27,7 +28,7 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasN
 
 	//springArm에 Camera를 매달을 예정
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	CameraSpringArm->TargetArmLength = 300.0f;
+	CameraSpringArm->TargetArmLength = 200.0f;
 	CameraSpringArm->SetupAttachment(RootComponent);
 	CameraSpringArm->bUsePawnControlRotation = true; //Pawn이동에 따라서 회전 예정
 
@@ -82,6 +83,7 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasN
 	}
 
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this,&AQLCharacterPlayer::EquipWeapon)));
+
 }
 void AQLCharacterPlayer::BeginPlay()
 {
@@ -143,6 +145,8 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::FarmingItemReleased);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::RunInputPressed);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::RunInputReleased);
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::JumpInputPressed);
+	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::JumpInputReleased);
 
 	SetupGASInputComponent();
 }
@@ -202,6 +206,7 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 void AQLCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
 
 	FVector CameraLocStart = CalPlayerLocalCameraStartPos(); //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
 
@@ -306,16 +311,21 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 
 	AddMovementInput(ForwardDirection, MovementVector.X);
 	AddMovementInput(RightDirection, MovementVector.Y);
+
+	ClearTurninPlace(MovementVector.X);
+	ClearTurninPlace(MovementVector.Y);
 }
 
 void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 {
-	//마우스 시선 이동 처리
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
-
 	AddControllerYawInput(LookAxisVector.X);
 	AddControllerPitchInput(LookAxisVector.Y);
+
+	if (LookAxisVector.X != 0)
+	{
+		TurnInPlace();
+	}
 }
 
 void AQLCharacterPlayer::GASInputPressed()
@@ -400,3 +410,102 @@ void AQLCharacterPlayer::RunInputReleased()
 	//타이머를 통해서 MaxWalkSpeed를 줄이자	
 }
 
+void AQLCharacterPlayer::JumpInputPressed()
+{
+}
+
+void AQLCharacterPlayer::JumpInputReleased()
+{
+}
+
+
+void AQLCharacterPlayer::PlayTurn(UAnimMontage* TurnAnimMontage, float TurnRate, float TurnTimeDelay)
+{
+	if (bIsTurning == false)
+	{
+		bIsTurning = true;
+		PlayAnimMontage(TurnAnimMontage, TurnRate);
+
+		FTimerHandle TurnTimeHandle;
+		GetWorld()->GetTimerManager().SetTimer(TurnTimeHandle, [=]() 
+			{
+			bIsTurning = false;
+			}, TurnTimeDelay, false, -1);
+	}
+}
+//enum값으로 변경 예정
+void AQLCharacterPlayer::TurnLeft90()
+{
+	PlayTurn(TurnAnimMontages[0], 1.5f, 0.5f);
+}
+
+void AQLCharacterPlayer::TurnLeft180()
+{
+	PlayTurn(TurnAnimMontages[2], 1.7f, 0.6f);
+}
+
+void AQLCharacterPlayer::TurnRight90()
+{
+	PlayTurn(TurnAnimMontages[1], 1.5f, 0.5f);
+}
+
+void AQLCharacterPlayer::TurnRight180()
+{
+	PlayTurn(TurnAnimMontages[3], 1.7f, 0.6f);
+}
+
+void AQLCharacterPlayer::ClearMotion()
+{
+	if (IsPlayingRootMotion())
+	{
+		StopAnimMontage();
+	}
+}
+
+void AQLCharacterPlayer::ClearTurninPlace(float Force)
+{
+	if (Force != 0.0f)
+	{
+		ClearMotion();
+	}
+}
+
+void AQLCharacterPlayer::TurnInPlace()
+{
+	float GroundSpeed = GetCharacterMovement()->Velocity.Size2D();
+
+	if (!(GetCharacterMovement()->IsFalling()) && !(GroundSpeed > 0.0f))
+	{
+
+		FRotator DeltaRotator(GetActorRotation() - GetBaseAimRotation());
+		float Val = DeltaRotator.Yaw * -1.0f;
+
+		bool RotationResult = (Val > 45.0f) || (Val < -45.f);
+
+		if (RotationResult)
+		{
+
+			if (Val > 135.0f)
+			{
+				QL_LOG(QLLog, Log, TEXT("Current Rotator %f 1"), Val);
+				TurnRight180();
+			}
+			else if (Val < -135.0f)
+			{
+				QL_LOG(QLLog, Log, TEXT("Current Rotator %f 2"), Val);
+				TurnLeft180();
+			}
+			else if (Val > 45.0f)
+			{
+				QL_LOG(QLLog, Log, TEXT("Current Rotator %f 3"), Val);
+				TurnRight90();
+			}
+			else if (Val < -45.0f)
+			{
+				QL_LOG(QLLog, Log, TEXT("Current Rotator %f 4"), Val);
+				TurnLeft90();
+			}
+		}
+
+	}
+}

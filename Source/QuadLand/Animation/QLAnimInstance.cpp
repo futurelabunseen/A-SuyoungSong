@@ -29,7 +29,7 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (Player)
 	{
-		bHasGun = Player->bHasGun;
+		bHasGun = Player->GetHasGun();
 	}
 
 	if (Movement)
@@ -37,5 +37,6 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Velocity = Movement->Velocity;
 		GroundSpeed = Velocity.Size2D(); //Z값을 제외한 X/Y에 대한 크기
 		bisIdle = GroundSpeed < MovingThreshold; //x-y에 대한 크기가 3.0보다 작을 시 Idle로 판정
+
 	}
 }

@@ -19,7 +19,7 @@ AQLCharacterBase::AQLCharacterBase() : CurrentAttackType(ECharacterAttackType::G
 	GetCharacterMovement()->MaxWalkSpeed = 450.f; 
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.0f; //조이스틱과 유사한 기기를 사용해서 미세컨트롤 가능하며, 걷기 속도를 의미함.
 	GetCharacterMovement()->JumpZVelocity = 600.f; //점프
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f); //FORCEINLINE TRotator(T InPitch, T InYaw, T InRoll);
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 120.0f, 0.f); //FORCEINLINE TRotator(T InPitch, T InYaw, T InRoll);
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->bOrientRotationToMovement = true; //캐릭터나 액터가 이동할 때 그 방향으로 회전을 수행(마우스에 따라서 회전을 수행하도록 도와줌)
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f; //점차 멈추는 효과 

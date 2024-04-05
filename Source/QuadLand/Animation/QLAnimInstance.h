@@ -52,5 +52,4 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bHasGun : 1;
 
-	
 };
