@@ -17,6 +17,7 @@
 #include "Item/QLItemObject.h"
 #include "Interface/ItemGettingInfoInterface.h"
 #include "GameFramework/GameStateBase.h"
+#include "Components/BoxComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "QuadLand.h"
 
@@ -28,15 +29,15 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasN
 
 	//springArm에 Camera를 매달을 예정
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	CameraSpringArm->TargetArmLength = 200.0f;
+	CameraSpringArm->TargetArmLength = 300.0f;
 	CameraSpringArm->SetupAttachment(RootComponent);
 	CameraSpringArm->bUsePawnControlRotation = true; //Pawn이동에 따라서 회전 예정
-
+	
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraSpringArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false; //spring Arm에 따라서 조절될 예정
 
-	CameraSpringArm->SetRelativeLocation(FVector(0.0f,0.0f,30.0f));
+	CameraSpringArm->SetRelativeLocation(FVector(0.0f,0.0f,0.0f));
 	CameraSpringArm->SocketOffset = FVector(0.0f, 40.0f, 40.0f);
 	//EnhancedInput 연결
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Move.IA_Move'"));
@@ -74,6 +75,13 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasN
 		FarmingAction = FarmingActionRef.Object;
 	}
 
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Jump.IA_Jump'"));
+
+	if (JumpActionRef.Object)
+	{
+		JumpAction = JumpActionRef.Object;
+	}
 	//InputContext Mapping
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextMappingRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/QuadLand/Inputs/IMC_Shoulder.IMC_Shoulder'"));
 
@@ -145,8 +153,8 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::FarmingItemReleased);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::RunInputPressed);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::RunInputReleased);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::JumpInputPressed);
-	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::JumpInputReleased);
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 	SetupGASInputComponent();
 }
@@ -276,6 +284,7 @@ const UQLWeaponStat* AQLCharacterPlayer::GetWeaponStat() const
 	return PS->WeaponStat;
 }
 
+
 void AQLCharacterPlayer::EquipWeapon(AQLItemObject* InItemInfo)
 {
 	//CurrentAttackType = ECharacterAttackType::GunAttack;
@@ -314,18 +323,6 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 
 	ClearTurninPlace(MovementVector.X);
 	ClearTurninPlace(MovementVector.Y);
-}
-
-void AQLCharacterPlayer::Look(const FInputActionValue& Value)
-{
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
-	AddControllerYawInput(LookAxisVector.X);
-	AddControllerPitchInput(LookAxisVector.Y);
-
-	if (LookAxisVector.X != 0)
-	{
-		TurnInPlace();
-	}
 }
 
 void AQLCharacterPlayer::GASInputPressed()
@@ -410,14 +407,21 @@ void AQLCharacterPlayer::RunInputReleased()
 	//타이머를 통해서 MaxWalkSpeed를 줄이자	
 }
 
-void AQLCharacterPlayer::JumpInputPressed()
-{
-}
 
-void AQLCharacterPlayer::JumpInputReleased()
+void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 {
-}
+	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
+	AddControllerPitchInput(LookAxisVector.Y);
+
+	UE_LOG(LogTemp, Warning, TEXT("Current Angle %lf"), LookAxisVector.Y);
+	AddControllerYawInput(LookAxisVector.X);
+
+	if (!bIsTurning)
+	{
+		TurnInPlace();
+	}
+}
 
 void AQLCharacterPlayer::PlayTurn(UAnimMontage* TurnAnimMontage, float TurnRate, float TurnTimeDelay)
 {
@@ -480,29 +484,29 @@ void AQLCharacterPlayer::TurnInPlace()
 		FRotator DeltaRotator(GetActorRotation() - GetBaseAimRotation());
 		float Val = DeltaRotator.Yaw * -1.0f;
 
-		bool RotationResult = (Val > 45.0f) || (Val < -45.f);
+		bool RotationResult = (Val > 45.0f) || (Val < -45.0f);
 
 		if (RotationResult)
 		{
 
 			if (Val > 135.0f)
 			{
-				QL_LOG(QLLog, Log, TEXT("Current Rotator %f 1"), Val);
+				QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,1);
 				TurnRight180();
 			}
 			else if (Val < -135.0f)
 			{
-				QL_LOG(QLLog, Log, TEXT("Current Rotator %f 2"), Val);
+				QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,2);
 				TurnLeft180();
 			}
 			else if (Val > 45.0f)
 			{
-				QL_LOG(QLLog, Log, TEXT("Current Rotator %f 3"), Val);
+				QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,3);
 				TurnRight90();
 			}
 			else if (Val < -45.0f)
 			{
-				QL_LOG(QLLog, Log, TEXT("Current Rotator %f 4"), Val);
+				QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,4);
 				TurnLeft90();
 			}
 		}
