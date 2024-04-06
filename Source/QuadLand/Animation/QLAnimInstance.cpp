@@ -9,6 +9,7 @@
 UQLAnimInstance::UQLAnimInstance()
 {
 	MovingThreshold = 3.0f; //변경하면서 확인해보자.
+	JumpingThreshold = 100.0f;
 }
 
 void UQLAnimInstance::NativeInitializeAnimation()
@@ -37,6 +38,7 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Velocity = Movement->Velocity;
 		GroundSpeed = Velocity.Size2D(); //Z값을 제외한 X/Y에 대한 크기
 		bisIdle = GroundSpeed < MovingThreshold; //x-y에 대한 크기가 3.0보다 작을 시 Idle로 판정
-
+		bIsFalling = Movement->IsFalling();
+		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshold);
 	}
 }

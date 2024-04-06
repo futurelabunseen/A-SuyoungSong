@@ -85,7 +85,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> LookAction;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> AttackAction;
 
@@ -94,18 +94,12 @@ protected:
 
 	void Move(const FInputActionValue& Value); //이동 매칭
 	void Look(const FInputActionValue& Value); //마우스 시선 이동
-
 	//Movement Section
 protected:
 	void RunInputPressed();
 	void RunInputReleased();
 
 	uint8 bIsFirstRunSpeedSetting : 1;
-
-protected:
-	void JumpInputPressed();
-	void JumpInputReleased();
-
 	//Attack Section
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
