@@ -40,5 +40,7 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bisIdle = GroundSpeed < MovingThreshold; //x-y에 대한 크기가 3.0보다 작을 시 Idle로 판정
 		bIsFalling = Movement->IsFalling();
 		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshold);
+		bIsCrunching = Player->GetIsCrunching();
+		Direction = CalculateDirection(Velocity, Owner->GetActorRotation());
 	}
 }
