@@ -144,39 +144,38 @@ protected:
 
 protected:
 	
-	//이친구는 Multicast
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void PlayTurn(class UAnimMontage* TurnAnimMontage, float TurnRate, float TurnTimeDelay);
+	////이친구는 Multicast
+	//UFUNCTION(BlueprintCallable, Category = "Movement")
+	//void PlayTurn(class UAnimMontage* TurnAnimMontage, float TurnRate, float TurnTimeDelay);
 
-	UPROPERTY(BlueprintReadWrite)
-	uint8 bIsTurning : 1;
+	//UPROPERTY(BlueprintReadWrite)
+	//uint8 bIsTurning : 1;
 
-	//TurnLeft(숫자)/TurnRight(숫자) -> RPC Server
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void TurnLeft90();
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void TurnLeft180();
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void TurnRight90();
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void TurnRight180();
+	//////TurnLeft(숫자)/TurnRight(숫자) -> RPC Server
+	////UFUNCTION(BlueprintCallable, Category = "Movement")
+	////void TurnLeft90();
+	////UFUNCTION(BlueprintCallable, Category = "Movement")
+	////void TurnLeft180();
+	////UFUNCTION(BlueprintCallable, Category = "Movement")
+	////void TurnRight90();
+	////UFUNCTION(BlueprintCallable, Category = "Movement")
+	////void TurnRight180();
 
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void ClearMotion();
+	////UFUNCTION(BlueprintCallable, Category = "Movement")
+	////void ClearMotion();
 
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void ClearTurninPlace(float Force);
+	////UFUNCTION(BlueprintCallable, Category = "Movement")
+	////void ClearTurninPlace(float Force);
 
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void TurnInPlace();
+	////UFUNCTION(BlueprintCallable, Category = "Movement")
+	////void TurnInPlace();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
-	TArray<TObjectPtr<class UAnimMontage>> TurnAnimMontages; //enum으로 설정 
+	////UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
+	////TArray<TObjectPtr<class UAnimMontage>> TurnAnimMontages; //enum으로 설정 
 
 protected:
 	uint8 bIsCrunching : 1;
 
 	void Crunch();
-	void StopCrunching();
 
 };

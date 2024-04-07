@@ -163,7 +163,6 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	EnhancedInputComponent->BindAction(CrunchAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Crunch);
-	EnhancedInputComponent->BindAction(CrunchAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::StopCrunching);
 
 	SetupGASInputComponent();
 }
@@ -332,8 +331,8 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 	AddMovementInput(ForwardDirection, MovementVector.X);
 	AddMovementInput(RightDirection, MovementVector.Y);
 	
-	ClearTurninPlace(MovementVector.X);
-	ClearTurninPlace(MovementVector.Y);
+	//ClearTurninPlace(MovementVector.X);
+	//ClearTurninPlace(MovementVector.Y);
 }
 
 void AQLCharacterPlayer::GASInputPressed()
@@ -427,106 +426,99 @@ void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 
 	AddControllerYawInput(LookAxisVector.X);
 
-	if (!bIsTurning)
-	{
-		TurnInPlace();
-	}
+	//if (!bIsTurning)
+	//{
+	//	TurnInPlace();
+	//}
 }
 
-void AQLCharacterPlayer::PlayTurn(UAnimMontage* TurnAnimMontage, float TurnRate, float TurnTimeDelay)
-{
-	if (bIsTurning == false)
-	{
-		bIsTurning = true;
-		PlayAnimMontage(TurnAnimMontage, TurnRate);
-
-		FTimerHandle TurnTimeHandle;
-		GetWorld()->GetTimerManager().SetTimer(TurnTimeHandle, [=]() 
-			{
-			bIsTurning = false;
-			}, TurnTimeDelay, false, -1);
-	}
-}
-//enum값으로 변경 예정
-void AQLCharacterPlayer::TurnLeft90()
-{
-	PlayTurn(TurnAnimMontages[0], 1.5f, 0.5f);
-}
-
-void AQLCharacterPlayer::TurnLeft180()
-{
-	PlayTurn(TurnAnimMontages[2], 1.7f, 0.6f);
-}
-
-void AQLCharacterPlayer::TurnRight90()
-{
-	PlayTurn(TurnAnimMontages[1], 1.5f, 0.5f);
-}
-
-void AQLCharacterPlayer::TurnRight180()
-{
-	PlayTurn(TurnAnimMontages[3], 1.7f, 0.6f);
-}
-
-void AQLCharacterPlayer::ClearMotion()
-{
-	if (IsPlayingRootMotion())
-	{
-		StopAnimMontage();
-	}
-}
-
-void AQLCharacterPlayer::ClearTurninPlace(float Force)
-{
-	if (Force != 0.0f)
-	{
-		ClearMotion();
-	}
-}
-
-void AQLCharacterPlayer::TurnInPlace()
-{
-	float GroundSpeed = GetCharacterMovement()->Velocity.Size2D();
-
-	if (!(GetCharacterMovement()->IsFalling()) && !(GroundSpeed > 0.0f))
-	{
-
-		FRotator DeltaRotator(GetActorRotation() - GetBaseAimRotation());
-		float Val = DeltaRotator.Yaw * -1.0f;
-		Val=FMath::Clamp(Val, -180.0f, 180.0f);
-
-		if (Val > 135.0f)
-		{
-			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,1);
-			TurnRight180();
-		}
-		else if (Val < -135.0f)
-		{
-			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,2);
-			TurnLeft180();
-		}
-		else if (Val > 45.0f)
-		{
-			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,3);
-			TurnRight90();
-		}
-		else if (Val < -45.0f)
-		{
-			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,4);
-			TurnLeft90();
-		}
-	}
-}
+//void AQLCharacterPlayer::PlayTurn(UAnimMontage* TurnAnimMontage, float TurnRate, float TurnTimeDelay)
+//{
+//	if (bIsTurning == false)
+//	{
+//		bIsTurning = true;
+//		PlayAnimMontage(TurnAnimMontage, TurnRate);
+//
+//		FTimerHandle TurnTimeHandle;
+//		GetWorld()->GetTimerManager().SetTimer(TurnTimeHandle, [=]() 
+//			{
+//			bIsTurning = false;
+//			}, TurnTimeDelay, false, -1);
+//	}
+//}
+////enum값으로 변경 예정
+//void AQLCharacterPlayer::TurnLeft90()
+//{
+//	PlayTurn(TurnAnimMontages[0], 1.5f, 0.5f);
+//}
+//
+//void AQLCharacterPlayer::TurnLeft180()
+//{
+//	PlayTurn(TurnAnimMontages[2], 1.7f, 0.6f);
+//}
+//
+//void AQLCharacterPlayer::TurnRight90()
+//{
+//	PlayTurn(TurnAnimMontages[1], 1.5f, 0.5f);
+//}
+//
+//void AQLCharacterPlayer::TurnRight180()
+//{
+//	PlayTurn(TurnAnimMontages[3], 1.7f, 0.6f);
+//}
+//
+//void AQLCharacterPlayer::ClearMotion()
+//{
+//	if (IsPlayingRootMotion())
+//	{
+//		StopAnimMontage();
+//	}
+//}
+//
+//void AQLCharacterPlayer::ClearTurninPlace(float Force)
+//{
+//	if (Force != 0.0f)
+//	{
+//		ClearMotion();
+//	}
+//}
+//
+//void AQLCharacterPlayer::TurnInPlace()
+//{
+//	float GroundSpeed = GetCharacterMovement()->Velocity.Size2D();
+//
+//	if (!(GetCharacterMovement()->IsFalling()) && !(GroundSpeed > 0.0f))
+//	{
+//
+//		FRotator DeltaRotator(GetActorRotation() - GetBaseAimRotation());
+//		float Val = DeltaRotator.Yaw * -1.0f;
+//		Val=FMath::Clamp(Val, -180.0f, 180.0f);
+//
+//		if (Val > 135.0f)
+//		{
+//			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,1);
+//			TurnRight180();
+//		}
+//		else if (Val < -135.0f)
+//		{
+//			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,2);
+//			TurnLeft180();
+//		}
+//		else if (Val > 45.0f)
+//		{
+//			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,3);
+//			TurnRight90();
+//		}
+//		else if (Val < -45.0f)
+//		{
+//			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,4);
+//			TurnLeft90();
+//		}
+//	}
+//}
 
 void AQLCharacterPlayer::Crunch()
 {
-	if (!bIsCrunching)
-	{
-		bIsCrunching = true;
-	}
+	bIsCrunching = !bIsCrunching;
 }
 
-void AQLCharacterPlayer::StopCrunching()
-{
-	bIsCrunching = false;
-}

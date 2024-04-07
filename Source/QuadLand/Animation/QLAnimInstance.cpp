@@ -41,6 +41,6 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsFalling = Movement->IsFalling();
 		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshold);
 		bIsCrunching = Player->GetIsCrunching();
-		Direction = CalculateDirection(Velocity, Owner->GetActorRotation());
+		Direction = CalculateDirection(Velocity, Owner->GetActorRotation()); //Locomotion Angle
 	}
 }

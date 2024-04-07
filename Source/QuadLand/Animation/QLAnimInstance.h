@@ -64,4 +64,17 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float Direction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	float RootYawOffset;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	float YawChangeOverlap;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	float YawLastTick;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	float Yaw;
+
 };
