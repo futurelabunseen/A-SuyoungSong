@@ -47,7 +47,7 @@ protected:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	uint8 bIsCrunched : 1;
+	uint8 bIsCrunching : 1;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsJumping : 1;
@@ -62,4 +62,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bHasGun : 1;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	float Direction;
 };

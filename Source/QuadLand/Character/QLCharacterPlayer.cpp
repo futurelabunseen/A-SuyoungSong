@@ -82,6 +82,13 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasN
 	{
 		JumpAction = JumpActionRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> CrunchActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Crunch.IA_Crunch'"));
+
+	if (CrunchActionRef.Object)
+	{
+		CrunchAction = CrunchActionRef.Object;
+	}
 	//InputContext Mapping
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextMappingRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/QuadLand/Inputs/IMC_Shoulder.IMC_Shoulder'"));
 
@@ -154,7 +161,9 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::RunInputPressed);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::RunInputReleased);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+	EnhancedInputComponent->BindAction(CrunchAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Crunch);
+	EnhancedInputComponent->BindAction(CrunchAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::StopCrunching);
 
 	SetupGASInputComponent();
 }
@@ -306,9 +315,11 @@ void AQLCharacterPlayer::EquipWeapon(AQLItemObject* InItemInfo)
 	CurrentAttackType = ECharacterAttackType::GunAttack;
 
 }
+
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 {
-	//이동 벡터
+	
+	////이동 벡터
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 
 	const FRotator Rotation = Controller->GetControlRotation(); 
@@ -320,7 +331,7 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 
 	AddMovementInput(ForwardDirection, MovementVector.X);
 	AddMovementInput(RightDirection, MovementVector.Y);
-
+	
 	ClearTurninPlace(MovementVector.X);
 	ClearTurninPlace(MovementVector.Y);
 }
@@ -414,7 +425,6 @@ void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 
 	AddControllerPitchInput(LookAxisVector.Y);
 
-	UE_LOG(LogTemp, Warning, TEXT("Current Angle %lf"), LookAxisVector.Y);
 	AddControllerYawInput(LookAxisVector.X);
 
 	if (!bIsTurning)
@@ -483,33 +493,40 @@ void AQLCharacterPlayer::TurnInPlace()
 
 		FRotator DeltaRotator(GetActorRotation() - GetBaseAimRotation());
 		float Val = DeltaRotator.Yaw * -1.0f;
+		Val=FMath::Clamp(Val, -180.0f, 180.0f);
 
-		bool RotationResult = (Val > 45.0f) || (Val < -45.0f);
-
-		if (RotationResult)
+		if (Val > 135.0f)
 		{
-
-			if (Val > 135.0f)
-			{
-				QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,1);
-				TurnRight180();
-			}
-			else if (Val < -135.0f)
-			{
-				QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,2);
-				TurnLeft180();
-			}
-			else if (Val > 45.0f)
-			{
-				QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,3);
-				TurnRight90();
-			}
-			else if (Val < -45.0f)
-			{
-				QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,4);
-				TurnLeft90();
-			}
+			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,1);
+			TurnRight180();
 		}
-
+		else if (Val < -135.0f)
+		{
+			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,2);
+			TurnLeft180();
+		}
+		else if (Val > 45.0f)
+		{
+			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,3);
+			TurnRight90();
+		}
+		else if (Val < -45.0f)
+		{
+			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,4);
+			TurnLeft90();
+		}
 	}
+}
+
+void AQLCharacterPlayer::Crunch()
+{
+	if (!bIsCrunching)
+	{
+		bIsCrunching = true;
+	}
+}
+
+void AQLCharacterPlayer::StopCrunching()
+{
+	bIsCrunching = false;
 }
