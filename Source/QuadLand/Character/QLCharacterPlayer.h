@@ -6,6 +6,7 @@
 #include "Character/QLCharacterBase.h"
 #include "InputActionValue.h"
 #include "AbilitySystemInterface.h"
+#include "Components/TimelineComponent.h"
 #include "QLCharacterPlayer.generated.h"
 
 /**
@@ -61,6 +62,7 @@ public:
 	FORCEINLINE bool GetHasGun() const { return bHasGun; }
 
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrunching; }
+	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 
 protected:
 
@@ -137,46 +139,40 @@ protected:
 
 	void EquipWeapon(class AQLItemObject* ItemInfo);
 
-
 	//Take
 	UPROPERTY()
 	TArray<FTakeItemDelegateWrapper> TakeItemActions;
 
 protected:
-	
-	//이친구는 Multicast
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void PlayTurn(class UAnimMontage* TurnAnimMontage, float TurnRate, float TurnTimeDelay);
-
-	UPROPERTY(BlueprintReadWrite)
-	uint8 bIsTurning : 1;
-
-	//TurnLeft(숫자)/TurnRight(숫자) -> RPC Server
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void TurnLeft90();
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void TurnLeft180();
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void TurnRight90();
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void TurnRight180();
-
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void ClearMotion();
-
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void ClearTurninPlace(float Force);
-
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	void TurnInPlace();
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
-	TArray<TObjectPtr<class UAnimMontage>> TurnAnimMontages; //enum으로 설정 
-
-protected:
 	uint8 bIsCrunching : 1;
 
 	void Crunch();
-	void StopCrunching();
 
+protected:
+	uint8 bIsAiming : 1;
+
+	void Aim();
+	void StopAiming();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> AimAction;
+
+	
+	//카메라 줌인 작업을 위해서 TimelineComponent 사용
+	UPROPERTY()
+	TObjectPtr<class UTimelineComponent> ZoomInTimeline;
+
+	UPROPERTY()
+	TObjectPtr<class UCurveFloat> AimAlphaCurve;
+
+	UFUNCTION()
+	void TimelineFloatReturn(float Alpha);
+
+	FOnTimelineFloat InterpFunction{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	float MaxArmLength;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	float MinArmLength;
 };

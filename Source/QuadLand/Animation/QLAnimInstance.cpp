@@ -41,6 +41,9 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsFalling = Movement->IsFalling();
 		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshold);
 		bIsCrunching = Player->GetIsCrunching();
-		Direction = CalculateDirection(Velocity, Owner->GetActorRotation());
+		Direction = CalculateDirection(Velocity, Owner->GetActorRotation()); //Locomotion Angle
+		bIsAiming = Player->GetIsAiming();
+		FRotator DeltaRotator = (Owner->GetActorRotation() - Owner->GetControlRotation());
+		AimRotator = FRotator(0.0f, DeltaRotator.Yaw * -1.0f, DeltaRotator.Pitch);
 	}
 }
