@@ -21,7 +21,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "QuadLand.h"
 
-AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f)//, bIsTurning(false)
+AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f), MaxArmLength(300.0f)//, bIsTurning(false)
 {
 	bHasGun = false;
 	ASC = nullptr;
@@ -29,7 +29,7 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasN
 
 	//springArm에 Camera를 매달을 예정
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	CameraSpringArm->TargetArmLength = 300.0f;
+	CameraSpringArm->TargetArmLength = MaxArmLength;
 	CameraSpringArm->SetupAttachment(RootComponent);
 	CameraSpringArm->bUsePawnControlRotation = true; //Pawn이동에 따라서 회전 예정
 	
@@ -89,6 +89,13 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasN
 	{
 		CrunchAction = CrunchActionRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> AimActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Aim.IA_Aim'"));
+
+	if (AimActionRef.Object)
+	{
+		AimAction = AimActionRef.Object;
+	}
 	//InputContext Mapping
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextMappingRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/QuadLand/Inputs/IMC_Shoulder.IMC_Shoulder'"));
 
@@ -99,6 +106,15 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasN
 
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this,&AQLCharacterPlayer::EquipWeapon)));
 
+	static ConstructorHelpers::FObjectFinder<UCurveFloat> AimCurveRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/AimAlpha.AimAlpha'"));
+
+	if (AimCurveRef.Object)
+	{
+		AimAlphaCurve = AimCurveRef.Object;
+	}
+
+	ZoomInTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ZoominTimeline"));
+	InterpFunction.BindUFunction(this, FName(TEXT("TimelineFloatReturn")));
 }
 void AQLCharacterPlayer::BeginPlay()
 {
@@ -111,6 +127,7 @@ void AQLCharacterPlayer::BeginPlay()
 	}
 	SetCharacterControl();
 
+	ZoomInTimeline->AddInterpFloat(AimAlphaCurve, InterpFunction, FName{ TEXT("AimAlpha") });
 }
 
 /// <summary>
@@ -163,6 +180,8 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 	EnhancedInputComponent->BindAction(CrunchAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Crunch);
+	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Aim);
+	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::StopAiming);
 
 	SetupGASInputComponent();
 }
@@ -331,8 +350,6 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 	AddMovementInput(ForwardDirection, MovementVector.X);
 	AddMovementInput(RightDirection, MovementVector.Y);
 	
-	//ClearTurninPlace(MovementVector.X);
-	//ClearTurninPlace(MovementVector.Y);
 }
 
 void AQLCharacterPlayer::GASInputPressed()
@@ -426,99 +443,37 @@ void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 
 	AddControllerYawInput(LookAxisVector.X);
 
-	//if (!bIsTurning)
-	//{
-	//	TurnInPlace();
-	//}
 }
-
-//void AQLCharacterPlayer::PlayTurn(UAnimMontage* TurnAnimMontage, float TurnRate, float TurnTimeDelay)
-//{
-//	if (bIsTurning == false)
-//	{
-//		bIsTurning = true;
-//		PlayAnimMontage(TurnAnimMontage, TurnRate);
-//
-//		FTimerHandle TurnTimeHandle;
-//		GetWorld()->GetTimerManager().SetTimer(TurnTimeHandle, [=]() 
-//			{
-//			bIsTurning = false;
-//			}, TurnTimeDelay, false, -1);
-//	}
-//}
-////enum값으로 변경 예정
-//void AQLCharacterPlayer::TurnLeft90()
-//{
-//	PlayTurn(TurnAnimMontages[0], 1.5f, 0.5f);
-//}
-//
-//void AQLCharacterPlayer::TurnLeft180()
-//{
-//	PlayTurn(TurnAnimMontages[2], 1.7f, 0.6f);
-//}
-//
-//void AQLCharacterPlayer::TurnRight90()
-//{
-//	PlayTurn(TurnAnimMontages[1], 1.5f, 0.5f);
-//}
-//
-//void AQLCharacterPlayer::TurnRight180()
-//{
-//	PlayTurn(TurnAnimMontages[3], 1.7f, 0.6f);
-//}
-//
-//void AQLCharacterPlayer::ClearMotion()
-//{
-//	if (IsPlayingRootMotion())
-//	{
-//		StopAnimMontage();
-//	}
-//}
-//
-//void AQLCharacterPlayer::ClearTurninPlace(float Force)
-//{
-//	if (Force != 0.0f)
-//	{
-//		ClearMotion();
-//	}
-//}
-//
-//void AQLCharacterPlayer::TurnInPlace()
-//{
-//	float GroundSpeed = GetCharacterMovement()->Velocity.Size2D();
-//
-//	if (!(GetCharacterMovement()->IsFalling()) && !(GroundSpeed > 0.0f))
-//	{
-//
-//		FRotator DeltaRotator(GetActorRotation() - GetBaseAimRotation());
-//		float Val = DeltaRotator.Yaw * -1.0f;
-//		Val=FMath::Clamp(Val, -180.0f, 180.0f);
-//
-//		if (Val > 135.0f)
-//		{
-//			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,1);
-//			TurnRight180();
-//		}
-//		else if (Val < -135.0f)
-//		{
-//			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,2);
-//			TurnLeft180();
-//		}
-//		else if (Val > 45.0f)
-//		{
-//			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,3);
-//			TurnRight90();
-//		}
-//		else if (Val < -45.0f)
-//		{
-//			QL_LOG(QLLog, Log, TEXT("Current Rotator %f %d"), Val,4);
-//			TurnLeft90();
-//		}
-//	}
-//}
 
 void AQLCharacterPlayer::Crunch()
 {
 	bIsCrunching = !bIsCrunching;
+}
+
+void AQLCharacterPlayer::Aim()
+{
+	if (bHasGun)
+	{
+		QL_LOG(QLLog, Log, TEXT("Aim on"));
+		bIsAiming = true;
+		ZoomInTimeline->Play();
+	}
+}
+
+void AQLCharacterPlayer::StopAiming()
+{
+	QL_LOG(QLLog, Log, TEXT("Aim off"));
+	if (bIsAiming)
+	{
+		bIsAiming = false;
+		ZoomInTimeline->ReverseFromEnd();
+	}
+}
+
+void AQLCharacterPlayer::TimelineFloatReturn(float Alpha)
+{
+	float Length=FMath::Lerp(MaxArmLength, MinArmLength, Alpha);
+	CameraSpringArm->TargetArmLength = Length ;
+	QL_LOG(QLLog, Log, TEXT("Alpha %lf"),Alpha);
 }
 

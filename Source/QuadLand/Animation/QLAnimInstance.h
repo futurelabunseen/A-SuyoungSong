@@ -77,4 +77,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
 	float Yaw;
 
+
+	/* Aim Offset*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bIsAiming : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	FRotator AimRotator;
+
+
 };
