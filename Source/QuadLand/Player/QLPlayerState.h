@@ -19,15 +19,18 @@ public:
 	AQLPlayerState();
 
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
+	
+	void SetWeaponStat(class UQLWeaponStat *Stat);
 protected:
 
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<class UAbilitySystemComponent> ASC;
 
-	//공격을 이용하기 위한 WeaponStat이 존재해야할듯 - 개인마다 다르기 때문에 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UQLWeaponStat> WeaponStat;
+	TObjectPtr<class UQLAS_PlayerStat> PlayerStatInfo;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UQLAS_WeaponStat> WeaponStatInfo;
 
 	friend class AQLCharacterPlayer;
 };

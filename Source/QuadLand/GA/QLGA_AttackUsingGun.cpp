@@ -27,6 +27,7 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
 
 	UAnimMontage* AnimMontageUsingGun = Player->GetAnimMontage();
+
 	float AnimSpeedRate = 1.0f;
 
 	//몽타주를 클라이언트 - Server를 다르게 동작하도록 한다.

@@ -10,6 +10,7 @@ UQLAnimInstance::UQLAnimInstance()
 {
 	MovingThreshold = 3.0f; //변경하면서 확인해보자.
 	JumpingThreshold = 100.0f;
+	AimSpeedRate = 1.7f;
 }
 
 void UQLAnimInstance::NativeInitializeAnimation()
@@ -45,5 +46,7 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsAiming = Player->GetIsAiming();
 		FRotator DeltaRotator = (Owner->GetActorRotation() - Owner->GetControlRotation());
 		AimRotator = FRotator(0.0f, DeltaRotator.Yaw * -1.0f, DeltaRotator.Pitch);
+
+		AimSpeedRate = GroundSpeed > 400.0f ? 1.0f : 1.7f;
 	}
 }

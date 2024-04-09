@@ -3,13 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameData/QLItemData.h"
 #include "Engine/DataAsset.h"
 #include "QLWeaponStat.generated.h"
 
 /**
  * 얘네 나중에 Attribute Set으로도 설정해놔야함. 그리고 주웠을 때 해당 값으로 Reset 되도록 구현 !
  */
-UENUM()
+UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
 	TypeA,
@@ -22,17 +23,24 @@ enum class EWeaponType : uint8
 
 
 UCLASS()
-class QUADLAND_API UQLWeaponStat : public UDataAsset
+class QUADLAND_API UQLWeaponStat : public UQLItemData
 {
 	GENERATED_BODY()
 	
 public:
+	UQLWeaponStat();
 
+	FPrimaryAssetId GetPrimaryAssetId() const override
+	{
+		return FPrimaryAssetId("QLItemData", GetFName());
+	}
+
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat)
 	EWeaponType Type;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat)
-	TSoftObjectPtr<class UStaticMesh> Mesh;
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	TSoftObjectPtr<class USkeletalMesh> WeaponMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat)
 	float Damage;

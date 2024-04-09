@@ -7,6 +7,9 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Character/QLCharacterPlayer.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AttributeSet/QLAS_PlayerStat.h"
+#include "AttributeSet/QLAS_WeaponStat.h"
+#include "GameplayTag/GamplayTags.h"
 #include "QuadLand.h"
 
 UQLGA_AttackHitCheck::UQLGA_AttackHitCheck()
@@ -43,6 +46,21 @@ void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataH
 		if (UAbilitySystemBlueprintLibrary::TargetDataHasHitResult(TargetDataHandle, 0))
 		{
 			FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(TargetDataHandle, 0);
+
+			UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
+			const UQLAS_WeaponStat* SourceAttributeSet = SourceASC->GetSet<UQLAS_WeaponStat>();
+
+			//Effect Handle 설정
+			
+			//Gameplay Effect를 실행한다.
+			FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(AttackDamageEffect);
+			if (EffectSpecHandle.IsValid())
+			{
+				UE_LOG(LogTemp, Log, TEXT("%lf"), -SourceAttributeSet->GetDamage());
+				//발사
+				EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, -SourceAttributeSet->GetDamage());
+				ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
+			}
 			QL_GASLOG(QLNetLog, Log, TEXT("Current Hit Result is %s"), *(HitResult.GetActor()->GetName()));
 		}
 	}

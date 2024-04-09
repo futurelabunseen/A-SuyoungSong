@@ -13,7 +13,7 @@ AQLCharacterBase::AQLCharacterBase() : CurrentAttackType(ECharacterAttackType::G
 	//Pawn 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 
 	//Movement
 	GetCharacterMovement()->MaxWalkSpeed = 450.f; 
@@ -46,10 +46,6 @@ AQLCharacterBase::AQLCharacterBase() : CurrentAttackType(ECharacterAttackType::G
 	{
 		GetMesh()->SetAnimClass(AnimInstanceRef.Class);
 	}
-
-	// Weapon Component
-	Weapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Weapon"));
-	Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
 }
 
 FGameplayTag AQLCharacterBase::GetCurrentAttackTag() const
