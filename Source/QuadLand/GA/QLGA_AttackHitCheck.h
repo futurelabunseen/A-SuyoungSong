@@ -25,6 +25,8 @@ protected:
 	UFUNCTION()
 	void OnCompletedCallback(const FGameplayAbilityTargetDataHandle& TargetDataHanlde);
 
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<class UGameplayEffect> AttackDamageEffect;
 
 	UPROPERTY()
 	TObjectPtr<class USkeletalMeshSocket> ResultSocket;

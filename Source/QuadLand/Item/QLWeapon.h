@@ -26,4 +26,5 @@ protected:
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<class UQLAS_WeaponStat> Stat;
 
+	friend class AQLPlayerState;
 };

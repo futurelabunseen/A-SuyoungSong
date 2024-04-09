@@ -40,7 +40,7 @@ public:
 	EWeaponType Type;
 	
 	UPROPERTY(EditAnywhere, Category = Weapon)
-	TObjectPtr<USkeletalMesh> WeaponMesh;
+	TSoftObjectPtr<class USkeletalMesh> WeaponMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat)
 	float Damage;

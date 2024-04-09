@@ -9,8 +9,8 @@
 
 AQLWeapon::AQLWeapon()
 {
-	Stat = CreateDefaultSubobject<UQLAS_WeaponStat>(TEXT("WeaponStat"));
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
+	Stat = CreateDefaultSubobject<UQLAS_WeaponStat>(TEXT("WeaponStat"));
 	ASC->SetIsReplicated(true);
 }
 

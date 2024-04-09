@@ -19,7 +19,8 @@ public:
 	AQLPlayerState();
 
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
+	
+	void SetWeaponStat(class UQLWeaponStat *Stat);
 protected:
 
 	UPROPERTY(EditAnywhere, Category = GAS)
@@ -29,7 +30,7 @@ protected:
 	TObjectPtr<class UQLAS_PlayerStat> PlayerStatInfo;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class AQLWeapon> WeaponInfo;
+	TObjectPtr<class UQLAS_WeaponStat> WeaponStatInfo;
 
 	friend class AQLCharacterPlayer;
 };

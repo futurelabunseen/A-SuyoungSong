@@ -29,6 +29,10 @@ public:
     ATTRIBUTE_ACCESSORS(UQLAS_PlayerStat, Stemina);
     ATTRIBUTE_ACCESSORS(UQLAS_PlayerStat, MaxStemina);
 
+    //virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+
+    virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
+
 protected:
 
     UPROPERTY(BlueprintReadOnly, Category = "Attack", Meta = (AllowPrivateAccess = true))

@@ -119,6 +119,8 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsRunning(false), bHasNextPunchAttac
 
 	ZoomInTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ZoominTimeline"));
 	InterpFunction.BindUFunction(this, FName(TEXT("TimelineFloatReturn")));
+
+	TakeItemDestory.BindUObject(this, &AQLCharacterPlayer::DestoryItem);
 }
 void AQLCharacterPlayer::BeginPlay()
 {
@@ -290,6 +292,7 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 			TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item->Stat);
 			OutHitResult.GetActor()->SetActorEnableCollision(false);
 			OutHitResult.GetActor()->SetActorHiddenInGame(true);
+			TakeItemDestory.Execute(Item);
 		}
 		bPressedFarmingKey = false;
 	}
@@ -314,15 +317,17 @@ void AQLCharacterPlayer::EquipWeapon(UQLItemData* InItemInfo)
 	UQLWeaponStat* WeaponStat = CastChecked<UQLWeaponStat>(InItemInfo);
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 
-	QL_LOG(QLLog, Log, TEXT("%d %d"), Weapon, WeaponStat->WeaponMesh);
-
+	PS->SetWeaponStat(WeaponStat);
 	if (Weapon && WeaponStat->WeaponMesh)
 	{
-		Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh);
+		if (WeaponStat->WeaponMesh.IsPending())
+		{
+			WeaponStat->WeaponMesh.LoadSynchronous();
+		}
+		Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh.Get());
 	}
-
-
 	bHasGun = true;
+	
 }
 
 FVector AQLCharacterPlayer::CalPlayerLocalCameraStartPos()
@@ -440,6 +445,14 @@ void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 
 	AddControllerYawInput(LookAxisVector.X);
 
+}
+
+void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
+{
+	if (Item)
+	{
+		Item->SetLifeSpan(30.0f); //수정해야함.
+	}
 }
 
 void AQLCharacterPlayer::Crunch()

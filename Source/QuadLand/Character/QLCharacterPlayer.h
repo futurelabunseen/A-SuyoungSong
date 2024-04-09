@@ -13,6 +13,7 @@
  * 
  */
 DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class UQLItemData*);
+DECLARE_DELEGATE_OneParam(FOnTakeItemDestoryDelegate, class AQLItemBox*);
 USTRUCT(BlueprintType)
 struct FTakeItemDelegateWrapper
 {
@@ -143,6 +144,11 @@ protected:
 	//Take
 	UPROPERTY()
 	TArray<FTakeItemDelegateWrapper> TakeItemActions;
+	
+	FOnTakeItemDestoryDelegate TakeItemDestory;
+
+	UFUNCTION()
+	void DestoryItem(class AQLItemBox* Item);
 
 protected:
 	uint8 bIsCrunching : 1;
@@ -176,4 +182,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	float MinArmLength;
+
+
 };
