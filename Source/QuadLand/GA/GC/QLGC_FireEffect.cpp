@@ -27,7 +27,7 @@ bool UQLGC_FireEffect::OnExecute_Implementation(AActor* MyTarget, const FGamepla
 	if (CurrentPlayer)
 	{
 
-		FVector FireEffectLoc = CurrentPlayer->GetWeaponMesh()->GetSocketLocation(FName(TEXT("FireEffect")));
+		FVector FireEffectLoc = CurrentPlayer->GetWeaponMesh()->GetSocketLocation(FName(TEXT("MuzzleFlash")));
 
 		UE_LOG(LogTemp, Log, TEXT("%s"), *FireEffectLoc.ToString());
 

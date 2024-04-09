@@ -12,8 +12,7 @@
 /**
  * 
  */
-DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class AQLItemObject*);
-DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class AQLItemObject*);
+DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class UQLItemData*);
 USTRUCT(BlueprintType)
 struct FTakeItemDelegateWrapper
 {
@@ -58,12 +57,11 @@ public:
 	
 	FVector GetCameraForward();
 
-	const class UQLWeaponStat* GetWeaponStat() const;
+	//const class UQLWeaponStat* GetWeaponStat() const;
 	FORCEINLINE bool GetHasGun() const { return bHasGun; }
-
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrunching; }
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
-
+	FORCEINLINE const class USkeletalMeshComponent* GetWeaponMesh() const { return Weapon; }
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
@@ -99,7 +97,7 @@ protected:
 	void RunInputPressed();
 	void RunInputReleased();
 
-	uint8 bIsFirstRunSpeedSetting : 1;
+	uint8 bIsRunning : 1;
 	//Attack Section
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
@@ -130,6 +128,9 @@ protected:
 
 //파밍 시스템을 위한 변수
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class USkeletalMeshComponent> Weapon;
+
 	uint8 bPressedFarmingKey : 1;
 
 	int32 FarmingTraceDist;
@@ -137,7 +138,7 @@ protected:
 	void FarmingItemPressed();
 	void FarmingItemReleased();
 
-	void EquipWeapon(class AQLItemObject* ItemInfo);
+	void EquipWeapon(class UQLItemData* ItemInfo);
 
 	//Take
 	UPROPERTY()

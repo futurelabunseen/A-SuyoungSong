@@ -3,30 +3,27 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Item/QLItemObject.h"
 #include "GameFramework/Actor.h"
-#include "Interface/ItemGettingInfoInterface.h"
+#include "AbilitySystemInterface.h"
 #include "QLWeapon.generated.h"
 
 UCLASS()
-class QUADLAND_API AQLWeapon : public AQLItemObject, public IItemGettingInfoInterface
+class QUADLAND_API AQLWeapon : public AActor, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
 	AQLWeapon();
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	virtual class UStaticMeshComponent* GetMesh() const override;
-	virtual class UQLWeaponStat* GetStat() const override;
+	virtual void PostInitializeComponents() override;
+
 protected:
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TObjectPtr<class UAbilitySystemComponent> ASC;
 
-	UPROPERTY(VisibleAnywhere, Category = Collision)
-	TObjectPtr<class UBoxComponent> Trigger;
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TObjectPtr<class UQLAS_WeaponStat> Stat;
 
-	UPROPERTY(VisibleAnywhere, Category = Mesh)
-	TObjectPtr<class UStaticMeshComponent> Mesh;
-
-	UPROPERTY(EditAnywhere, Category = Stat)
-	TObjectPtr<class UQLWeaponStat> WeaponStat;
 };

@@ -3,3 +3,7 @@
 
 #include "GameData/QLWeaponStat.h"
 
+UQLWeaponStat::UQLWeaponStat()
+{
+	ItemType = EItemType::Weapon;
+}

@@ -3,25 +3,23 @@
 
 #include "Character/QLCharacterPlayer.h"
 #include "GameFramework/SpringArmComponent.h" //springArm - GameFramework
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h" //camera - Camera
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "AbilitySystemComponent.h"
+#include "EngineUtils.h"
+
+#include "Item/QLItemBox.h"
 #include "AttackActionData/QLPunchAttackData.h"
 #include "Player/QLPlayerState.h"
 #include "Player/QLPlayerController.h"
-#include "AbilitySystemComponent.h"
 #include "Physics/QLCollision.h"
 #include "GameData/QLWeaponStat.h"
-#include "Item/QLItemObject.h"
-#include "Interface/ItemGettingInfoInterface.h"
-#include "GameFramework/GameStateBase.h"
-#include "Components/BoxComponent.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "QuadLand.h"
 
-AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f), MaxArmLength(300.0f)//, bIsTurning(false)
+AQLCharacterPlayer::AQLCharacterPlayer() : bIsRunning(false), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f), MaxArmLength(300.0f)//, bIsTurning(false)
 {
 	bHasGun = false;
 	ASC = nullptr;
@@ -37,8 +35,14 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsFirstRunSpeedSetting(false), bHasN
 	Camera->SetupAttachment(CameraSpringArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false; //spring Arm에 따라서 조절될 예정
 
-	CameraSpringArm->SetRelativeLocation(FVector(0.0f,0.0f,0.0f));
-	CameraSpringArm->SocketOffset = FVector(0.0f, 40.0f, 40.0f);
+	CameraSpringArm->TargetArmLength =300.f;
+	CameraSpringArm->SetRelativeLocation(FVector(0.0f,30.0f,0.0f));
+	CameraSpringArm->SocketOffset = FVector(0.0f, 15.0f, 48.0f);
+	
+	// Weapon Component
+	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
+	Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
+
 	//EnhancedInput 연결
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Move.IA_Move'"));
 
@@ -173,13 +177,18 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Look);
+
 	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::FarmingItemPressed);
 	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::FarmingItemReleased);
+
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::RunInputPressed);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::RunInputReleased);
+
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+
 	EnhancedInputComponent->BindAction(CrunchAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Crunch);
+
 	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Aim);
 	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::StopAiming);
 
@@ -271,18 +280,18 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 		//PC->SetVisibleFarming();
 		if (bPressedFarmingKey) //꼭 무기라고 단정 지을 수는 없음. 
 		{
-			bPressedFarmingKey = false;
+			AQLItemBox* Item = Cast<AQLItemBox>(OutHitResult.GetActor());
 
-			OutHitResult.GetActor()->SetActorHiddenInGame(true);
-			AQLItemObject* Item = Cast<AQLItemObject>(OutHitResult.GetActor());
 			if (Item == nullptr)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Item is not founded"));
 				return;
 			}
-			TakeItemActions[static_cast<uint8>(Item->ItemType)].ItemDelegate.ExecuteIfBound(Item);
-			UE_LOG(LogTemp, Log, TEXT("Item Get"));
+			TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item->Stat);
+			OutHitResult.GetActor()->SetActorEnableCollision(false);
+			OutHitResult.GetActor()->SetActorHiddenInGame(true);
 		}
+		bPressedFarmingKey = false;
 	}
 	else
 	{
@@ -295,6 +304,27 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 //#endif
 
 }
+
+void AQLCharacterPlayer::EquipWeapon(UQLItemData* InItemInfo)
+{
+	if (InItemInfo == nullptr) return;
+
+	CurrentAttackType = ECharacterAttackType::GunAttack;
+	//Weapon 위치는 소켓 
+	UQLWeaponStat* WeaponStat = CastChecked<UQLWeaponStat>(InItemInfo);
+	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+
+	QL_LOG(QLLog, Log, TEXT("%d %d"), Weapon, WeaponStat->WeaponMesh);
+
+	if (Weapon && WeaponStat->WeaponMesh)
+	{
+		Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh);
+	}
+
+
+	bHasGun = true;
+}
+
 FVector AQLCharacterPlayer::CalPlayerLocalCameraStartPos()
 {
 	return  Camera->GetComponentLocation() + GetCameraForward() * CameraSpringArm->TargetArmLength;
@@ -305,34 +335,6 @@ FVector AQLCharacterPlayer::GetCameraForward()
 	return  Camera->GetForwardVector();
 }
 
-const UQLWeaponStat* AQLCharacterPlayer::GetWeaponStat() const
-{
-	AQLPlayerState* PS = Cast<AQLPlayerState>(GetPlayerState());
-	return PS->WeaponStat;
-}
-
-
-void AQLCharacterPlayer::EquipWeapon(AQLItemObject* InItemInfo)
-{
-	//CurrentAttackType = ECharacterAttackType::GunAttack;
-	//Weapon 위치는 소켓 
-	AQLPlayerState* PS = Cast<AQLPlayerState>(GetPlayerState());
-	IItemGettingInfoInterface* ItemInfo = Cast< IItemGettingInfoInterface>(InItemInfo);
-	PS->WeaponStat = ItemInfo->GetStat();
-	if (PS->WeaponStat)
-	{
-		if (PS->WeaponStat->Mesh.IsPending())
-		{
-			PS->WeaponStat->Mesh.LoadSynchronous();
-		}
-
-		Weapon->SetStaticMesh(PS->WeaponStat->Mesh.Get());
-	}
-	//Mesh 를 생성해서 부착함.
-	bHasGun = true;
-	CurrentAttackType = ECharacterAttackType::GunAttack;
-
-}
 
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 {
@@ -354,7 +356,7 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 
 void AQLCharacterPlayer::GASInputPressed()
 {
-	if(bIsFirstRunSpeedSetting && CurrentAttackType == ECharacterAttackType::GunAttack)
+	if(bIsRunning && CurrentAttackType == ECharacterAttackType::GunAttack)
 	{
 		return;
 	}
@@ -414,22 +416,17 @@ void AQLCharacterPlayer::FarmingItemReleased()
 }
 void AQLCharacterPlayer::RunInputPressed()
 {
-	
-	if (bIsFirstRunSpeedSetting == false&&IsLocallyControlled())
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 600.f;
-		bIsFirstRunSpeedSetting = true;
-	}
+	GetCharacterMovement()->MaxWalkSpeed = 600.f;
+	bIsRunning = true;
 
 }
 
 void AQLCharacterPlayer::RunInputReleased()
 {
-	bIsFirstRunSpeedSetting = false;
-
 	if (IsLocallyControlled())
 	{
 		GetCharacterMovement()->MaxWalkSpeed = 400.f;
+		bIsRunning = false;
 	}
 	//타이머를 통해서 MaxWalkSpeed를 줄이자	
 }
@@ -452,6 +449,8 @@ void AQLCharacterPlayer::Crunch()
 
 void AQLCharacterPlayer::Aim()
 {
+	if (bIsRunning) return;
+
 	if (bHasGun)
 	{
 		QL_LOG(QLLog, Log, TEXT("Aim on"));
@@ -473,7 +472,6 @@ void AQLCharacterPlayer::StopAiming()
 void AQLCharacterPlayer::TimelineFloatReturn(float Alpha)
 {
 	float Length=FMath::Lerp(MaxArmLength, MinArmLength, Alpha);
-	CameraSpringArm->TargetArmLength = Length ;
-	QL_LOG(QLLog, Log, TEXT("Alpha %lf"),Alpha);
+	CameraSpringArm->TargetArmLength = Length;
 }
 

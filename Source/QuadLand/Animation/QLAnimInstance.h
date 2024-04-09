@@ -85,5 +85,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	FRotator AimRotator;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	float AimSpeedRate;
+
 
 };
