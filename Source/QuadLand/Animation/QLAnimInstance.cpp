@@ -47,6 +47,6 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		FRotator DeltaRotator = (Owner->GetActorRotation() - Owner->GetControlRotation());
 		AimRotator = FRotator(0.0f, DeltaRotator.Yaw * -1.0f, DeltaRotator.Pitch);
 
-		AimSpeedRate = GroundSpeed > 400.0f ? 1.0f : 1.7f;
+		AimSpeedRate = Player->GetIsRunning()? 1.0f : 1.7f;
 	}
 }

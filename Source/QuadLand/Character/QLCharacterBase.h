@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interface/QLReceivedDamageInterface.h"
 #include "Interface/AttackHitCheckInterface.h"
 #include "QLCharacterBase.generated.h"
 
 UCLASS()
-class QUADLAND_API AQLCharacterBase : public ACharacter, public IAttackHitCheckInterface
+class QUADLAND_API AQLCharacterBase : public ACharacter, public IAttackHitCheckInterface, public IQLReceivedDamageInterface
 {
 	GENERATED_BODY()
 
@@ -19,6 +20,7 @@ public:
 	uint8 bHasGun : 1;
 
 	/*AI와 같이 사용, InputAction*/
+	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> JumpAction;

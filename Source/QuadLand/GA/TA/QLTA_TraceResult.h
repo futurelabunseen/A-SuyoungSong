@@ -18,8 +18,6 @@ class QUADLAND_API AQLTA_TraceResult : public AGameplayAbilityTargetActor
 
 public:
 
-	AQLTA_TraceResult();
-
 	/** Initialize and begin targeting logic  */
 	virtual void StartTargeting(UGameplayAbility* Ability) override;
 	/** Requesting targeting data, but not necessarily stopping/destroying the task. Useful for external target data requests. */

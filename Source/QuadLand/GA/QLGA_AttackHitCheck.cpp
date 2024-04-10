@@ -15,6 +15,7 @@
 UQLGA_AttackHitCheck::UQLGA_AttackHitCheck()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 }
 
 void UQLGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -46,6 +47,7 @@ void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataH
 		if (UAbilitySystemBlueprintLibrary::TargetDataHasHitResult(TargetDataHandle, 0))
 		{
 			FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(TargetDataHandle, 0);
+			QL_GASLOG(QLNetLog, Log, TEXT("Current Hit Result is %s"), *(HitResult.GetActor()->GetName()));
 
 			UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 			const UQLAS_WeaponStat* SourceAttributeSet = SourceASC->GetSet<UQLAS_WeaponStat>();
@@ -56,12 +58,11 @@ void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataH
 			FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(AttackDamageEffect);
 			if (EffectSpecHandle.IsValid())
 			{
-				UE_LOG(LogTemp, Log, TEXT("%lf"), -SourceAttributeSet->GetDamage());
+				//UE_LOG(LogTemp, Log, TEXT("%lf"), -SourceAttributeSet->GetDamage());
 				//น฿ป็
 				EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, -SourceAttributeSet->GetDamage());
 				ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
 			}
-			QL_GASLOG(QLNetLog, Log, TEXT("Current Hit Result is %s"), *(HitResult.GetActor()->GetName()));
 		}
 	}
 
