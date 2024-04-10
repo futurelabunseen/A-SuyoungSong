@@ -309,10 +309,11 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 }
 
 void AQLCharacterPlayer::EquipWeapon(UQLItemData* InItemInfo)
-{
+{ 
 	if (InItemInfo == nullptr) return;
 
 	CurrentAttackType = ECharacterAttackType::GunAttack;
+
 	//Weapon 위치는 소켓 
 	UQLWeaponStat* WeaponStat = CastChecked<UQLWeaponStat>(InItemInfo);
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
@@ -422,8 +423,10 @@ void AQLCharacterPlayer::FarmingItemReleased()
 void AQLCharacterPlayer::RunInputPressed()
 {
 	GetCharacterMovement()->MaxWalkSpeed = 600.f;
-	bIsRunning = true;
-
+	if (bIsRunning == false)
+	{
+		bIsRunning = true;
+	}
 }
 
 void AQLCharacterPlayer::RunInputReleased()

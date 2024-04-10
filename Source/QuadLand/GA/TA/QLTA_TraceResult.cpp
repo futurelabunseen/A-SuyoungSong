@@ -8,9 +8,6 @@
 #include "DrawDebugHelpers.h"
 #include "QuadLand.h"
 
-AQLTA_TraceResult::AQLTA_TraceResult()
-{
-}
 
 void AQLTA_TraceResult::StartTargeting(UGameplayAbility* Ability)
 {

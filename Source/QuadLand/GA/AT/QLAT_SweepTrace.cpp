@@ -22,7 +22,6 @@ UQLAT_SweepTrace* UQLAT_SweepTrace::CreateTask(UGameplayAbility* OwningAbility, 
 void UQLAT_SweepTrace::Activate()
 {
 	Super::Activate();
-	UE_LOG(LogTemp, Warning, TEXT("UQLAT_SweepTrace class is running"));
 	
 	SpawnAndInitTargetActor(); //액터만 생성 - GetWorld() Deferred
 	FinishSpawnning(); //초기화 생성

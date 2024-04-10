@@ -62,6 +62,7 @@ public:
 	FORCEINLINE bool GetHasGun() const { return bHasGun; }
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrunching; }
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
+	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
 	FORCEINLINE const class USkeletalMeshComponent* GetWeaponMesh() const { return Weapon; }
 protected:
 

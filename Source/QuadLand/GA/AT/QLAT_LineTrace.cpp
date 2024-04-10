@@ -22,7 +22,6 @@ UQLAT_LineTrace* UQLAT_LineTrace::CreateTask(UGameplayAbility* OwningAbility, TS
 void UQLAT_LineTrace::Activate()
 {
 	Super::Activate();
-	UE_LOG(LogTemp, Warning, TEXT("UQLAT_LineTrace class is running"));
 
 	SpawnAndInitTargetActor();
 	FinishSpawnning();

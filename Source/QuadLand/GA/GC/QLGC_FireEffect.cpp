@@ -28,21 +28,8 @@ bool UQLGC_FireEffect::OnExecute_Implementation(AActor* MyTarget, const FGamepla
 	{
 
 		FVector FireEffectLoc = CurrentPlayer->GetWeaponMesh()->GetSocketLocation(FName(TEXT("MuzzleFlash")));
-
-		UE_LOG(LogTemp, Log, TEXT("%s"), *FireEffectLoc.ToString());
-
-
 		//이펙트를 터트릴 위치
 		UGameplayStatics::SpawnEmitterAtLocation(MyTarget, FireParticleEffect, FireEffectLoc);
-		/*
-		const UQLWeaponStat* Stat = Cast<UQLWeaponStat>(CurrentPlayer->GetWeaponStat());
-
-		if (Stat->Mesh.IsValid())
-		{
-			const UStaticMesh* WeaponMesh = (Stat->Mesh).Get();
-
-		}
-		UE_LOG(LogTemp, Log, TEXT("hay~"));*/
 	}
 	return false;
 }
