@@ -35,9 +35,9 @@ void AQLPlayerState::SetWeaponStat(class UQLWeaponStat* Stat)
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAmmoCntAttribute(), Stat->AmmoCnt);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), Stat->AmmoCnt);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxDamageAttribute(), Stat->Damage);
-        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetDamageAttribute(), Stat->AmmoCnt);
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetDamageAttribute(), Stat->Damage);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAttackDistanceAttribute(), Stat->AttackDist);
-        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDistanceAttribute(), Stat->AmmoCnt);
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDistanceAttribute(), Stat->AttackDist);
     }
 
 }

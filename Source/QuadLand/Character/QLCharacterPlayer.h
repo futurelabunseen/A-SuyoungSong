@@ -6,13 +6,14 @@
 #include "Character/QLCharacterBase.h"
 #include "InputActionValue.h"
 #include "AbilitySystemInterface.h"
+#include "GameData/QLTurningInPlaceType.h"
 #include "Components/TimelineComponent.h"
 #include "QLCharacterPlayer.generated.h"
 
 /**
  * 
  */
-DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class UQLItemData*);
+DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class AQLItemBox*);
 DECLARE_DELEGATE_OneParam(FOnTakeItemDestoryDelegate, class AQLItemBox*);
 USTRUCT(BlueprintType)
 struct FTakeItemDelegateWrapper
@@ -63,7 +64,9 @@ public:
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrunching; }
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
+	FORCEINLINE ETurningPlaceType GetTurningInPlaceType() const { return TurningInPlace; }
 	FORCEINLINE const class USkeletalMeshComponent* GetWeaponMesh() const { return Weapon; }
+	FORCEINLINE float GetCurrnetYaw() { return CurrentYaw; }
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
@@ -96,10 +99,23 @@ protected:
 	void Look(const FInputActionValue& Value); //마우스 시선 이동
 	//Movement Section
 protected:
+	FORCEINLINE float CalculateSpeed();
 	void RunInputPressed();
 	void RunInputReleased();
 
+	FRotator PreviousRotation;
 	uint8 bIsRunning : 1;
+
+	//Turning in Place Section
+protected:
+	ETurningPlaceType TurningInPlace;
+	
+	void RotateBornSetting(float DeltaTime);
+	void TurnInPlace(float DeltaTime);
+
+	float InterpYaw; //보간용도
+	float CurrentYaw;
+	//float CurrentPitch;
 	//Attack Section
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
@@ -140,7 +156,7 @@ protected:
 	void FarmingItemPressed();
 	void FarmingItemReleased();
 
-	void EquipWeapon(class UQLItemData* ItemInfo);
+	void EquipWeapon(class AQLItemBox* ItemInfo);
 
 	//Take
 	UPROPERTY()

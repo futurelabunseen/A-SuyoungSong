@@ -10,6 +10,7 @@
 #include "InputMappingContext.h"
 #include "AbilitySystemComponent.h"
 #include "EngineUtils.h"
+#include "Kismet/KismetMathLibrary.h"
 
 #include "Item/QLItemBox.h"
 #include "AttackActionData/QLPunchAttackData.h"
@@ -121,6 +122,9 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsRunning(false), bHasNextPunchAttac
 	InterpFunction.BindUFunction(this, FName(TEXT("TimelineFloatReturn")));
 
 	TakeItemDestory.BindUObject(this, &AQLCharacterPlayer::DestoryItem);
+	TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
+	CurrentYaw = 0.0f;
+	PreviousRotation = FRotator::ZeroRotator;
 }
 void AQLCharacterPlayer::BeginPlay()
 {
@@ -289,10 +293,7 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 				UE_LOG(LogTemp, Warning, TEXT("Item is not founded"));
 				return;
 			}
-			TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item->Stat);
-			OutHitResult.GetActor()->SetActorEnableCollision(false);
-			OutHitResult.GetActor()->SetActorHiddenInGame(true);
-			TakeItemDestory.Execute(Item);
+			TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item);
 		}
 		bPressedFarmingKey = false;
 	}
@@ -301,6 +302,8 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 		//PC->SetInvisibleFarming();
 	}
 
+	RotateBornSetting(DeltaSeconds);
+
 //#if ENABLE_DRAW_DEBUG
 //	FColor Color = bResult ? FColor::Green : FColor::Red;
 //	DrawDebugLine(GetWorld(), CameraLocStart, LocEnd, Color, false, 5.0f);
@@ -308,12 +311,13 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 
 }
 
-void AQLCharacterPlayer::EquipWeapon(UQLItemData* InItemInfo)
+void AQLCharacterPlayer::EquipWeapon(AQLItemBox* InItem)
 { 
-	if (InItemInfo == nullptr) return;
+	if (InItem == nullptr) return;
 
 	CurrentAttackType = ECharacterAttackType::GunAttack;
 
+	UQLItemData *InItemInfo = InItem->Stat;
 	//Weapon 위치는 소켓 
 	UQLWeaponStat* WeaponStat = CastChecked<UQLWeaponStat>(InItemInfo);
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
@@ -326,6 +330,7 @@ void AQLCharacterPlayer::EquipWeapon(UQLItemData* InItemInfo)
 			WeaponStat->WeaponMesh.LoadSynchronous();
 		}
 		Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh.Get());
+		TakeItemDestory.Execute(InItem);
 	}
 	bHasGun = true;
 	
@@ -420,6 +425,12 @@ void AQLCharacterPlayer::FarmingItemReleased()
 //	FVector Start = Get
 
 }
+float AQLCharacterPlayer::CalculateSpeed()
+{
+	FVector Velocity = GetVelocity();
+	Velocity.Z = 0; //Z는 점프축
+	return Velocity.Size2D();
+}
 void AQLCharacterPlayer::RunInputPressed()
 {
 	GetCharacterMovement()->MaxWalkSpeed = 600.f;
@@ -439,6 +450,58 @@ void AQLCharacterPlayer::RunInputReleased()
 	//타이머를 통해서 MaxWalkSpeed를 줄이자	
 }
 
+void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
+{
+
+	float Speed = CalculateSpeed();
+	bool IsFalling = GetMovementComponent()->IsFalling();
+	if (Speed == 0.f && !IsFalling)
+	{
+		//CurrentYaw 계산
+		FRotator CurrentRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
+		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentRotation, PreviousRotation);
+		CurrentYaw = DeltaAimRotation.Yaw;
+		if (TurningInPlace == ETurningPlaceType::ETIP_NotTurning)
+		{
+			InterpYaw = CurrentYaw;
+		}
+		TurnInPlace(DeltaTime);
+	}
+
+	if (Speed > 0.0f || IsFalling)
+	{
+		PreviousRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
+		CurrentYaw = 0.f;
+		TurningInPlace =ETurningPlaceType::ETIP_NotTurning;
+	}
+}
+
+void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
+{
+
+	//현재 Yaw>90.0f ->오른쪽
+	if (CurrentYaw > 90.0f)
+	{
+		TurningInPlace = ETurningPlaceType::ETIP_Right;
+	}
+	else if(CurrentYaw < -90.0f)
+	{
+		TurningInPlace = ETurningPlaceType::ETIP_Left;
+	}
+	//Yaw<-90.0f ->왼쪽
+	if (TurningInPlace != ETurningPlaceType::ETIP_NotTurning)
+	{
+		InterpYaw = FMath::FInterpTo(InterpYaw, 0.0f, DeltaTime, 4.0f); //도는 각도를 보간하고 있구나?
+		CurrentYaw = InterpYaw;
+
+		if (FMath::Abs(CurrentYaw) < 15.f) //어느정도 적당히 돌았음을 확인
+		{
+			TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
+			PreviousRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f); //Turn을 재조정
+		}
+	}
+}
+
 
 void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 {
@@ -454,7 +517,9 @@ void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
 {
 	if (Item)
 	{
-		Item->SetLifeSpan(30.0f); //수정해야함.
+		Item->SetActorEnableCollision(false);
+		Item->SetActorHiddenInGame(true);
+		Item->Destroy(); //수정해야함.
 	}
 }
 
