@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "GameData/QLTurningInPlaceType.h"
 #include "QLAnimInstance.generated.h"
 
 /**
@@ -77,7 +78,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
 	float Yaw;
 
-
 	/* Aim Offset*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsAiming : 1;
@@ -88,5 +88,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float AimSpeedRate;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	ETurningPlaceType TurningInPlaceType;
 };

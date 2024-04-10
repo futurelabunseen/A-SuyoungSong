@@ -3,6 +3,7 @@
 
 #include "Game/QLGameMode.h"
 #include "QuadLand.h"
+#include "Player/QLPlayerController.h"
 #include "Player/QLPlayerState.h"
 
 AQLGameMode::AQLGameMode()
@@ -14,12 +15,12 @@ AQLGameMode::AQLGameMode()
 		DefaultPawnClass = DefaultPawnClassRef.Class;
 	}
 
-	static ConstructorHelpers::FClassFinder<APlayerController> PlayerControllerClassRef(TEXT("/Game/QuadLand/Blueprints/BP_QL_PlayerController.BP_QL_PlayerController_C"));
+	static ConstructorHelpers::FClassFinder <AQLPlayerController> PlayerControllerClassRef(TEXT("/Game/QuadLand/Blueprints/BP_QL_PlayerController.BP_QL_PlayerController_C"));
 	if (PlayerControllerClassRef.Class)
 	{
 		PlayerControllerClass = PlayerControllerClassRef.Class;
 	}
-
+	
 	PlayerStateClass = AQLPlayerState::StaticClass();
 }
 

@@ -48,5 +48,7 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		AimRotator = FRotator(0.0f, DeltaRotator.Yaw * -1.0f, DeltaRotator.Pitch);
 
 		AimSpeedRate = Player->GetIsRunning()? 1.0f : 1.7f;
+		RootYawOffset = Player->GetCurrnetYaw();
+		TurningInPlaceType = Player->GetTurningInPlaceType();
 	}
 }
