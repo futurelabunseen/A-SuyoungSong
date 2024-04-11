@@ -118,14 +118,24 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsRunning(false), bHasNextPunchAttac
 		AimAlphaCurve = AimCurveRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UCurveFloat> CameraCurveRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/CameraDownAlpha.CameraDownAlpha'"));
+
+	if (CameraCurveRef.Object)
+	{
+		CameraUpDownCurve = CameraCurveRef.Object;
+	}
 	ZoomInTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ZoominTimeline"));
-	InterpFunction.BindUFunction(this, FName(TEXT("TimelineFloatReturn")));
+	AimInterpFunction.BindUFunction(this, FName(TEXT("TimelineFloatReturn")));
+
+	CameraDownTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("CameraDownTimeline"));
+	DownInterpFunction.BindUFunction(this, FName(TEXT("TimelineCameraUpDownFloatReturn")));
 
 	TakeItemDestory.BindUObject(this, &AQLCharacterPlayer::DestoryItem);
 	TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
 	CurrentYaw = 0.0f;
 	PreviousRotation = FRotator::ZeroRotator;
 }
+
 void AQLCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
@@ -137,7 +147,11 @@ void AQLCharacterPlayer::BeginPlay()
 	}
 	SetCharacterControl();
 
-	ZoomInTimeline->AddInterpFloat(AimAlphaCurve, InterpFunction, FName{ TEXT("AimAlpha") });
+	ZoomInTimeline->AddInterpFloat(AimAlphaCurve, AimInterpFunction, FName{ TEXT("AimAlpha") });
+	if (CameraDownTimeline && CameraUpDownCurve)
+	{
+		CameraDownTimeline->AddInterpFloat(CameraUpDownCurve, DownInterpFunction, FName{ TEXT("CameraDownAlpha") });
+	}
 }
 
 /// <summary>
@@ -257,6 +271,18 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	FarmingItem();
+	RotateBornSetting(DeltaSeconds);
+
+//#if ENABLE_DRAW_DEBUG
+//	FColor Color = bResult ? FColor::Green : FColor::Red;
+//	DrawDebugLine(GetWorld(), CameraLocStart, LocEnd, Color, false, 5.0f);
+//#endif
+
+}
+
+void AQLCharacterPlayer::FarmingItem()
+{
 
 	FVector CameraLocStart = CalPlayerLocalCameraStartPos(); //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
 
@@ -301,13 +327,6 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 	{
 		//PC->SetInvisibleFarming();
 	}
-
-	RotateBornSetting(DeltaSeconds);
-
-//#if ENABLE_DRAW_DEBUG
-//	FColor Color = bResult ? FColor::Green : FColor::Red;
-//	DrawDebugLine(GetWorld(), CameraLocStart, LocEnd, Color, false, 5.0f);
-//#endif
 
 }
 
@@ -378,7 +397,6 @@ void AQLCharacterPlayer::GASInputPressed()
 	
 	if (Spec)
 	{
-		QL_LOG(QLNetLog, Log, TEXT("GAS current ID %d"), InputAttackSpecNumber);
 
 		Spec->InputPressed = true; //해당키를 눌렀음을 알려줌 
 
@@ -396,8 +414,6 @@ void AQLCharacterPlayer::GASInputPressed()
 void AQLCharacterPlayer::GASInputReleased()
 {
 	uint8 InputAttackSpecNumber = static_cast<uint8>(CurrentAttackType);
-
-	QL_LOG(QLNetLog, Log, TEXT("GAS current ID %d"), InputAttackSpecNumber);
 
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
 
@@ -526,6 +542,24 @@ void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
 void AQLCharacterPlayer::Crunch()
 {
 	bIsCrunching = !bIsCrunching;
+	//타임라인을 사용해서 자연스럽게 내려감.
+	
+	if (bIsCrunching)
+	{
+		CameraDownTimeline->Play();
+	}
+	else
+	{
+
+		CameraDownTimeline->ReverseFromEnd();
+	}
+}
+
+void AQLCharacterPlayer::TimelineCameraUpDownFloatReturn(float Alpha)
+{
+	float CameraHeight = FMath::Lerp(MaxCameraHeight, MinCameraHeight, Alpha);
+	FVector OriginalSocketOffset = CameraSpringArm->SocketOffset;
+	CameraSpringArm->SocketOffset = FVector(OriginalSocketOffset.X, OriginalSocketOffset.Y, CameraHeight);
 }
 
 void AQLCharacterPlayer::Aim()

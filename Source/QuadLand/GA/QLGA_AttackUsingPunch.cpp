@@ -4,8 +4,8 @@
 #include "GA/QLGA_AttackUsingPunch.h"
 #include "Character/QLCharacterPlayer.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "AttackActionData/QLPunchAttackData.h"
 #include "AbilitySystemComponent.h"
+#include "AttackActionData/QLPunchAttackData.h"
 #include "GameFramework/GameState.h"
 #include "EngineUtils.h"
 
@@ -17,8 +17,6 @@ UQLGA_AttackUsingPunch::UQLGA_AttackUsingPunch() : CurrentCombo(0), bHasNextPunc
 
 void UQLGA_AttackUsingPunch::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
-	UE_LOG(LogTemp, Log, TEXT("AttackUsingPunch Current Input Pressed"));
-
 	if (PunchAttackComboTimer.IsValid())
 	{
 		bHasNextPunchAttackCombo = true;
@@ -79,9 +77,6 @@ void UQLGA_AttackUsingPunch::OnInterrupted()
 
 void UQLGA_AttackUsingPunch::PlayAttackAnimation()
 {
-
-	UE_LOG(LogTemp, Log, TEXT("2"));
-
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
 
 	UAnimMontage* AnimMontageUsingPunch = Player->GetAnimMontage();

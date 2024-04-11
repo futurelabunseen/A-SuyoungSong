@@ -32,6 +32,7 @@ AQLCharacterBase::AQLCharacterBase() : CurrentAttackType(ECharacterAttackType::G
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.f,0.f,-100.f), FRotator(0.0f,-90.f,0.f));
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
+
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/QuadLand/Characters/SK_UE5_Adventures_woman_Full_01.SK_UE5_Adventures_woman_Full_01'"));
 
 	if (SkeletalMeshRef.Object)
