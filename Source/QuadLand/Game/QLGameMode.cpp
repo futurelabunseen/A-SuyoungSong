@@ -8,7 +8,7 @@
 
 AQLGameMode::AQLGameMode()
 {
-	static ConstructorHelpers::FClassFinder<APawn> DefaultPawnClassRef(TEXT("/Game/QuadLand/Blueprints/BP_QLCharacter.BP_QLCharacter_C"));
+	static ConstructorHelpers::FClassFinder<APawn> DefaultPawnClassRef(TEXT("Game/QuadLand/Blueprints/BP_QLPlayer.BP_QLPlayer_C"));
 
 	if (DefaultPawnClassRef.Class)
 	{

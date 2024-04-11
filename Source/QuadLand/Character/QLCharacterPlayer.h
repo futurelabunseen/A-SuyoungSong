@@ -156,6 +156,7 @@ protected:
 	void FarmingItemPressed();
 	void FarmingItemReleased();
 
+	void FarmingItem();
 	void EquipWeapon(class AQLItemBox* ItemInfo);
 
 	//Take
@@ -171,6 +172,22 @@ protected:
 	uint8 bIsCrunching : 1;
 
 	void Crunch();
+
+	UPROPERTY()
+	TObjectPtr<class UTimelineComponent> CameraDownTimeline;
+
+	UPROPERTY()
+	TObjectPtr<class UCurveFloat> CameraUpDownCurve;
+
+	FOnTimelineFloat DownInterpFunction{};
+
+	UFUNCTION()
+	void TimelineCameraUpDownFloatReturn(float Alpha);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmHeight, Meta = (AllowPrivateAccess = "true"))
+	float MaxCameraHeight = 48.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmHeight, Meta = (AllowPrivateAccess = "true"))
+	float MinCameraHeight = -18.0f;
 
 protected:
 	uint8 bIsAiming : 1;
@@ -189,15 +206,15 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UCurveFloat> AimAlphaCurve;
 
+	FOnTimelineFloat AimInterpFunction{};
+
 	UFUNCTION()
 	void TimelineFloatReturn(float Alpha);
 
-	FOnTimelineFloat InterpFunction{};
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmLength, Meta = (AllowPrivateAccess = "true"))
 	float MaxArmLength;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmLength, Meta = (AllowPrivateAccess = "true"))
 	float MinArmLength;
 
 
