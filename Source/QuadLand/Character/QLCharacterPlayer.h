@@ -65,8 +65,10 @@ public:
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
 	FORCEINLINE ETurningPlaceType GetTurningInPlaceType() const { return TurningInPlace; }
-	FORCEINLINE const class USkeletalMeshComponent* GetWeaponMesh() const { return Weapon; }
+	FORCEINLINE const class UQLWeaponComponent* GetWeapon() const { return Weapon; }
 	FORCEINLINE float GetCurrnetYaw() { return CurrentYaw; }
+
+	void Attack();
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
@@ -92,11 +94,19 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> AttackAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> ReloadAction;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<class UInputMappingContext> InputMappingContext;
 
 	void Move(const FInputActionValue& Value); //이동 매칭
 	void Look(const FInputActionValue& Value); //마우스 시선 이동
+
+	void Jump();
+	void StopJumping();
+
+	void SetupStartAbilities();
 	//Movement Section
 protected:
 	FORCEINLINE float CalculateSpeed();
@@ -140,14 +150,15 @@ protected:
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TMap<int32, TSubclassOf<class UGameplayAbility>> InputAbilities;
 
-	void GASInputPressed();
-	void GASInputReleased();
+	void GASInputPressed(int32 id);
+	void GASInputReleased(int32 id);
+	int8 GetInputNumber(int32 id);
 	void SetupGASInputComponent();
 
 //파밍 시스템을 위한 변수
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USkeletalMeshComponent> Weapon;
+	TObjectPtr<class UQLWeaponComponent> Weapon;
 
 	uint8 bPressedFarmingKey : 1;
 

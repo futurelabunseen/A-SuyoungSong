@@ -5,7 +5,7 @@
 #include "Character/QLCharacterPlayer.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
-#include "AttackActionData/QLPunchAttackData.h"
+#include "GameData/QLPunchAttackData.h"
 #include "GameFramework/GameState.h"
 #include "EngineUtils.h"
 

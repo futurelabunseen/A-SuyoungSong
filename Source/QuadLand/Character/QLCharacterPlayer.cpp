@@ -13,11 +13,12 @@
 #include "Kismet/KismetMathLibrary.h"
 
 #include "Item/QLItemBox.h"
-#include "AttackActionData/QLPunchAttackData.h"
+#include "GameData/QLPunchAttackData.h"
 #include "Player/QLPlayerState.h"
 #include "Player/QLPlayerController.h"
 #include "Physics/QLCollision.h"
 #include "GameData/QLWeaponStat.h"
+#include "Item/QLWeaponComponent.h"
 #include "QuadLand.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer() : bIsRunning(false), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f), MaxArmLength(300.0f)//, bIsTurning(false)
@@ -41,8 +42,8 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsRunning(false), bHasNextPunchAttac
 	CameraSpringArm->SocketOffset = FVector(0.0f, 15.0f, 48.0f);
 	
 	// Weapon Component
-	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
-	Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
+	Weapon = CreateDefaultSubobject<UQLWeaponComponent>(TEXT("Weapon"));
+	Weapon->Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
 
 	//EnhancedInput 연결
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Move.IA_Move'"));
@@ -100,6 +101,12 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsRunning(false), bHasNextPunchAttac
 	if (AimActionRef.Object)
 	{
 		AimAction = AimActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> ReloadActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Reload.IA_Reload'"));
+
+	if (ReloadActionRef.Object)
+	{
+		ReloadAction = ReloadActionRef.Object;
 	}
 	//InputContext Mapping
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextMappingRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/QuadLand/Inputs/IMC_Shoulder.IMC_Shoulder'"));
@@ -166,26 +173,32 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 
 	if (QLPlayerState)
 	{
-		ASC = QLPlayerState->GetAbilitySystemComponent();
-		ASC->InitAbilityActorInfo(QLPlayerState, this);
-
-		for (const auto& Ability : StartAbilities)
-		{
-			FGameplayAbilitySpec Spec(Ability);
-			ASC->GiveAbility(Spec);
-		}
-
-		for (const auto& Ability : InputAbilities)
-		{
-			FGameplayAbilitySpec Spec(Ability.Value);
-			Spec.InputID = Ability.Key;
-			ASC->GiveAbility(Spec);
-		}
-
+		SetupStartAbilities();
 		SetupGASInputComponent();
 
 		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
 		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+	}
+}
+
+//Client Only 
+void AQLCharacterPlayer::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	AQLPlayerState* QLPlayerState = GetPlayerState<AQLPlayerState>();
+
+	if (QLPlayerState)
+	{
+		SetupGASInputComponent();
+
+		QL_LOG(QLNetLog, Log, TEXT("Current Class is called by Client only"));
+	}
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC)
+	{
+		PC->ConsoleCommand(TEXT("showdebug abilitysystem"));
 	}
 }
 
@@ -204,8 +217,8 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::RunInputPressed);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::RunInputReleased);
 
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Jump);
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::StopJumping);
 
 	EnhancedInputComponent->BindAction(CrunchAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Crunch);
 
@@ -221,8 +234,10 @@ void AQLCharacterPlayer::SetupGASInputComponent()
 	{
 		UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
 
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::GASInputPressed);
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::GASInputPressed, (int32)CurrentAttackType);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased, (int32)CurrentAttackType);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::GASInputPressed,2);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased,2);
 	}
 }
 void AQLCharacterPlayer::SetCharacterControl()
@@ -248,22 +263,6 @@ void AQLCharacterPlayer::SetCharacterControl()
 UAbilitySystemComponent* AQLCharacterPlayer::GetAbilitySystemComponent() const
 {
 	return ASC;
-}
-
-//Client Only 
-void AQLCharacterPlayer::OnRep_PlayerState()
-{
-	Super::OnRep_PlayerState();
-
-	AQLPlayerState* QLPlayerState = GetPlayerState<AQLPlayerState>();
-
-	if (QLPlayerState)
-	{
-		ASC = Cast<UAbilitySystemComponent>(QLPlayerState->GetAbilitySystemComponent());
-
-		ASC->InitAbilityActorInfo(QLPlayerState, this);
-		QL_LOG(QLNetLog, Log, TEXT("Current Class is called by Client only"));
-	}
 }
 
 
@@ -344,11 +343,12 @@ void AQLCharacterPlayer::EquipWeapon(AQLItemBox* InItem)
 	PS->SetWeaponStat(WeaponStat);
 	if (Weapon && WeaponStat->WeaponMesh)
 	{
+		UE_LOG(LogTemp, Log, TEXT("current farming?"));
 		if (WeaponStat->WeaponMesh.IsPending())
 		{
 			WeaponStat->WeaponMesh.LoadSynchronous();
 		}
-		Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh.Get());
+		Weapon->Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh.Get());
 		TakeItemDestory.Execute(InItem);
 	}
 	bHasGun = true;
@@ -364,7 +364,6 @@ FVector AQLCharacterPlayer::GetCameraForward()
 {
 	return  Camera->GetForwardVector();
 }
-
 
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 {
@@ -384,14 +383,16 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 	
 }
 
-void AQLCharacterPlayer::GASInputPressed()
+void AQLCharacterPlayer::GASInputPressed(int32 id)
 {
 	if(bIsRunning && CurrentAttackType == ECharacterAttackType::GunAttack)
 	{
 		return;
 	}
-	uint8 InputAttackSpecNumber = static_cast<uint8>(CurrentAttackType);
+	uint8 InputAttackSpecNumber = GetInputNumber(id);
 
+	if (CurrentAttackType == ECharacterAttackType::HookAttack && InputAttackSpecNumber == 2) return;
+	QL_LOG(QLLog, Log, TEXT("Current Type %d"), InputAttackSpecNumber);
 	
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
 	
@@ -411,10 +412,11 @@ void AQLCharacterPlayer::GASInputPressed()
 	}
 }
 
-void AQLCharacterPlayer::GASInputReleased()
+void AQLCharacterPlayer::GASInputReleased(int32 id)
 {
-	uint8 InputAttackSpecNumber = static_cast<uint8>(CurrentAttackType);
+	uint8 InputAttackSpecNumber = GetInputNumber(id);
 
+	QL_LOG(QLLog, Log, TEXT("Current Type %d"), InputAttackSpecNumber);
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
 
 	if (Spec)
@@ -425,6 +427,16 @@ void AQLCharacterPlayer::GASInputReleased()
 			ASC->AbilitySpecInputReleased(*Spec);
 		}
 	}
+}
+
+int8 AQLCharacterPlayer::GetInputNumber(int32 id)
+{
+	if (id < (int8)ECharacterAttackType::None)
+	{
+		return static_cast<uint8>(CurrentAttackType);
+	}
+	
+	return id;
 }
 
 void AQLCharacterPlayer::FarmingItemPressed()
@@ -529,6 +541,56 @@ void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 
 }
 
+void AQLCharacterPlayer::Jump()
+{
+	if (bIsCrunching)
+	{
+		return;
+	}
+	Super::Jump();
+}
+
+void AQLCharacterPlayer::StopJumping()
+{
+	if (bIsCrunching)
+	{
+		Crunch();
+		return;
+	}
+	Super::StopJumping();
+}
+
+void AQLCharacterPlayer::SetupStartAbilities()
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		return;
+	}
+
+	AQLPlayerState *QLPlayerState = Cast<AQLPlayerState>(GetPlayerState());
+
+	if (QLPlayerState)
+	{
+		ASC = QLPlayerState->GetAbilitySystemComponent();
+		ASC->InitAbilityActorInfo(QLPlayerState, this);
+
+		for (const auto& Ability : StartAbilities)
+		{
+			FGameplayAbilitySpec Spec(Ability);
+			ASC->GiveAbility(Spec);
+		}
+
+		for (const auto& Ability : InputAbilities)
+		{
+			FGameplayAbilitySpec Spec(Ability.Value);
+			Spec.InputID = Ability.Key;
+			ASC->GiveAbility(Spec);
+		}
+	}
+
+	SetupGASInputComponent();
+}
+
 void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
 {
 	if (Item)
@@ -546,11 +608,12 @@ void AQLCharacterPlayer::Crunch()
 	
 	if (bIsCrunching)
 	{
+		Super::Crouch();
 		CameraDownTimeline->Play();
 	}
 	else
 	{
-
+		Super::UnCrouch();
 		CameraDownTimeline->ReverseFromEnd();
 	}
 }

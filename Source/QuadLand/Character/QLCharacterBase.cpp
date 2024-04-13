@@ -23,7 +23,7 @@ AQLCharacterBase::AQLCharacterBase() : CurrentAttackType(ECharacterAttackType::G
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->bOrientRotationToMovement = false; //캐릭터나 액터가 이동할 때 그 방향으로 회전을 수행(마우스에 따라서 회전을 수행하도록 도와줌)
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f; //점차 멈추는 효과 
-
+	
 	//CapsuleComponent
 	GetCapsuleComponent()->InitCapsuleSize(35.f, 90.0f);
 	GetCapsuleComponent()->SetCollisionProfileName(CPROFILE_QLCAPSULE); //나중에 변경 예정 -> object가 추가 되고 등등..

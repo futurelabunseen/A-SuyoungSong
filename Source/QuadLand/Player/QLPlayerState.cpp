@@ -2,7 +2,6 @@
 
 
 #include "Player/QLPlayerState.h"
-#include "Item/QLWeapon.h"
 #include "GameData/QLWeaponStat.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
