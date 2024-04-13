@@ -15,6 +15,8 @@ class QUADLAND_API UQLGA_ReloadAmmo : public UGameplayAbility
 	GENERATED_BODY()
 	
 public:
+
+	UQLGA_ReloadAmmo();
 	/** Input binding stub. */
 	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 

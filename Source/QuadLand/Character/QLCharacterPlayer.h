@@ -64,6 +64,11 @@ public:
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrunching; }
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
+	FORCEINLINE bool GetIsReload() const { return bIsReload; }
+	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
+	FORCEINLINE void SetIsShooting(bool Shooting) { bIsShooting = Shooting; }
+	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
+
 	FORCEINLINE ETurningPlaceType GetTurningInPlaceType() const { return TurningInPlace; }
 	FORCEINLINE const class UQLWeaponComponent* GetWeapon() const { return Weapon; }
 	FORCEINLINE float GetCurrnetYaw() { return CurrentYaw; }
@@ -228,5 +233,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmLength, Meta = (AllowPrivateAccess = "true"))
 	float MinArmLength;
 
+	//Weapon Section
+
+protected:
+	
+	uint8 bIsReload : 1;
+	uint8 bIsShooting : 1;
 
 };

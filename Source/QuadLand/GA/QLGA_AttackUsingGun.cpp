@@ -8,6 +8,7 @@
 #include "AT/QLAT_LineTrace.h"
 #include "TA/QLTA_LineTraceResult.h"
 #include "GameplayTag/GamplayTags.h"
+#include "AttributeSet/QLAS_WeaponStat.h"
 UQLGA_AttackUsingGun::UQLGA_AttackUsingGun()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -22,6 +23,15 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	//Ammo Cnt 개수를 체크한다 만약 0이라면, 어빌리티를 실행하지 않고 종료한다.
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
+	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
+
+	if (WeaponStat && WeaponStat->GetAmmoCnt() <= 0.0f)
+	{
+		OnCompletedCallback();
+		return;
+	}
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
 
 	UAnimMontage* AnimMontageUsingGun = Player->GetAnimMontage();
@@ -48,8 +58,8 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 	FGameplayCueParameters CueParams;
 	CueParams.SourceObject = Player;
-	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	
+	Player->SetIsShooting(true);
 	if (SourceASC)
 	{
 		//SourceASC->AddTag
@@ -71,13 +81,19 @@ void UQLGA_AttackUsingGun::EndAbility(const FGameplayAbilitySpecHandle Handle, c
 void UQLGA_AttackUsingGun::OnCompletedCallback()
 {
 	bool bReplicateEndAbility = true;
-	bool bWasCancelled = false;
+	bool bWasCancelled = true;
+
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
+	if (Player->GetIsShooting())
+	{
+		Player->SetIsShooting(false);
+	}
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UQLGA_AttackUsingGun::OnInterruptedCallback()
 {
 	bool bReplicateEndAbility = true;
-	bool bWasCancelled = true;
+	bool bWasCancelled = false;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

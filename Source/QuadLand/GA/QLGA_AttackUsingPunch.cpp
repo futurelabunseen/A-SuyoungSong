@@ -78,7 +78,7 @@ void UQLGA_AttackUsingPunch::OnInterrupted()
 void UQLGA_AttackUsingPunch::PlayAttackAnimation()
 {
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
-
+	
 	UAnimMontage* AnimMontageUsingPunch = Player->GetAnimMontage();
 	float AnimSpeedRate = PunchAttackData->AttackSpeedRate;
 	
