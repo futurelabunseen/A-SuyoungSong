@@ -17,12 +17,15 @@ class QUADLAND_API UQLWeaponAnimInstance : public UAnimInstance
 public:
 	UQLWeaponAnimInstance();
 protected:
-	//virtual void NativeInitializeAnimation() override; //지정된 변수 초기화
-	//virtual void NativeUpdateAnimation(float DeltaSeconds) override; //변수를 업데이트 
+	virtual void NativeInitializeAnimation() override; //지정된 변수 초기화
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override; //변수를 업데이트 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsShooting : 1;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
-	TObjectPtr<class ACharacter> Owner;
+	uint8 bIsReload : 1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
+	TObjectPtr<class UQLWeaponComponent> Owner;
 };

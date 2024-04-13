@@ -6,6 +6,7 @@
 #include "Character/QLCharacterPlayer.h"
 #include "GameData/QLWeaponStat.h"
 #include "Engine/StaticMesh.h"
+#include "Item/QLWeaponComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 UQLGC_FireEffect::UQLGC_FireEffect()
@@ -27,9 +28,9 @@ bool UQLGC_FireEffect::OnExecute_Implementation(AActor* MyTarget, const FGamepla
 	if (CurrentPlayer)
 	{
 
-		FVector FireEffectLoc = CurrentPlayer->GetWeaponMesh()->GetSocketLocation(FName(TEXT("MuzzleFlash")));
+		//FVector FireEffectLoc = CurrentPlayer->GetWeapon()->GetWeaponMesh()->GetSocketLocation(FName(TEXT("MuzzleFlash")));
 		//이펙트를 터트릴 위치
-		UGameplayStatics::SpawnEmitterAtLocation(MyTarget, FireParticleEffect, FireEffectLoc);
+		//UGameplayStatics::SpawnEmitterAtLocation(MyTarget, FireParticleEffect, FireEffectLoc);
 	}
 	return false;
 }
