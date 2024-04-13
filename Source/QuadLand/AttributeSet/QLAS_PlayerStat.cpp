@@ -14,8 +14,9 @@ void UQLAS_PlayerStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 {
 	Super::PostGameplayEffectExecute(Data);
 
+	float Minimum = 0.0f;
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-
+		SetHealth(FMath::Clamp(GetHealth(), Minimum, GetMaxHealth()));
 	}
 }

@@ -32,6 +32,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, AmmoCnt);
 	ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, MaxAmmoCnt);
 
+	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Attack", Meta = (AllowPrivateAccess = true))

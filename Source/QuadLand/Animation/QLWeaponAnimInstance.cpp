@@ -3,6 +3,7 @@
 
 #include "Animation/QLWeaponAnimInstance.h"
 #include "Item/QLWeaponComponent.h"
+#include "Character/QLCharacterPlayer.h"
 
 UQLWeaponAnimInstance::UQLWeaponAnimInstance()
 {
@@ -12,7 +13,7 @@ void UQLWeaponAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	Owner = Cast<UQLWeaponComponent>(GetOwningActor());
+	Owner = Cast<AQLCharacterPlayer>(GetOwningActor());
 	bIsReload = false;
 	bIsShooting = false;
 }
@@ -23,10 +24,7 @@ void UQLWeaponAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (Owner)
 	{
-		//Owner가 붙어있는 주인을 가져온다.
 		bIsReload = Owner->GetIsReload();
 		bIsShooting = Owner->GetIsShooting();
-
-		UE_LOG(LogTemp, Log, TEXT("????????? %d"), bIsShooting);
 	}
 }

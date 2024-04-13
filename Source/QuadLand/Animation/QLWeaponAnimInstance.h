@@ -27,5 +27,5 @@ protected:
 	uint8 bIsReload : 1;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
-	TObjectPtr<class UQLWeaponComponent> Owner;
+	TObjectPtr<class AQLCharacterPlayer> Owner;
 };

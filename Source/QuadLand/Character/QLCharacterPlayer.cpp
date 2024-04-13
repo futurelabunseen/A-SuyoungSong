@@ -367,7 +367,10 @@ FVector AQLCharacterPlayer::GetCameraForward()
 
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 {
-	
+	if (bPressedJump)
+	{
+		return;
+	}
 	////이동 벡터
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -508,11 +511,11 @@ void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 {
 
 	//현재 Yaw>90.0f ->오른쪽
-	if (CurrentYaw > 90.0f)
+	if (CurrentYaw > 45.0f)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Right;
 	}
-	else if(CurrentYaw < -90.0f)
+	else if(CurrentYaw < -45.0f)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Left;
 	}

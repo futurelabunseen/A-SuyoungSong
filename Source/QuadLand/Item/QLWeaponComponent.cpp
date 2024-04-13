@@ -3,7 +3,7 @@
 
 #include "Item/QLWeaponComponent.h"
 #include "GameFramework/Character.h"
-UQLWeaponComponent::UQLWeaponComponent() : bIsReload(false), bIsShooting(false)
+UQLWeaponComponent::UQLWeaponComponent()
 {
 	//GetOwner()
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
@@ -15,5 +15,6 @@ UQLWeaponComponent::UQLWeaponComponent() : bIsReload(false), bIsShooting(false)
 	{
 		Weapon->SetAnimClass(AnimInstanceRef.Class);
 	}
+
 }
 
