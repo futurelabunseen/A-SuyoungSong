@@ -32,6 +32,7 @@ void AQLTA_TraceResult::ConfirmTargetingAndContinue()
 
 FGameplayAbilityTargetDataHandle AQLTA_TraceResult::MakeTargetData() const
 {
+
 	ACharacter* Character = CastChecked<ACharacter>(SourceActor);
 
 	const float AttackRadius = 15.0f;

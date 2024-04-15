@@ -33,21 +33,45 @@ public:
 	ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, MaxAmmoCnt);
 
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
+	virtual void OnAttributeAggregatorCreated(const FGameplayAttribute& Attribute, FAggregator* NewAggregator) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //리플리케이션 등록
+
 protected:
 
-	UPROPERTY(BlueprintReadOnly, Category = "Attack", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_Damage, Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData Damage;
-	UPROPERTY(BlueprintReadOnly, Category = "Attack", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_MaxDamage, Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxDamage;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Attack", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_AttackDistance, Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData AttackDistance;
-	UPROPERTY(BlueprintReadOnly, Category = "Attack", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_MaxAttackDistance, Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxAttackDistance;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Attack", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_AmmoCnt, Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData AmmoCnt;
-	UPROPERTY(BlueprintReadOnly, Category = "Attack", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_MaxAmmoCnt, Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxAmmoCnt;
+
+protected:
+
+	UFUNCTION()
+	virtual void OnRep_Damage(const FGameplayAttributeData& OldDamage); //이 함수가 호출되었을 때에는 이미 변경된 값을 가짐. 그래서 OldHealth를 전달 
+
+	UFUNCTION()
+	virtual void OnRep_MaxDamage(const FGameplayAttributeData& OldMaxDamage);
+
+	UFUNCTION()
+	virtual void OnRep_AttackDistance(const FGameplayAttributeData& OldAttackDistance);
+
+	UFUNCTION()
+	virtual void OnRep_MaxAttackDistance(const FGameplayAttributeData& OldMaxAttackDistance);
+
+	UFUNCTION()
+	virtual void OnRep_AmmoCnt(const FGameplayAttributeData& OldAmmoCnt);
+
+	UFUNCTION()
+	virtual void OnRep_MaxAmmoCnt(const FGameplayAttributeData& OldMaxAmmoCnt);
+
 
 };

@@ -154,6 +154,7 @@ void AQLCharacterPlayer::BeginPlay()
 	{
 		EnableInput(PlayerController);
 	}
+
 	SetCharacterControl();
 
 	ZoomInTimeline->AddInterpFloat(AimAlphaCurve, AimInterpFunction, FName{ TEXT("AimAlpha") });
@@ -177,7 +178,7 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 	if (QLPlayerState)
 	{
 		SetupStartAbilities();
-		SetupGASInputComponent();
+		//SetupGASInputComponent();
 
 		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
 		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
@@ -193,8 +194,10 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 
 	if (QLPlayerState)
 	{
-		SetupGASInputComponent();
+		ASC = Cast<UAbilitySystemComponent>(QLPlayerState->GetAbilitySystemComponent());
+		ASC->InitAbilityActorInfo(QLPlayerState, this);
 
+		//SetupGASInputComponent();
 		QL_LOG(QLNetLog, Log, TEXT("Current Class is called by Client only"));
 	}
 
@@ -236,9 +239,9 @@ void AQLCharacterPlayer::SetupGASInputComponent()
 	{
 		UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
 
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::GASInputPressed, (int32)CurrentAttackType);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed, (int32)CurrentAttackType);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased, (int32)CurrentAttackType);
-		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::GASInputPressed,2);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed,2);
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased,2);
 	}
 }
@@ -369,10 +372,6 @@ FVector AQLCharacterPlayer::GetCameraForward()
 
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 {
-	if (bPressedJump)
-	{
-		return;
-	}
 	////이동 벡터
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -394,13 +393,14 @@ void AQLCharacterPlayer::GASInputPressed(int32 id)
 	{
 		return;
 	}
+
+	QL_LOG(QLNetLog, Log, TEXT("begin"));
 	uint8 InputAttackSpecNumber = GetInputNumber(id);
 
 	if (CurrentAttackType == ECharacterAttackType::HookAttack && InputAttackSpecNumber == 2) return;
-	QL_LOG(QLLog, Log, TEXT("Current Type %d"), InputAttackSpecNumber);
-	
+
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
-	
+
 	if (Spec)
 	{
 
@@ -421,7 +421,7 @@ void AQLCharacterPlayer::GASInputReleased(int32 id)
 {
 	uint8 InputAttackSpecNumber = GetInputNumber(id);
 
-	QL_LOG(QLLog, Log, TEXT("Current Type %d"), InputAttackSpecNumber);
+	QL_LOG(QLNetLog, Log, TEXT("begin"));
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
 
 	if (Spec)
@@ -564,16 +564,18 @@ void AQLCharacterPlayer::JumpPressed()
 
 void AQLCharacterPlayer::SetupStartAbilities()
 {
+
 	if (GetLocalRole() != ROLE_Authority)
 	{
 		return;
 	}
 
-	AQLPlayerState *QLPlayerState = Cast<AQLPlayerState>(GetPlayerState());
+	AQLPlayerState* QLPlayerState = Cast<AQLPlayerState>(GetPlayerState());
 
 	if (QLPlayerState)
 	{
 		ASC = QLPlayerState->GetAbilitySystemComponent();
+
 		ASC->InitAbilityActorInfo(QLPlayerState, this);
 
 		for (const auto& Ability : StartAbilities)

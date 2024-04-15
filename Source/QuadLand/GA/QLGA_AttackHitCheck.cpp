@@ -15,7 +15,6 @@
 UQLGA_AttackHitCheck::UQLGA_AttackHitCheck()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 
 	Type = ECharacterAttackType::HookAttack;
 }
@@ -32,6 +31,7 @@ void UQLGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		FVector SocketPos = ResultSocket->GetSocketLocation(Player->GetMesh());
 		UQLAT_SweepTrace* SweepTrace = UQLAT_SweepTrace::CreateTask(this, AQLTA_TraceResult::StaticClass(), SocketPos);	
 		SweepTrace->OnCompleted.AddDynamic(this, &UQLGA_AttackHitCheck::OnCompletedCallback);  //결과값이 전달될 예정
+		
 		SweepTrace->ReadyForActivation(); //답변 올때까지 대기
 	}
 }
@@ -45,27 +45,25 @@ void UQLGA_AttackHitCheck::EndAbility(const FGameplayAbilitySpecHandle Handle, c
 void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataHandle& TargetDataHandle)
 {
 
-	if (GetOwningActorFromActorInfo()->GetLocalRole() == ROLE_Authority)
+	if (UAbilitySystemBlueprintLibrary::TargetDataHasHitResult(TargetDataHandle, 0))
 	{
-		if (UAbilitySystemBlueprintLibrary::TargetDataHasHitResult(TargetDataHandle, 0))
+		FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(TargetDataHandle, 0);
+
+		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
+		const UQLAS_WeaponStat* SourceAttributeSet = SourceASC->GetSet<UQLAS_WeaponStat>();
+		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(AttackDamageEffect);
+
+		FGameplayEventData Payload;
+
+		Payload.EventMagnitude = static_cast<float>(Type);
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(HitResult.GetActor(), CHARACTER_ATTACK_TAKENDAMAGE, Payload);
+
+		if (EffectSpecHandle.IsValid())
 		{
-			FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(TargetDataHandle, 0);
-
-			UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
-			const UQLAS_WeaponStat* SourceAttributeSet = SourceASC->GetSet<UQLAS_WeaponStat>();
-			FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(AttackDamageEffect);
-
-			FGameplayEventData Payload;
-
-			Payload.EventMagnitude = static_cast<float>(Type);
-			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(HitResult.GetActor(), CHARACTER_ATTACK_TAKENDAMAGE, Payload);
-
-			if (EffectSpecHandle.IsValid())
-			{
-				EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, -SourceAttributeSet->GetDamage());
-				ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
-			}
+			EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, -SourceAttributeSet->GetDamage());
+			ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
 		}
+
 	}
 
 	bool bReplicateEndAbility = true;

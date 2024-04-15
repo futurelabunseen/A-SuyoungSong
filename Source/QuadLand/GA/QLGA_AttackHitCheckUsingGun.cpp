@@ -18,7 +18,6 @@
 UQLGA_AttackHitCheckUsingGun::UQLGA_AttackHitCheckUsingGun()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 	Type = ECharacterAttackType::GunAttack;
 	HeadDistThreshold = 30.0f;
 }
