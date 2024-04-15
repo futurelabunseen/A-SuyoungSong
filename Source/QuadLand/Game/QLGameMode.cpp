@@ -15,7 +15,7 @@ AQLGameMode::AQLGameMode()
 		DefaultPawnClass = DefaultPawnClassRef.Class;
 	}
 
-	static ConstructorHelpers::FClassFinder <APlayerController> PlayerControllerClassRef(TEXT("/Script/ArenaBattle.QLPlayerController_C"));
+	static ConstructorHelpers::FClassFinder <APlayerController> PlayerControllerClassRef(TEXT("/Game/QuadLand/Blueprints/BPQL_PlayerController.BPQL_PlayerController_C"));
 	if (PlayerControllerClassRef.Class)
 	{
 		PlayerControllerClass = PlayerControllerClassRef.Class;

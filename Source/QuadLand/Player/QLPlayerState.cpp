@@ -10,13 +10,15 @@
 AQLPlayerState::AQLPlayerState()
 {
     ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
+    ASC->SetIsReplicated(true);
+    ASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
     PlayerStatInfo = CreateDefaultSubobject<UQLAS_PlayerStat>(TEXT("PlayerStat"));
     WeaponStatInfo = CreateDefaultSubobject<UQLAS_WeaponStat>(TEXT("WeaponStat"));
     
     //Event 등록한다 -> Equip을 가질때
     //Event 등록한다 -> Equip없을 때
-
-    ASC->SetIsReplicated(true);
+    NetUpdateFrequency = 30.0f;
 }
 
 

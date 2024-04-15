@@ -12,7 +12,6 @@
 UQLGA_AttackUsingGun::UQLGA_AttackUsingGun()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 }
 
 void UQLGA_AttackUsingGun::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)

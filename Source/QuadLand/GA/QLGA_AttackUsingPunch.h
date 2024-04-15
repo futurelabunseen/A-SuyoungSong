@@ -35,7 +35,8 @@ protected:
 	UFUNCTION()
 	void OnInterrupted();
 
-	//Attack Check에 필요한 요소 
+	//Attack Check에 필요한 요소
+	
 	int32 CurrentCombo;
 	uint8 bHasNextPunchAttackCombo : 1;
 	FTimerHandle PunchAttackComboTimer;

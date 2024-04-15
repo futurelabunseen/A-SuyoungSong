@@ -12,11 +12,12 @@
 UQLGA_AttackUsingPunch::UQLGA_AttackUsingPunch() : CurrentCombo(0), bHasNextPunchAttackCombo(0)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 }
 
 void UQLGA_AttackUsingPunch::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
+
+	UE_LOG(LogTemp, Log, TEXT("1"));
 	if (PunchAttackComboTimer.IsValid())
 	{
 		bHasNextPunchAttackCombo = true;
@@ -40,8 +41,8 @@ void UQLGA_AttackUsingPunch::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 		현재 목표 : 연속으로 눌렀는지를 확인하기 위해서 Attack을 찾아서 Delegate 연결을 해주는 것을 목표로 한다.
 		TrrigerEventData로 전달된 OptionObject 는 Parent 를 담아서 다이나믹 연결 완.
 		*/
-		UE_LOG(LogTemp, Log, TEXT("1"));
 		PlayAttackAnimation();
+
 	}
 }
 

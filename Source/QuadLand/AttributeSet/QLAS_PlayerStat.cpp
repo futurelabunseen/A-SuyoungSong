@@ -15,13 +15,14 @@ void UQLAS_PlayerStat::PreAttributeChange(const FGameplayAttribute& Attribute, f
 {
 	if (Attribute == GetHealthAttribute())
 	{
-		NewValue = FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth());
+		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth());
 
+		UE_LOG(LogTemp, Log, TEXT("New Value %lf"), NewValue);
 	}
 
 	if (Attribute == GetStaminaAttribute())
 	{
-		NewValue = FMath::Clamp(GetStamina(), 0.0f, GetMaxHealth());
+		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxStamina());
 	}
 }
 
@@ -29,10 +30,20 @@ void UQLAS_PlayerStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 {
 	Super::PostGameplayEffectExecute(Data);
 
+	FGameplayEffectContextHandle Context = Data.EffectSpec.GetContext();
+
 	float Minimum = 0.0f;
+
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-		SetHealth(FMath::Clamp(GetHealth(), Minimum, GetMaxHealth()));
+		const float LocalDamageDone = Data.EvaluatedData.Magnitude;
+		UE_LOG(LogTemp, Log, TEXT("Health %lf"), GetHealth());
+		//const float NewHealth = GetHealth() + LocalDamageDone;
+		//FMath::Clamp(NewHealth, Minimum, GetMaxHealth())
+		SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
+
+		UE_LOG(LogTemp, Log, TEXT("NewHealth %lf"), GetHealth());
+		//여기서 맞은 애니메이션을 플레이하고 싶을 때 TargetCharacter에 대해 PlayHitReact를 표현하네, 그러면 Ability 없애도될듯?
 	}
 	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
 	{

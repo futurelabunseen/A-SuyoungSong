@@ -8,7 +8,6 @@
 UQLGA_TakenDamage::UQLGA_TakenDamage()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 	//태그 부착 -> Required Tag : 공격받았을 때 호출
 }
 
