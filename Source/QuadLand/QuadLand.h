@@ -20,7 +20,7 @@
 
 //언리얼식 문자열로 변경해서 Printf로 넘겨주어야함.. 그렇기 때문에 Printf - TEXT는 단짝, Printf로 만들어주는 이유는 QL_LOG를 TEXT로 입력받기 때문에 FString 으로 변환해주어야한다.
 
-#define LOG_NETMODEINFO ((GetNetMode() == ENetMode::NM_Client)? *FString::Printf(TEXT("Client")) : ((GetNetMode() == ENetMode::NM_Standalone)? *FString::Printf(TEXT("Standalone")) : *FString::Printf(TEXT("Listen"))))
+#define LOG_NETMODEINFO ((GetNetMode() == ENetMode::NM_Client) ? *FString::Printf(TEXT("CLIENT%d"), GPlayInEditorID) : ((GetNetMode() == ENetMode::NM_Standalone) ? TEXT("STANDALONE") : TEXT("SERVER"))) 
 
 //ability - net mode
 #define LOG_GASNETMODEINFO ((CurrentActorInfo->AvatarActor.Get()->GetNetMode() == ENetMode::NM_Client)? *FString::Printf(TEXT("Client")) : ((CurrentActorInfo->AvatarActor.Get()->GetNetMode() == ENetMode::NM_Standalone)? *FString::Printf(TEXT("Standalone")) : *FString::Printf(TEXT("Listen"))))

@@ -13,15 +13,18 @@
 #include "Kismet/KismetMathLibrary.h"
 
 #include "Item/QLItemBox.h"
+#include "Net/UnrealNetwork.h"
 #include "GameData/QLPunchAttackData.h"
 #include "Player/QLPlayerState.h"
 #include "Player/QLPlayerController.h"
 #include "Physics/QLCollision.h"
 #include "GameData/QLWeaponStat.h"
 #include "Item/QLWeaponComponent.h"
+#include "QLCharacterMovementComponent.h"
 #include "QuadLand.h"
 
-AQLCharacterPlayer::AQLCharacterPlayer() : bIsRunning(false), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f), MaxArmLength(300.0f)//, bIsTurning(false)
+AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer) :
+	Super(ObjectInitializer.SetDefaultSubobjectClass<UQLCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)), bIsRunning(false), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f), MaxArmLength(300.0f)//, bIsTurning(false)
 {
 	bHasGun = false;
 	ASC = nullptr;
@@ -76,11 +79,10 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsRunning(false), bHasNextPunchAttac
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> FarmingActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Faming.IA_Faming'"));
 
-	if (RunActionRef.Object)
+	if (FarmingActionRef.Object)
 	{
 		FarmingAction = FarmingActionRef.Object;
 	}
-
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Jump.IA_Jump'"));
 
@@ -89,11 +91,11 @@ AQLCharacterPlayer::AQLCharacterPlayer() : bIsRunning(false), bHasNextPunchAttac
 		JumpAction = JumpActionRef.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> CrunchActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Crunch.IA_Crunch'"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> CrouchActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Crunch.IA_Crunch'"));
 
-	if (CrunchActionRef.Object)
+	if (CrouchActionRef.Object)
 	{
-		CrunchAction = CrunchActionRef.Object;
+		CrouchAction = CrouchActionRef.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> AimActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Aim.IA_Aim'"));
@@ -159,6 +161,7 @@ void AQLCharacterPlayer::BeginPlay()
 	{
 		CameraDownTimeline->AddInterpFloat(CameraUpDownCurve, DownInterpFunction, FName{ TEXT("CameraDownAlpha") });
 	}
+
 }
 
 /// <summary>
@@ -217,10 +220,9 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::RunInputPressed);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::RunInputReleased);
 
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Jump);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::StopJumping);
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::JumpPressed);
 
-	EnhancedInputComponent->BindAction(CrunchAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Crunch);
+	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, & AQLCharacterPlayer::PressedCrouch);
 
 	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Aim);
 	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::StopAiming);
@@ -464,21 +466,24 @@ float AQLCharacterPlayer::CalculateSpeed()
 }
 void AQLCharacterPlayer::RunInputPressed()
 {
-	GetCharacterMovement()->MaxWalkSpeed = 600.f;
-	if (bIsRunning == false)
+	UQLCharacterMovementComponent* QLMovement = Cast< UQLCharacterMovementComponent>(GetMovementComponent());
+
+	if (QLMovement)
 	{
-		bIsRunning = true;
+		QLMovement->SetSprintCommand();
+		bIsRunning = QLMovement->bPressedSprint;
 	}
 }
 
 void AQLCharacterPlayer::RunInputReleased()
 {
-	if (IsLocallyControlled())
+	UQLCharacterMovementComponent* QLMovement = Cast<UQLCharacterMovementComponent>(GetMovementComponent());
+
+	if (QLMovement)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = 400.f;
-		bIsRunning = false;
+		QLMovement->UnSetSprintCommand();
+		bIsRunning = QLMovement->bPressedSprint; //현재여기수정
 	}
-	//타이머를 통해서 MaxWalkSpeed를 줄이자	
 }
 
 void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
@@ -544,23 +549,17 @@ void AQLCharacterPlayer::Look(const FInputActionValue& Value)
 
 }
 
-void AQLCharacterPlayer::Jump()
+void AQLCharacterPlayer::JumpPressed()
 {
-	if (bIsCrunching)
+	if (bIsCrouched)
 	{
-		return;
+		CameraDownTimeline->ReverseFromEnd();
+		UnCrouch();
 	}
-	Super::Jump();
-}
-
-void AQLCharacterPlayer::StopJumping()
-{
-	if (bIsCrunching)
+	else
 	{
-		Crunch();
-		return;
+		Super::Jump();
 	}
-	Super::StopJumping();
 }
 
 void AQLCharacterPlayer::SetupStartAbilities()
@@ -594,6 +593,13 @@ void AQLCharacterPlayer::SetupStartAbilities()
 	SetupGASInputComponent();
 }
 
+void AQLCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	//DOREPLIFETIME(AQLCharacterPlayer, bIsCrouching);
+}
+
 void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
 {
 	if (Item)
@@ -604,20 +610,20 @@ void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
 	}
 }
 
-void AQLCharacterPlayer::Crunch()
+void AQLCharacterPlayer::PressedCrouch()
 {
-	bIsCrunching = !bIsCrunching;
-	//타임라인을 사용해서 자연스럽게 내려감.
-	
-	if (bIsCrunching)
+	//클라이언트에서만 크런치를 동작시킨다.
+	if (bIsCrouched)
 	{
-		Super::Crouch();
-		CameraDownTimeline->Play();
+		QL_LOG(QLNetLog, Log, TEXT("UnCrouch begin"));
+		CameraDownTimeline->ReverseFromEnd();
+		UnCrouch();
 	}
 	else
 	{
-		Super::UnCrouch();
-		CameraDownTimeline->ReverseFromEnd();
+		QL_LOG(QLNetLog, Log, TEXT("Crouch begin"));
+		CameraDownTimeline->Play();
+		Crouch();
 	}
 }
 

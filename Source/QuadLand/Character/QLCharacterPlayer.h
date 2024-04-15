@@ -30,7 +30,7 @@ class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase, public IAbility
 	GENERATED_BODY()
 	
 public:
-	AQLCharacterPlayer();
+	AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer);
 
 	//Default
 	virtual void BeginPlay() override;
@@ -61,7 +61,7 @@ public:
 
 	//const class UQLWeaponStat* GetWeaponStat() const;
 	FORCEINLINE bool GetHasGun() const { return bHasGun; }
-	FORCEINLINE bool GetIsCrunching() const { return bIsCrunching; }
+	FORCEINLINE bool GetIsCrunching() const { return bIsCrouched; }
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
 	FORCEINLINE bool GetIsReload() const { return bIsReload; }
@@ -73,7 +73,6 @@ public:
 	FORCEINLINE const class UQLWeaponComponent* GetWeapon() const { return Weapon; }
 	FORCEINLINE float GetCurrnetYaw() { return CurrentYaw; }
 
-	void Attack();
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
@@ -108,10 +107,11 @@ protected:
 	void Move(const FInputActionValue& Value); //이동 매칭
 	void Look(const FInputActionValue& Value); //마우스 시선 이동
 
-	void Jump();
-	void StopJumping();
+	void JumpPressed();
 
 	void SetupStartAbilities();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	//Movement Section
 protected:
 	FORCEINLINE float CalculateSpeed();
@@ -133,6 +133,7 @@ protected:
 	//float CurrentPitch;
 	//Attack Section
 protected:
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
 	TObjectPtr<class UQLPunchAttackData> PunchAttackData;
 
@@ -185,9 +186,7 @@ protected:
 	void DestoryItem(class AQLItemBox* Item);
 
 protected:
-	uint8 bIsCrunching : 1;
-
-	void Crunch();
+	void PressedCrouch();
 
 	UPROPERTY()
 	TObjectPtr<class UTimelineComponent> CameraDownTimeline;
@@ -203,7 +202,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmHeight, Meta = (AllowPrivateAccess = "true"))
 	float MaxCameraHeight = 48.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmHeight, Meta = (AllowPrivateAccess = "true"))
-	float MinCameraHeight = -18.0f;
+	float MinCameraHeight = 28.0f;
 
 protected:
 	uint8 bIsAiming : 1;

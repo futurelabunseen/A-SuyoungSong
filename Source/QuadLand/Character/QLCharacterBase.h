@@ -15,7 +15,7 @@ class QUADLAND_API AQLCharacterBase : public ACharacter, public IAttackHitCheckI
 
 public:
 	// Sets default values for this character's properties
-	AQLCharacterBase();
+	AQLCharacterBase(const FObjectInitializer& ObjectInitializer);
 
 	uint8 bHasGun : 1;
 
@@ -26,7 +26,7 @@ protected:
 	TObjectPtr<class UInputAction> JumpAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> CrunchAction;
+	TObjectPtr<class UInputAction> CrouchAction;
 
 protected:
 	ECharacterAttackType CurrentAttackType;
