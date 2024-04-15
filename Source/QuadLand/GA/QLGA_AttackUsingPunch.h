@@ -39,10 +39,9 @@ protected:
 	int32 CurrentCombo;
 	uint8 bHasNextPunchAttackCombo : 1;
 	FTimerHandle PunchAttackComboTimer;
+
 	UPROPERTY()
 	TObjectPtr<class UQLPunchAttackData> PunchAttackData;
-
-	void OnDoubleCheckedCallback();
 
 protected:
 

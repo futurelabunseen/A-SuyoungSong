@@ -26,23 +26,36 @@ public:
 
     ATTRIBUTE_ACCESSORS(UQLAS_PlayerStat, Health);
     ATTRIBUTE_ACCESSORS(UQLAS_PlayerStat, MaxHealth);
-    ATTRIBUTE_ACCESSORS(UQLAS_PlayerStat, Stemina);
-    ATTRIBUTE_ACCESSORS(UQLAS_PlayerStat, MaxStemina);
+    ATTRIBUTE_ACCESSORS(UQLAS_PlayerStat, Stamina);
+    ATTRIBUTE_ACCESSORS(UQLAS_PlayerStat, MaxStamina);
 
-    //virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
-
+    virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
     virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //리플리케이션 등록
+protected:
+
+    UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Health, Meta = (AllowPrivateAccess = true))
+    FGameplayAttributeData Health;
+    UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_MaxHealth, Meta = (AllowPrivateAccess = true))
+    FGameplayAttributeData MaxHealth;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Stemina", ReplicatedUsing = OnRep_Stamina, Meta = (AllowPrivateAccess = true))
+    FGameplayAttributeData Stamina;
+    UPROPERTY(BlueprintReadOnly, Category = "Stemina", ReplicatedUsing = OnRep_MaxStamina, Meta = (AllowPrivateAccess = true))
+    FGameplayAttributeData MaxStamina;
 
 protected:
 
-    UPROPERTY(BlueprintReadOnly, Category = "Attack", Meta = (AllowPrivateAccess = true))
-    FGameplayAttributeData Health;
-    UPROPERTY(BlueprintReadOnly, Category = "Attack", Meta = (AllowPrivateAccess = true))
-    FGameplayAttributeData MaxHealth;
+    UFUNCTION()
+    virtual void OnRep_Health(const FGameplayAttributeData& OldHealth); //이 함수가 호출되었을 때에는 이미 변경된 값을 가짐. 그래서 OldHealth를 전달 
+    
+    UFUNCTION()
+    virtual void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth);
 
-    UPROPERTY(BlueprintReadOnly, Category = "Attack", Meta = (AllowPrivateAccess = true))
-    FGameplayAttributeData Stemina;
-    UPROPERTY(BlueprintReadOnly, Category = "Attack", Meta = (AllowPrivateAccess = true))
-    FGameplayAttributeData MaxStemina;
+    UFUNCTION()
+    virtual void OnRep_Stamina(const FGameplayAttributeData& OldStamina);
+
+    UFUNCTION()
+    virtual void OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina);
 
 };
