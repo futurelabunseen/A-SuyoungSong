@@ -60,7 +60,7 @@ void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataH
 
 		if (EffectSpecHandle.IsValid())
 		{
-			EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, -SourceAttributeSet->GetDamage());
+			EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, SourceAttributeSet->GetAttackDamage());
 			ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
 		}
 
