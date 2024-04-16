@@ -287,77 +287,88 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 
 void AQLCharacterPlayer::FarmingItem()
 {
-
-	FVector CameraLocStart = CalPlayerLocalCameraStartPos(); //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
-
-	FVector LocEnd = CameraLocStart + (GetCameraForward() * FarmingTraceDist);
-
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(ItemFarmingLineTrace), false, this); //식별자 
-
-	FHitResult OutHitResult;
-
-	bool bResult = GetWorld()->LineTraceSingleByChannel(
-		OutHitResult,
-		CameraLocStart,
-		LocEnd,
-		CCHANNEL_QLITEMACTION,
-		Params
-	);
-
-	AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
-
-	if (!PC)
+	if (HasAuthority())
 	{
-		return;
-	}
+		bool bResult = false;
+		FHitResult OutHitResult;
 
-	if (bResult)
-	{
-		//PC->SetVisibleFarming();
-		if (bPressedFarmingKey) //꼭 무기라고 단정 지을 수는 없음. 
+		FVector CameraLocStart = CalPlayerLocalCameraStartPos(); //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
+
+		FVector LocEnd = CameraLocStart + (GetCameraForward() * FarmingTraceDist);
+
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(ItemFarmingLineTrace), false, this); //식별자 
+
+		bResult = GetWorld()->LineTraceSingleByChannel(
+			OutHitResult,
+			CameraLocStart,
+			LocEnd,
+			CCHANNEL_QLITEMACTION,
+			Params
+		);
+
+
+		AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
+
+		if (!PC)
 		{
-			AQLItemBox* Item = Cast<AQLItemBox>(OutHitResult.GetActor());
-
-			if (Item == nullptr)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Item is not founded"));
-				return;
-			}
-			TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item);
+			return;
 		}
-		bPressedFarmingKey = false;
-	}
-	else
-	{
-		//PC->SetInvisibleFarming();
-	}
+		if (bResult)
+		{
+			//PC->SetVisibleFarming();
+			if (bPressedFarmingKey) //꼭 무기라고 단정 지을 수는 없음. 
+			{
+				AQLItemBox* Item = Cast<AQLItemBox>(OutHitResult.GetActor());
 
+				if (Item == nullptr)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Item is not founded"));
+					return;
+				}
+				TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item);
+			}
+			bPressedFarmingKey = false;
+		}
+		else
+		{
+			//PC->SetInvisibleFarming();
+		}
+	}
 }
 
 void AQLCharacterPlayer::EquipWeapon(AQLItemBox* InItem)
 { 
 	if (InItem == nullptr) return;
-
-	CurrentAttackType = ECharacterAttackType::GunAttack;
-
-	UQLItemData *InItemInfo = InItem->Stat;
+	UQLItemData* InItemInfo = InItem->Stat;
 	//Weapon 위치는 소켓 
 	UQLWeaponStat* WeaponStat = CastChecked<UQLWeaponStat>(InItemInfo);
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 
-	PS->SetWeaponStat(WeaponStat);
+	if (HasAuthority())
+	{
+		CurrentAttackType = ECharacterAttackType::GunAttack;
+		PS->SetWeaponStat(WeaponStat);
+	}
+	MulticastRPCFarming(WeaponStat);
+}
+
+void AQLCharacterPlayer::ServerRPCFarming_Implementation()
+{
+	bPressedFarmingKey = !bPressedFarmingKey;
+}
+
+void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* WeaponStat)
+{
 	if (Weapon && WeaponStat->WeaponMesh)
 	{
-		UE_LOG(LogTemp, Log, TEXT("current farming?"));
+		QL_LOG(QLNetLog, Log, TEXT("current farming?"));
 		if (WeaponStat->WeaponMesh.IsPending())
 		{
 			WeaponStat->WeaponMesh.LoadSynchronous();
 		}
 		Weapon->Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh.Get());
-		TakeItemDestory.Execute(InItem);
+		bHasGun = true;
 	}
-	bHasGun = true;
-	
 }
 
 FVector AQLCharacterPlayer::CalPlayerLocalCameraStartPos()
@@ -446,14 +457,16 @@ int8 AQLCharacterPlayer::GetInputNumber(int32 id)
 
 void AQLCharacterPlayer::FarmingItemPressed()
 {
-	bPressedFarmingKey = true;
+	//ServerRPC 호출
+	ServerRPCFarming();
 	//Raycast 를 사용해서 해당 오브젝트 파악하기
 //	FVector Start = Get
 	
 }
 void AQLCharacterPlayer::FarmingItemReleased()
 {
-	bPressedFarmingKey = false;
+	//ServerRPC호출
+	ServerRPCFarming();
 	//Raycast 를 사용해서 해당 오브젝트 파악하기
 //	FVector Start = Get
 
@@ -599,7 +612,7 @@ void AQLCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	//DOREPLIFETIME(AQLCharacterPlayer, bIsCrouching);
+	DOREPLIFETIME(AQLCharacterPlayer, bPressedFarmingKey);
 }
 
 void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)

@@ -8,7 +8,7 @@
 #include "GameplayEffectAggregatorLibrary.h"
 
 //ÁÖ¸ÔÀÇ °æ¿ì Default
-UQLAS_WeaponStat::UQLAS_WeaponStat() : Damage(10.0f), MaxDamage(55.0f), AttackDistance(0.0f), MaxAttackDistance(0.0f), AmmoCnt(0.0f), MaxAmmoCnt(0.0f)
+UQLAS_WeaponStat::UQLAS_WeaponStat() : AttackDamage(10.0f), MaxDamage(55.0f), AttackDistance(0.0f), MaxAttackDistance(0.0f), AmmoCnt(0.0f), MaxAmmoCnt(0.0f)
 {
 	
 }
@@ -42,7 +42,7 @@ void UQLAS_WeaponStat::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_WeaponStat, Damage, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_WeaponStat, AttackDamage, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_WeaponStat, MaxDamage, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_WeaponStat, AttackDistance, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_WeaponStat, MaxAttackDistance, COND_None, REPNOTIFY_Always);
@@ -52,7 +52,7 @@ void UQLAS_WeaponStat::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 }
 void UQLAS_WeaponStat::OnRep_Damage(const FGameplayAttributeData& OldDamage)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UQLAS_WeaponStat, Damage, OldDamage);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UQLAS_WeaponStat, AttackDamage, OldDamage);
 }
 
 void UQLAS_WeaponStat::OnRep_MaxDamage(const FGameplayAttributeData& OldMaxDamage)

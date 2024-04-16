@@ -13,10 +13,10 @@ UQLAS_PlayerStat::UQLAS_PlayerStat():MaxHealth(100.0f), Stamina(30.0f),MaxStamin
 
 void UQLAS_PlayerStat::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
-	if (Attribute == GetHealthAttribute())
+	if (Attribute == GetDamageAttribute())
 	{
-		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth());
-
+		//NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth());
+		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
 		UE_LOG(LogTemp, Log, TEXT("New Value %lf"), NewValue);
 	}
 
@@ -34,15 +34,14 @@ void UQLAS_PlayerStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 
 	float Minimum = 0.0f;
 
-	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 	{
-		const float LocalDamageDone = Data.EvaluatedData.Magnitude;
-		UE_LOG(LogTemp, Log, TEXT("Health %lf"), GetHealth());
-		//const float NewHealth = GetHealth() + LocalDamageDone;
-		//FMath::Clamp(NewHealth, Minimum, GetMaxHealth())
-		SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
+		const float LocalDamageDone = GetDamage();
+		SetDamage(0.0f);
 
-		UE_LOG(LogTemp, Log, TEXT("NewHealth %lf"), GetHealth());
+		float NewHealth = FMath::Clamp(GetHealth() - LocalDamageDone, Minimum, GetMaxHealth());
+		SetHealth(NewHealth);
+		
 		//여기서 맞은 애니메이션을 플레이하고 싶을 때 TargetCharacter에 대해 PlayHitReact를 표현하네, 그러면 Ability 없애도될듯?
 	}
 	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
@@ -59,7 +58,7 @@ void UQLAS_PlayerStat::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, MaxHealth, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, Stamina, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, MaxStamina, COND_None, REPNOTIFY_Always);
-
+	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, Damage, COND_None, REPNOTIFY_Always);
 }
 
 void UQLAS_PlayerStat::OnRep_Health(const FGameplayAttributeData& OldHealth)
@@ -80,4 +79,9 @@ void UQLAS_PlayerStat::OnRep_Stamina(const FGameplayAttributeData& OldStamina)
 void UQLAS_PlayerStat::OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UQLAS_PlayerStat, MaxStamina, OldMaxStamina);
+}
+
+void UQLAS_PlayerStat::OnRep_Damage(const FGameplayAttributeData& OldDamage)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UQLAS_PlayerStat, Damage, OldDamage);
 }

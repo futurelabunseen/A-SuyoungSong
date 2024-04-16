@@ -77,7 +77,7 @@ void UQLGA_AttackHitCheckUsingGun::OnCompletedCallback(const FGameplayAbilityTar
 					//거리 판정 
 					FVector DistanceVector = HeadBonePos - HitResult.ImpactPoint; //벡터간의 거리
 					float Distance = DistanceVector.Size(); //그 크기
-					double Damage = SourceAttributeSet->GetDamage();
+					double Damage = SourceAttributeSet->GetAttackDamage();
 
 					if (Distance < HeadDistThreshold)
 					{

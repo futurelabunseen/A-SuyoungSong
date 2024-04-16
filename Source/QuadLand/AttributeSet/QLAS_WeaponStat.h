@@ -25,7 +25,7 @@ class QUADLAND_API UQLAS_WeaponStat : public UAttributeSet
 public:
 	UQLAS_WeaponStat();
 
-    ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, Damage);
+    ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, AttackDamage);
     ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, MaxDamage);
     ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, AttackDistance);
     ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, MaxAttackDistance);
@@ -39,7 +39,7 @@ public:
 protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_Damage, Meta = (AllowPrivateAccess = true))
-	FGameplayAttributeData Damage;
+	FGameplayAttributeData AttackDamage;
 	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_MaxDamage, Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxDamage;
 

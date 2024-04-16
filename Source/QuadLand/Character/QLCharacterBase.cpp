@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameplayTag/GamplayTags.h"
 #include "Physics/QLCollision.h"
+#include "Net/UnrealNetwork.h"
 
 AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), CurrentAttackType(ECharacterAttackType::GunAttack)
 {
@@ -60,4 +61,11 @@ FGameplayTag AQLCharacterBase::GetCurrentAttackTag() const
 	{
 		return CHARACTER_EQUIP_NON;
 	}
+}
+
+void AQLCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AQLCharacterBase, CurrentAttackType);
 }

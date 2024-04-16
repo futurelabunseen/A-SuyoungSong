@@ -30,13 +30,13 @@ UAbilitySystemComponent* AQLPlayerState::GetAbilitySystemComponent() const
 void AQLPlayerState::SetWeaponStat(class UQLWeaponStat* Stat)
 {
     //UAbilitySystemComponent *TargetASC = WeaponInfo->GetAbilitySystemComponent();
-    if (Stat && ASC)
+    if (HasAuthority()&& Stat && ASC)
     {
         //¿ø·¡ Base°ª..
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAmmoCntAttribute(), Stat->AmmoCnt);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), Stat->AmmoCnt);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxDamageAttribute(), Stat->Damage);
-        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetDamageAttribute(), Stat->Damage);
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDamageAttribute(), Stat->Damage);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAttackDistanceAttribute(), Stat->AttackDist);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDistanceAttribute(), Stat->AttackDist);
     }
