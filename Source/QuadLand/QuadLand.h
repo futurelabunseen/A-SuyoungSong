@@ -23,7 +23,7 @@
 #define LOG_NETMODEINFO ((GetNetMode() == ENetMode::NM_Client) ? *FString::Printf(TEXT("CLIENT%d"), GPlayInEditorID) : ((GetNetMode() == ENetMode::NM_Standalone) ? TEXT("STANDALONE") : TEXT("SERVER"))) 
 
 //ability - net mode
-#define LOG_GASNETMODEINFO ((CurrentActorInfo->AvatarActor.Get()->GetNetMode() == ENetMode::NM_Client)? *FString::Printf(TEXT("Client")) : ((CurrentActorInfo->AvatarActor.Get()->GetNetMode() == ENetMode::NM_Standalone)? *FString::Printf(TEXT("Standalone")) : *FString::Printf(TEXT("Listen"))))
+#define LOG_GASNETMODEINFO ((CurrentActorInfo->AvatarActor.Get()->GetNetMode() == ENetMode::NM_Client)? *FString::Printf(TEXT("CLIENT")) : ((CurrentActorInfo->AvatarActor.Get()->GetNetMode() == ENetMode::NM_Standalone) ? TEXT("STANDALONE") : TEXT("SERVER"))) 
 
 #define QL_LOG(LogCat, Verbosity, Format, ...) UE_LOG(LogCat, Verbosity, TEXT("[%s] [%s / %s] %s %s"),LOG_NETMODEINFO,LOG_LOCALROLEINFO,LOG_REMOTEROLEINFO, CUR_LINE, *FString::Printf(Format,##__VA_ARGS__))
 

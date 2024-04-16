@@ -425,6 +425,11 @@ void AQLCharacterPlayer::GASInputPressed(int32 id)
 		{
 			ASC->TryActivateAbility(Spec->Handle);
 		}
+		if (CurrentAttackType == ECharacterAttackType::GunAttack)
+		{
+			//클라이언트로부터 입력 들어옴 서버 호출
+			ServerRPCShooting();
+		}
 	}
 }
 
@@ -441,6 +446,11 @@ void AQLCharacterPlayer::GASInputReleased(int32 id)
 		if (Spec->IsActive())
 		{
 			ASC->AbilitySpecInputReleased(*Spec);
+		}
+		if (CurrentAttackType == ECharacterAttackType::GunAttack)
+		{
+			//클라이언트로부터 입력 들어옴 서버 호출
+			ServerRPCShooting();
 		}
 	}
 }
@@ -675,5 +685,11 @@ void AQLCharacterPlayer::TimelineFloatReturn(float Alpha)
 {
 	float Length=FMath::Lerp(MaxArmLength, MinArmLength, Alpha);
 	CameraSpringArm->TargetArmLength = Length;
+}
+
+void AQLCharacterPlayer::ServerRPCShooting_Implementation()
+{
+	QL_LOG(QLNetLog, Log, TEXT("ServerRPC?"));
+	bIsShooting = !bIsShooting;
 }
 
