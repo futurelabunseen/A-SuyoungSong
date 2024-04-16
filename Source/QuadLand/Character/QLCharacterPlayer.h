@@ -66,7 +66,7 @@ public:
 	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
 	FORCEINLINE bool GetIsReload() const { return bIsReload; }
 	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
-	FORCEINLINE void SetIsShooting(bool Shooting) { bIsShooting = Shooting; }
+
 	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
 
 	FORCEINLINE ETurningPlaceType GetTurningInPlaceType() const { return TurningInPlace; }
@@ -245,7 +245,13 @@ protected:
 
 protected:
 	
+	UPROPERTY(Replicated)
 	uint8 bIsReload : 1;
+
+	UPROPERTY(Replicated)
 	uint8 bIsShooting : 1;
+
+	UFUNCTION(Server, Unreliable)
+	void ServerRPCShooting(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
 
 };

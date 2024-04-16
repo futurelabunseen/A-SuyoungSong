@@ -44,7 +44,7 @@ void UQLGA_AttackHitCheck::EndAbility(const FGameplayAbilitySpecHandle Handle, c
 
 void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataHandle& TargetDataHandle)
 {
-
+	QL_GASLOG(QLNetLog, Log, TEXT("Current Punch Section"));
 	if (UAbilitySystemBlueprintLibrary::TargetDataHasHitResult(TargetDataHandle, 0))
 	{
 		FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(TargetDataHandle, 0);

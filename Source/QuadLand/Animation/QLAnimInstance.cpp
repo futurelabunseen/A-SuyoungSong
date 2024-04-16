@@ -44,7 +44,7 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsCrunching = Player->GetIsCrunching();
 		Direction = CalculateDirection(Velocity, Owner->GetActorRotation()); //Locomotion Angle
 		bIsAiming = Player->GetIsAiming();
-		AimSpeedRate = Player->GetIsRunning()? 1.0f : 1.7f;
+		AimSpeedRate = Player->GetIsRunning()? 1.0f : 1.5f;
 		RootYawOffset = Player->GetCurrnetYaw();
 		TurningInPlaceType = Player->GetTurningInPlaceType();
 	}

@@ -39,9 +39,12 @@ void UQLAS_PlayerStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		const float LocalDamageDone = GetDamage();
 		SetDamage(0.0f);
 
+		UE_LOG(LogTemp, Log, TEXT("localDamage %lf Current Health %lf"), LocalDamageDone, GetHealth());
+
 		float NewHealth = FMath::Clamp(GetHealth() - LocalDamageDone, Minimum, GetMaxHealth());
 		SetHealth(NewHealth);
-		
+		UE_LOG(LogTemp, Log, TEXT("NewHealth %lf"), NewHealth);
+
 		//여기서 맞은 애니메이션을 플레이하고 싶을 때 TargetCharacter에 대해 PlayHitReact를 표현하네, 그러면 Ability 없애도될듯?
 	}
 	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())

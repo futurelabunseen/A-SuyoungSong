@@ -16,8 +16,6 @@ UQLGA_AttackUsingPunch::UQLGA_AttackUsingPunch() : CurrentCombo(0), bHasNextPunc
 
 void UQLGA_AttackUsingPunch::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
-
-	UE_LOG(LogTemp, Log, TEXT("1"));
 	if (PunchAttackComboTimer.IsValid())
 	{
 		bHasNextPunchAttackCombo = true;
