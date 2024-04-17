@@ -248,6 +248,9 @@ protected:
 	UPROPERTY(Replicated)
 	uint8 bIsReload : 1;
 
+	UFUNCTION(Server, Reliable)
+	void ServerRPCReload(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
+
 	UPROPERTY(Replicated)
 	uint8 bIsShooting : 1;
 

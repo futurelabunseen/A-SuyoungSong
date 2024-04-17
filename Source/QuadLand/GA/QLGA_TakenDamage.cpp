@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "QLGA_TakenDamage.h"
-#include "GameFramework/Character.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
 
@@ -16,17 +15,13 @@ void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	UE_LOG(LogTemp, Log, TEXT("Current Class TakenDamage Class"));
-	ACharacter* TargetActor = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
-	if (TargetActor)
-	{
-		float AnimSpeedRate = 1.0f;
+	float AnimSpeedRate = 1.0f;
 
-		float CurrentTypeIdx = TriggerEventData->EventMagnitude;
-		UAbilityTask_PlayMontageAndWait* AttackUsingPunchMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("TakenDamageActor"), DamageMontage[CurrentTypeIdx], AnimSpeedRate);
-		AttackUsingPunchMontage->OnCompleted.AddDynamic(this, &UQLGA_TakenDamage::OnCompletedCallback);
-		AttackUsingPunchMontage->OnInterrupted.AddDynamic(this, &UQLGA_TakenDamage::OnInterruptedCallback);
-		AttackUsingPunchMontage->ReadyForActivation();
-	}
+	float CurrentTypeIdx = TriggerEventData->EventMagnitude;
+	UAbilityTask_PlayMontageAndWait* AttackUsingPunchMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("TakenDamageActor"), DamageMontage[CurrentTypeIdx], AnimSpeedRate);
+	AttackUsingPunchMontage->OnCompleted.AddDynamic(this, &UQLGA_TakenDamage::OnCompletedCallback);
+	AttackUsingPunchMontage->OnInterrupted.AddDynamic(this, &UQLGA_TakenDamage::OnInterruptedCallback);
+	AttackUsingPunchMontage->ReadyForActivation();
 
 }
 

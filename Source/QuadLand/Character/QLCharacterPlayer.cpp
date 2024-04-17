@@ -348,6 +348,7 @@ void AQLCharacterPlayer::EquipWeapon(AQLItemBox* InItem)
 	{
 		CurrentAttackType = ECharacterAttackType::GunAttack;
 		PS->SetWeaponStat(WeaponStat);
+
 	}
 	MulticastRPCFarming(WeaponStat);
 }
@@ -402,14 +403,18 @@ void AQLCharacterPlayer::GASInputPressed(int32 id)
 {
 	if(bIsRunning && CurrentAttackType == ECharacterAttackType::GunAttack)
 	{
+		UE_LOG(LogTemp, Log, TEXT("come on? 1"));
 		return;
 	}
 
 	QL_LOG(QLNetLog, Log, TEXT("begin"));
 	uint8 InputAttackSpecNumber = GetInputNumber(id);
 
-	if (CurrentAttackType == ECharacterAttackType::HookAttack && InputAttackSpecNumber == 2) return;
-
+	if (CurrentAttackType == ECharacterAttackType::HookAttack && InputAttackSpecNumber == 2)
+	{
+		UE_LOG(LogTemp, Log, TEXT("come on? 2"));
+		return;
+	}
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
 
 	if (Spec)
@@ -425,10 +430,15 @@ void AQLCharacterPlayer::GASInputPressed(int32 id)
 		{
 			ASC->TryActivateAbility(Spec->Handle);
 		}
-		if (CurrentAttackType == ECharacterAttackType::GunAttack)
+		if (IsLocallyControlled() && InputAttackSpecNumber == 1)
 		{
 			//클라이언트로부터 입력 들어옴 서버 호출
 			ServerRPCShooting();
+		}
+
+		if (IsLocallyControlled() && InputAttackSpecNumber == 2)
+		{
+			ServerRPCReload();
 		}
 	}
 }
@@ -447,10 +457,16 @@ void AQLCharacterPlayer::GASInputReleased(int32 id)
 		{
 			ASC->AbilitySpecInputReleased(*Spec);
 		}
-		if (CurrentAttackType == ECharacterAttackType::GunAttack)
+
+		if (IsLocallyControlled() && InputAttackSpecNumber == 1)
 		{
 			//클라이언트로부터 입력 들어옴 서버 호출
 			ServerRPCShooting();
+		}
+
+		if (IsLocallyControlled() && InputAttackSpecNumber == 2)
+		{
+			ServerRPCReload();
 		}
 	}
 }
@@ -623,6 +639,8 @@ void AQLCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AQLCharacterPlayer, bPressedFarmingKey);
+	DOREPLIFETIME(AQLCharacterPlayer, bIsShooting);
+	DOREPLIFETIME(AQLCharacterPlayer, bIsReload);
 }
 
 void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
@@ -686,10 +704,13 @@ void AQLCharacterPlayer::TimelineFloatReturn(float Alpha)
 	float Length=FMath::Lerp(MaxArmLength, MinArmLength, Alpha);
 	CameraSpringArm->TargetArmLength = Length;
 }
-
 void AQLCharacterPlayer::ServerRPCShooting_Implementation()
 {
-	QL_LOG(QLNetLog, Log, TEXT("ServerRPC?"));
 	bIsShooting = !bIsShooting;
 }
+void AQLCharacterPlayer::ServerRPCReload_Implementation()
+{
+	bIsReload = !bIsReload;
+}
+
 

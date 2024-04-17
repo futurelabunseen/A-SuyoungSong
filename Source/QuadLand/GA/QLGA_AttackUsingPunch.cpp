@@ -63,14 +63,14 @@ FName UQLGA_AttackUsingPunch::GetNextSection()
 void UQLGA_AttackUsingPunch::OnCompleted()
 {
 	bool bReplicateEndAbility = true;
-	bool bWasCancelled = false;
+	bool bWasCancelled = true;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UQLGA_AttackUsingPunch::OnInterrupted()
 {
 	bool bReplicateEndAbility = true;
-	bool bWasCancelled = true;
+	bool bWasCancelled = false;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 

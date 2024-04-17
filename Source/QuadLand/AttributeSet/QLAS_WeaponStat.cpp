@@ -13,12 +13,22 @@ UQLAS_WeaponStat::UQLAS_WeaponStat() : AttackDamage(10.0f), MaxDamage(55.0f), At
 	
 }
 
+void UQLAS_WeaponStat::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+{
+	if (Attribute == GetAmmoCntAttribute())
+	{
+		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
+		UE_LOG(LogTemp, Log, TEXT("NewValue %lf"), NewValue);
+	}
+}
+
 void UQLAS_WeaponStat::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	float Minimum = 0.0f;
 	if (Data.EvaluatedData.Attribute == GetAmmoCntAttribute())
 	{
 		//Ammo 개수가 음수 이면 리셋
+		UE_LOG(LogTemp, Log, TEXT("Current Ammo %lf"), GetAmmoCnt());
 		SetAmmoCnt(FMath::Clamp(GetAmmoCnt(), Minimum, GetMaxAmmoCnt()));
 	}
 }
