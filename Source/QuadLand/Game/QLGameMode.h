@@ -17,5 +17,14 @@ class QUADLAND_API AQLGameMode : public AGameModeBase
 public:
 	AQLGameMode();
 
-	
+	UFUNCTION()
+	void GetWinner(const FGameplayTag CallbackTag, int32 NewCount);
+	UFUNCTION(BlueprintCallable)
+	void StartGame();
+	virtual void StartPlay() override;
+protected:
+
+	int PlayerCnt;
+
+	TMap<FName, bool> PlayerDieStatus;
 };
