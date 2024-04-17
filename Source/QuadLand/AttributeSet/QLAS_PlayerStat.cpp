@@ -5,6 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffectExtension.h"
+#include "GameplayTag/GamplayTags.h"
 
 UQLAS_PlayerStat::UQLAS_PlayerStat():MaxHealth(100.0f), Stamina(30.0f),MaxStamina(50.0f)
 {
@@ -17,7 +18,6 @@ void UQLAS_PlayerStat::PreAttributeChange(const FGameplayAttribute& Attribute, f
 	{
 		//NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth());
 		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
-		UE_LOG(LogTemp, Log, TEXT("New Value %lf"), NewValue);
 	}
 
 	if (Attribute == GetStaminaAttribute())
@@ -39,17 +39,22 @@ void UQLAS_PlayerStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		const float LocalDamageDone = GetDamage();
 		SetDamage(0.0f);
 
-		UE_LOG(LogTemp, Log, TEXT("localDamage %lf Current Health %lf"), LocalDamageDone, GetHealth());
-
 		float NewHealth = FMath::Clamp(GetHealth() - LocalDamageDone, Minimum, GetMaxHealth());
 		SetHealth(NewHealth);
-		UE_LOG(LogTemp, Log, TEXT("NewHealth %lf"), NewHealth);
 
 		//여기서 맞은 애니메이션을 플레이하고 싶을 때 TargetCharacter에 대해 PlayHitReact를 표현하네, 그러면 Ability 없애도될듯?
 	}
 	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
 	{
 		SetStamina(FMath::Clamp(GetStamina(), Minimum, GetMaxStamina()));
+	}
+	
+	if ((GetHealth() <= 0.0f))
+	{
+		FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
+		Data.Target.TryActivateAbilitiesByTag(TargetTag);
+
+		Data.Target.AddLooseGameplayTag(CHARACTER_STATE_DEAD); //제거는 RemoveLooseGameplayTag
 	}
 }
 

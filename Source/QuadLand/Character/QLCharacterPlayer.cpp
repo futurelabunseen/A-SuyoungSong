@@ -24,7 +24,7 @@
 #include "QuadLand.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer) :
-	Super(ObjectInitializer.SetDefaultSubobjectClass<UQLCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)), bIsRunning(false), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f), MaxArmLength(300.0f)//, bIsTurning(false)
+	Super(ObjectInitializer.SetDefaultSubobjectClass<UQLCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f), MaxArmLength(300.0f)//, bIsTurning(false)
 {
 	bHasGun = false;
 	ASC = nullptr;
@@ -401,10 +401,9 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 
 void AQLCharacterPlayer::GASInputPressed(int32 id)
 {
-	if(bIsRunning && CurrentAttackType == ECharacterAttackType::GunAttack)
+	if (bIsRunning && CurrentAttackType == ECharacterAttackType::GunAttack)
 	{
-		UE_LOG(LogTemp, Log, TEXT("come on? 1"));
-		return;
+		return; 
 	}
 
 	QL_LOG(QLNetLog, Log, TEXT("begin"));
@@ -412,7 +411,6 @@ void AQLCharacterPlayer::GASInputPressed(int32 id)
 
 	if (CurrentAttackType == ECharacterAttackType::HookAttack && InputAttackSpecNumber == 2)
 	{
-		UE_LOG(LogTemp, Log, TEXT("come on? 2"));
 		return;
 	}
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
@@ -506,12 +504,11 @@ float AQLCharacterPlayer::CalculateSpeed()
 void AQLCharacterPlayer::RunInputPressed()
 {
 	UQLCharacterMovementComponent* QLMovement = Cast< UQLCharacterMovementComponent>(GetMovementComponent());
-
 	if (QLMovement)
 	{
 		QLMovement->SetSprintCommand();
-		bIsRunning = QLMovement->bPressedSprint;
 	}
+	ServerRPCRunning();
 }
 
 void AQLCharacterPlayer::RunInputReleased()
@@ -521,8 +518,13 @@ void AQLCharacterPlayer::RunInputReleased()
 	if (QLMovement)
 	{
 		QLMovement->UnSetSprintCommand();
-		bIsRunning = QLMovement->bPressedSprint; //현재여기수정
 	}
+	ServerRPCRunning();
+}
+
+void AQLCharacterPlayer::ServerRPCRunning_Implementation()
+{
+	bIsRunning = !bIsRunning;
 }
 
 void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
@@ -641,6 +643,7 @@ void AQLCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AQLCharacterPlayer, bPressedFarmingKey);
 	DOREPLIFETIME(AQLCharacterPlayer, bIsShooting);
 	DOREPLIFETIME(AQLCharacterPlayer, bIsReload);
+	DOREPLIFETIME(AQLCharacterPlayer, bIsRunning);
 }
 
 void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
