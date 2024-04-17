@@ -24,7 +24,7 @@
 #include "QuadLand.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer) :
-	Super(ObjectInitializer.SetDefaultSubobjectClass<UQLCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)), bIsRunning(false), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f), MaxArmLength(300.0f)//, bIsTurning(false)
+	Super(ObjectInitializer.SetDefaultSubobjectClass<UQLCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f), MaxArmLength(300.0f)//, bIsTurning(false)
 {
 	bHasGun = false;
 	ASC = nullptr;
@@ -348,6 +348,7 @@ void AQLCharacterPlayer::EquipWeapon(AQLItemBox* InItem)
 	{
 		CurrentAttackType = ECharacterAttackType::GunAttack;
 		PS->SetWeaponStat(WeaponStat);
+
 	}
 	MulticastRPCFarming(WeaponStat);
 }
@@ -400,16 +401,18 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 
 void AQLCharacterPlayer::GASInputPressed(int32 id)
 {
-	if(bIsRunning && CurrentAttackType == ECharacterAttackType::GunAttack)
+	if (bIsRunning && CurrentAttackType == ECharacterAttackType::GunAttack)
 	{
-		return;
+		return; 
 	}
 
 	QL_LOG(QLNetLog, Log, TEXT("begin"));
 	uint8 InputAttackSpecNumber = GetInputNumber(id);
 
-	if (CurrentAttackType == ECharacterAttackType::HookAttack && InputAttackSpecNumber == 2) return;
-
+	if (CurrentAttackType == ECharacterAttackType::HookAttack && InputAttackSpecNumber == 2)
+	{
+		return;
+	}
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
 
 	if (Spec)
@@ -425,10 +428,15 @@ void AQLCharacterPlayer::GASInputPressed(int32 id)
 		{
 			ASC->TryActivateAbility(Spec->Handle);
 		}
-		if (CurrentAttackType == ECharacterAttackType::GunAttack)
+		if (IsLocallyControlled() && InputAttackSpecNumber == 1)
 		{
 			//클라이언트로부터 입력 들어옴 서버 호출
 			ServerRPCShooting();
+		}
+
+		if (IsLocallyControlled() && InputAttackSpecNumber == 2)
+		{
+			ServerRPCReload();
 		}
 	}
 }
@@ -447,10 +455,16 @@ void AQLCharacterPlayer::GASInputReleased(int32 id)
 		{
 			ASC->AbilitySpecInputReleased(*Spec);
 		}
-		if (CurrentAttackType == ECharacterAttackType::GunAttack)
+
+		if (IsLocallyControlled() && InputAttackSpecNumber == 1)
 		{
 			//클라이언트로부터 입력 들어옴 서버 호출
 			ServerRPCShooting();
+		}
+
+		if (IsLocallyControlled() && InputAttackSpecNumber == 2)
+		{
+			ServerRPCReload();
 		}
 	}
 }
@@ -490,12 +504,11 @@ float AQLCharacterPlayer::CalculateSpeed()
 void AQLCharacterPlayer::RunInputPressed()
 {
 	UQLCharacterMovementComponent* QLMovement = Cast< UQLCharacterMovementComponent>(GetMovementComponent());
-
 	if (QLMovement)
 	{
 		QLMovement->SetSprintCommand();
-		bIsRunning = QLMovement->bPressedSprint;
 	}
+	ServerRPCRunning();
 }
 
 void AQLCharacterPlayer::RunInputReleased()
@@ -505,8 +518,13 @@ void AQLCharacterPlayer::RunInputReleased()
 	if (QLMovement)
 	{
 		QLMovement->UnSetSprintCommand();
-		bIsRunning = QLMovement->bPressedSprint; //현재여기수정
 	}
+	ServerRPCRunning();
+}
+
+void AQLCharacterPlayer::ServerRPCRunning_Implementation()
+{
+	bIsRunning = !bIsRunning;
 }
 
 void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
@@ -623,6 +641,9 @@ void AQLCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AQLCharacterPlayer, bPressedFarmingKey);
+	DOREPLIFETIME(AQLCharacterPlayer, bIsShooting);
+	DOREPLIFETIME(AQLCharacterPlayer, bIsReload);
+	DOREPLIFETIME(AQLCharacterPlayer, bIsRunning);
 }
 
 void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
@@ -686,10 +707,13 @@ void AQLCharacterPlayer::TimelineFloatReturn(float Alpha)
 	float Length=FMath::Lerp(MaxArmLength, MinArmLength, Alpha);
 	CameraSpringArm->TargetArmLength = Length;
 }
-
 void AQLCharacterPlayer::ServerRPCShooting_Implementation()
 {
-	QL_LOG(QLNetLog, Log, TEXT("ServerRPC?"));
 	bIsShooting = !bIsShooting;
 }
+void AQLCharacterPlayer::ServerRPCReload_Implementation()
+{
+	bIsReload = !bIsReload;
+}
+
 

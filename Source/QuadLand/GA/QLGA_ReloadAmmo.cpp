@@ -4,9 +4,9 @@
 #include "GA/QLGA_ReloadAmmo.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayTag/GamplayTags.h"
-#include "Character/QLCharacterPlayer.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "QuadLand.h"
 
 UQLGA_ReloadAmmo::UQLGA_ReloadAmmo()
 {
@@ -24,27 +24,22 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	//ASC를 가져온다.
 	//Attribute Set 을 가져와서 GetSet으로 가져온데, Ammo 값이 만빵이면 EndAbility 종료한다. 
 	
-	UAbilitySystemComponent* Source = Cast<UAbilitySystemComponent>(ActorInfo->AbilitySystemComponent);
-
+	UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo_Checked();
 	if (Source)
 	{
 		const UQLAS_WeaponStat* WeaponStat=Source->GetSet<UQLAS_WeaponStat>();
-		if (WeaponStat && WeaponStat->GetAmmoCnt() == WeaponStat->GetMaxAmmoCnt())
+		if (!WeaponStat || WeaponStat->GetAmmoCnt() == WeaponStat->GetMaxAmmoCnt())
 		{
 			OnCompletedCallback();
 			return;
 		}
 	//Reload 하는 애니메이션 동작 - Player
 		float AnimSpeedRate = 1.0f;
-
-		AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
-		Player->SetIsReload(true);
-
 		UAbilityTask_PlayMontageAndWait* ReloadMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("ReloadMontage"), ReloadAnimMontage, AnimSpeedRate);
 		ReloadMontage->OnCompleted.AddDynamic(this, &UQLGA_ReloadAmmo::OnCompletedCallback);
 		ReloadMontage->OnInterrupted.AddDynamic(this, &UQLGA_ReloadAmmo::OnInterruptedCallback);
 		ReloadMontage->ReadyForActivation();
-
+		QL_GASLOG(QLNetLog, Log, TEXT("1"));
 	//Reload 하는 애니메이션 동작 - Weapon
 
 	}
@@ -57,24 +52,19 @@ void UQLGA_ReloadAmmo::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 
 void UQLGA_ReloadAmmo::OnCompletedCallback()
 {
+	//GameEffect 호출 
+	UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo_Checked();
+	const UQLAS_WeaponStat* WeaponStat = Source->GetSet<UQLAS_WeaponStat>();
+	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReloadAmmoEffect);
+	if (EffectSpecHandle.IsValid())
+	{
+		const float CurrentAmmoCnt = WeaponStat->GetMaxAmmoCnt() - WeaponStat->GetAmmoCnt();
+		EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_AMMOCNT, CurrentAmmoCnt);
+		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
+	}
+	
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = true;
-	//GameEffect 호출 
-	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
-	if (Player->GetIsReload())
-	{
-		UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo();
-		const UQLAS_WeaponStat* WeaponStat = Source->GetSet<UQLAS_WeaponStat>();
-		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReloadAmmoEffect);
-		Player->SetIsReload(false);
-
-		if (EffectSpecHandle.IsValid())
-		{
-			EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_AMMOCNT, WeaponStat->GetMaxAmmoCnt());
-			ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
-		}
-	}
-	//Reload 애니메이션이 끝나고 증가한다.
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 

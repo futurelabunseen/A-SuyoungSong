@@ -1,9 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "QLGA_TakenDamage.h"
-#include "GameFramework/Character.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
+#include "AttributeSet/QLAS_PlayerStat.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayTag/GamplayTags.h"
 
 UQLGA_TakenDamage::UQLGA_TakenDamage()
 {
@@ -16,17 +18,31 @@ void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	UE_LOG(LogTemp, Log, TEXT("Current Class TakenDamage Class"));
-	ACharacter* TargetActor = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
-	if (TargetActor)
-	{
-		float AnimSpeedRate = 1.0f;
 
-		float CurrentTypeIdx = TriggerEventData->EventMagnitude;
-		UAbilityTask_PlayMontageAndWait* AttackUsingPunchMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("TakenDamageActor"), DamageMontage[CurrentTypeIdx], AnimSpeedRate);
-		AttackUsingPunchMontage->OnCompleted.AddDynamic(this, &UQLGA_TakenDamage::OnCompletedCallback);
-		AttackUsingPunchMontage->OnInterrupted.AddDynamic(this, &UQLGA_TakenDamage::OnInterruptedCallback);
-		AttackUsingPunchMontage->ReadyForActivation();
-	}
+	//데미지가 0이면 죽는다. - 원천자는 승리한다.
+	
+	//UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo_Checked(); 
+	//UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitResult.GetActor());
+	//if (Source)
+	//{
+	//	const UQLAS_PlayerStat* PlayerStat = Source->GetSet<UQLAS_PlayerStat>();
+	//	FGameplayEventData Payload;
+
+	//	if (PlayerStat && PlayerStat->GetHealth() <= 0.0f)
+	//	{
+	//		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(ActorInfo->AvatarActor.Get(), CHARACTER_STATE_DEAD, Payload);
+	//		
+	//		OnCompletedCallback();
+	//		return;
+	//	}
+	//}
+	
+	float AnimSpeedRate = 1.0f;
+	float CurrentTypeIdx = TriggerEventData->EventMagnitude;
+	UAbilityTask_PlayMontageAndWait* AttackUsingPunchMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("TakenDamageActor"), DamageMontage[CurrentTypeIdx], AnimSpeedRate);
+	AttackUsingPunchMontage->OnCompleted.AddDynamic(this, &UQLGA_TakenDamage::OnCompletedCallback);
+	AttackUsingPunchMontage->OnInterrupted.AddDynamic(this, &UQLGA_TakenDamage::OnInterruptedCallback);
+	AttackUsingPunchMontage->ReadyForActivation();
 
 }
 

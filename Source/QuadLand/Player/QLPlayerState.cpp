@@ -6,7 +6,9 @@
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "AbilitySystemComponent.h"
+#include "GameplayTag/GamplayTags.h"
 #include "QuadLand.h"
+#include "Net/UnrealNetwork.h"
 AQLPlayerState::AQLPlayerState()
 {
     ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
@@ -19,6 +21,9 @@ AQLPlayerState::AQLPlayerState()
     //Event 등록한다 -> Equip을 가질때
     //Event 등록한다 -> Equip없을 때
     NetUpdateFrequency = 30.0f;
+
+    ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Dead);
+    ASC->RegisterGameplayTagEvent(CHARACTER_STATE_WIN, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Win);
 }
 
 
@@ -40,6 +45,27 @@ void AQLPlayerState::SetWeaponStat(class UQLWeaponStat* Stat)
     }
 
 }
+
+void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
+{
+    bIsWin = !bIsWin;
+    QL_LOG(QLNetLog, Log, TEXT("Current Dead"));
+}
+
+void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
+{
+    bIsDead = !bIsDead;
+    QL_LOG(QLNetLog, Log, TEXT("Current Dead"));
+}
+
+void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AQLPlayerState, bIsDead);
+    DOREPLIFETIME(AQLPlayerState, bIsWin);
+}
+
 
 
 

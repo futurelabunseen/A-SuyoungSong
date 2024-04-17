@@ -32,6 +32,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, AmmoCnt);
 	ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, MaxAmmoCnt);
 
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 	virtual void OnAttributeAggregatorCreated(const FGameplayAttribute& Attribute, FAggregator* NewAggregator) const override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //리플리케이션 등록

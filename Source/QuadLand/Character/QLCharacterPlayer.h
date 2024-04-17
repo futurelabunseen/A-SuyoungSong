@@ -63,8 +63,8 @@ public:
 	FORCEINLINE bool GetHasGun() const { return bHasGun; }
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrouched; }
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
-	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
 	FORCEINLINE bool GetIsReload() const { return bIsReload; }
+	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
 	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
 
 	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
@@ -118,8 +118,14 @@ protected:
 	void RunInputPressed();
 	void RunInputReleased();
 
-	FRotator PreviousRotation;
+	UFUNCTION(Server, Unreliable)
+	void ServerRPCRunning();
+
+	UPROPERTY(Replicated)
 	uint8 bIsRunning : 1;
+
+	FRotator PreviousRotation;
+
 
 	//Turning in Place Section
 protected:
@@ -174,9 +180,6 @@ protected:
 
 	UPROPERTY(Replicated) //복제만 수행하면 된다.
 	uint8 bPressedFarmingKey : 1;
-
-
-
 	int32 FarmingTraceDist;
 
 	void FarmingItemPressed();
@@ -247,6 +250,9 @@ protected:
 	
 	UPROPERTY(Replicated)
 	uint8 bIsReload : 1;
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCReload(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
 
 	UPROPERTY(Replicated)
 	uint8 bIsShooting : 1;

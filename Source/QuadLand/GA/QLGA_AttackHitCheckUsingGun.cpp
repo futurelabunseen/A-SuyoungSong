@@ -60,11 +60,13 @@ void UQLGA_AttackHitCheckUsingGun::OnCompletedCallback(const FGameplayAbilityTar
 		{
 			//발사
 			const IQLReceivedDamageInterface* ReceivedCharacter = Cast<IQLReceivedDamageInterface>(HitResult.GetActor()); //상속받은 캐릭터/몬스터만 데미지를 받을 수 있음 
-			if (ReceivedCharacter)
+			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitResult.GetActor());
+			if (ReceivedCharacter && CanAttack(TargetASC))
 			{
 
 				FGameplayEventData Payload;
 				Payload.EventMagnitude = static_cast<float>(Type); //Type으로 변경예정
+				Payload.Target = GetActorInfo().OwnerActor.Get();
 				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(HitResult.GetActor(), CHARACTER_ATTACK_TAKENDAMAGE, Payload);
 
 				//Hit 위치 판정 헤드샷일 때 +10 더해준다.
@@ -105,4 +107,11 @@ void UQLGA_AttackHitCheckUsingGun::OnCompletedCallback(const FGameplayAbilityTar
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = true;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+bool UQLGA_AttackHitCheckUsingGun::CanAttack(UAbilitySystemComponent *TargetASC)
+{
+	const UQLAS_PlayerStat* TargetStat = TargetASC->GetSet<UQLAS_PlayerStat>();
+
+	return TargetStat->GetHealth()>0.0f;
 }
