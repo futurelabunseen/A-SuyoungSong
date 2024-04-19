@@ -48,10 +48,10 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //리플리케이션 등록
 protected:
 
-	UPROPERTY(Replicated, EditAnywhere, Category = GAS)
+	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bIsWin : 1;
 
-	UPROPERTY(Replicated, EditAnywhere, Category = GAS)
+	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bIsDead : 1;
 
 

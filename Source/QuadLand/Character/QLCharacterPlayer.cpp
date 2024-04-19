@@ -519,6 +519,7 @@ void AQLCharacterPlayer::RunInputReleased()
 	{
 		QLMovement->UnSetSprintCommand();
 	}
+
 	ServerRPCRunning();
 }
 
@@ -529,7 +530,9 @@ void AQLCharacterPlayer::ServerRPCRunning_Implementation()
 
 void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
 {
+	if (bUseControllerRotationYaw == false) return; //죽으면 Yaw 동작을 껐기 때문에 해당 함수 실행 안되도록 수행한다.
 
+	//플레이어가 살아있으면 동작한다. -> 즉, 플레이어가 죽었으면 Yaw 동작을 끔
 	float Speed = CalculateSpeed();
 	bool IsFalling = GetMovementComponent()->IsFalling();
 	if (Speed == 0.f && !IsFalling)
@@ -555,7 +558,6 @@ void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
 
 void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 {
-
 	//현재 Yaw>90.0f ->오른쪽
 	if (CurrentYaw > 45.0f)
 	{

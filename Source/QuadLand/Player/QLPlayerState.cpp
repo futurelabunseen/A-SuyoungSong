@@ -49,13 +49,13 @@ void AQLPlayerState::SetWeaponStat(class UQLWeaponStat* Stat)
 void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
 {
     bIsWin = !bIsWin;
-    QL_LOG(QLNetLog, Log, TEXT("Current Dead"));
+    QL_LOG(QLNetLog, Log, TEXT("Current Win %d"),bIsWin);
 }
 
 void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 {
     bIsDead = !bIsDead;
-    QL_LOG(QLNetLog, Log, TEXT("Current Dead"));
+    QL_LOG(QLNetLog, Log, TEXT("Current Dead %d"),bIsDead);
 }
 
 void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
