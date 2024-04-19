@@ -5,10 +5,14 @@
 #include "GameData/QLWeaponStat.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
+#include "Player/QLPlayerController.h"
+
 #include "AbilitySystemComponent.h"
 #include "GameplayTag/GamplayTags.h"
 #include "QuadLand.h"
 #include "Net/UnrealNetwork.h"
+#include "UI/QLUserWidget.h"
+
 AQLPlayerState::AQLPlayerState()
 {
     ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
@@ -22,17 +26,22 @@ AQLPlayerState::AQLPlayerState()
     //Event 등록한다 -> Equip없을 때
     NetUpdateFrequency = 30.0f;
 
+    //TagEvent - Delegates
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Dead);
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_WIN, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Win);
-}
+    //HUD - Delegates
+    HealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetHealthAttribute()).AddUObject(this, &AQLPlayerState::UpdateHp);
+    MaxHealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetMaxHealthAttribute()).AddUObject(this, &AQLPlayerState::UpdateMaxHp);
+    AmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetAmmoCntAttribute()).AddUObject(this, &AQLPlayerState::UpdateAmmoCnt);
 
+}
 
 UAbilitySystemComponent* AQLPlayerState::GetAbilitySystemComponent() const
 {
     return ASC;
 }
 
-void AQLPlayerState::SetWeaponStat(class UQLWeaponStat* Stat)
+void AQLPlayerState::SetWeaponStat(const UQLWeaponStat* Stat)
 {
     //UAbilitySystemComponent *TargetASC = WeaponInfo->GetAbilitySystemComponent();
     if (HasAuthority()&& Stat && ASC)
@@ -44,6 +53,70 @@ void AQLPlayerState::SetWeaponStat(class UQLWeaponStat* Stat)
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDistanceAttribute(), Stat->AttackDist);
     }
 
+}
+void AQLPlayerState::BeginPlay()
+{
+    Super::BeginPlay();
+}
+
+void AQLPlayerState::UpdateHp(const FOnAttributeChangeData& Data)
+{
+    float CurrentHP = Data.NewValue;
+
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+
+    if (PC)
+    {
+        //Player의 QLPlayerHpBarWidget 가져옴
+        UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
+        Widget->UpdateHPPercentage(CurrentHP, GetMaxHealth());
+    }
+}
+
+void AQLPlayerState::UpdateMaxHp(const FOnAttributeChangeData& Data)
+{
+    //아이템 도입되면 시작할 예정(다음주)
+    float MaxHp = Data.NewValue;
+
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+
+    if (PC)
+    {
+        //Player의 QLPlayerHUDWidget 가져옴 -> 이름변경해야할 각이보인다;;
+        UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
+        Widget->UpdateHPPercentage(GetHealth(), MaxHp);
+    }
+}
+
+void AQLPlayerState::UpdateAmmoCnt(const FOnAttributeChangeData& Data)
+{
+    float CurrentAmmo = Data.NewValue;
+
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+
+    if (PC)
+    {
+        //Player의 QLPlayerHUDWidget 가져옴 -> 이름변경해야할 각이보인다;;
+        UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
+        Widget->UpdateAmmo(CurrentAmmo);
+    }
+
+}
+
+
+float AQLPlayerState::GetHealth()
+{
+    return PlayerStatInfo->GetHealth();
+}
+
+float AQLPlayerState::GetMaxHealth()
+{
+    return PlayerStatInfo->GetMaxHealth();
+}
+
+float AQLPlayerState::GetAmmoCnt()
+{
+    return WeaponStatInfo->GetAmmoCnt();
 }
 
 void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
@@ -65,7 +138,5 @@ void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     DOREPLIFETIME(AQLPlayerState, bIsDead);
     DOREPLIFETIME(AQLPlayerState, bIsWin);
 }
-
-
 
 

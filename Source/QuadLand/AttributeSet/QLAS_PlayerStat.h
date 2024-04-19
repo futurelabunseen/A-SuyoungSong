@@ -22,6 +22,7 @@ class QUADLAND_API UQLAS_PlayerStat : public UAttributeSet
 	GENERATED_BODY()
 
 public:
+    //변경될 때 호출하는 델리게이트 생성
 	UQLAS_PlayerStat();
 
     ATTRIBUTE_ACCESSORS(UQLAS_PlayerStat, Health);

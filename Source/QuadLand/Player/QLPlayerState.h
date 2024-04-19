@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayEffectTypes.h"
 #include "QLPlayerState.generated.h"
 
 /**
@@ -20,7 +21,7 @@ public:
 
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	
-	void SetWeaponStat(class UQLWeaponStat *Stat);
+	void SetWeaponStat(const class UQLWeaponStat *Stat);
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetbIsWin() { return bIsWin; }
@@ -28,12 +29,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetbIsDead() { return bIsDead; }
 
+	float GetHealth();
+	float GetMaxHealth();
+	float GetAmmoCnt();
+
 	UFUNCTION()
 	virtual void Win(const FGameplayTag CallbackTag, int32 NewCount);
 
 	UFUNCTION()
 	virtual void Dead(const FGameplayTag CallbackTag, int32 NewCount);
 
+	virtual void BeginPlay() override;
 protected:
 
 	UPROPERTY(EditAnywhere, Category = GAS)
@@ -54,6 +60,18 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bIsDead : 1;
 
+	//HUD Update Section
+protected:
 
+	FDelegateHandle HealthChangedDeleagteHandle;
+	FDelegateHandle MaxHealthChangedDeleagteHandle;
+	FDelegateHandle AmmoChangedDeleagteHandle;
+
+	virtual void UpdateHp(const FOnAttributeChangeData& Data);
+
+	virtual void UpdateMaxHp(const FOnAttributeChangeData& Data); //남아 있는 총알 개수가 있으면 -> 'R'eload 가능하게 할 예정
+
+	virtual void UpdateAmmoCnt(const FOnAttributeChangeData& Data);
+	
 	friend class AQLCharacterPlayer;
 };
