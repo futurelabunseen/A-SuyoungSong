@@ -3,15 +3,15 @@
 
 #include "Player/QLPlayerController.h"
 #include "Blueprint/UserWidget.h"
+#include "AbilitySystemComponent.h"
+#include "Player/QLPlayerState.h"
+#include "UI/QLPlayerHUDWidget.h"
+#include "UI/QLUserWidget.h"
+#include "QuadLand.h"
 
 AQLPlayerController::AQLPlayerController()
 {
-	static ConstructorHelpers::FClassFinder<UUserWidget> UserWidgetRef(TEXT("/Game/QuadLand/UI/WBQL_Crosshair.WBQL_Crosshair_C"));
-
-	if (UserWidgetRef.Class)
-	{
-		UserHUDWidgetClass = UserWidgetRef.Class;
-	}
+	ASC = nullptr;
 }
 
 void AQLPlayerController::SetInvisibleFarming()
@@ -19,16 +19,13 @@ void AQLPlayerController::SetInvisibleFarming()
 
 	if (IsLocalController())
 	{
-		CrossHairHUD->SetVisibility(ESlateVisibility::Hidden); //보이도록 함.
+		CrossHairUI->SetVisibility(ESlateVisibility::Hidden); //보이도록 함.
 	}
 }
 
-void AQLPlayerController::SetVisibleFarming()
+UAbilitySystemComponent* AQLPlayerController::GetAbilitySystemComponent() const
 {
-	if (IsLocalController())
-	{
-		CrossHairHUD->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
-	}
+	return ASC;
 }
 
 void AQLPlayerController::BeginPlay()
@@ -37,13 +34,72 @@ void AQLPlayerController::BeginPlay()
 
 	if (IsLocalController())
 	{
-		if (UserHUDWidgetClass)
+		if (CrossHairHUDClass)
 		{
-			CrossHairHUD = CreateWidget<UUserWidget>(this, UserHUDWidgetClass);
+			CrossHairUI = CreateWidget<UUserWidget>(this, CrossHairHUDClass);
+			CrossHairUI->AddToViewport();
+			CrossHairUI->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
 		}
-		CrossHairHUD->AddToViewport();
-		CrossHairHUD->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
+
+		if (PlayerStatHUDClass)
+		{
+			StatUI = CreateWidget<UQLUserWidget>(this, PlayerStatHUDClass);
+			StatUI->AddToViewport();
+			StatUI->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
+		}
+
+		CreateHUD();
 	}
+}
+
+void AQLPlayerController::SetVisibleFarming()
+{
+	if (IsLocalController())
+	{
+		CrossHairUI->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
+	}
+}
+
+//Only Server
+void AQLPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+	
+	if (PS)
+	{
+		// Init ASC with PS (Owner) and our new Pawn (AvatarActor)
+		PS->GetAbilitySystemComponent()->InitAbilityActorInfo(PS, InPawn);
+	}
+}
+
+//Only Client
+void AQLPlayerController::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+}
+
+void AQLPlayerController::CreateHUD()
+{
+	if (!CrossHairHUDClass || !PlayerStatHUDClass) return;
+
+	if (!IsLocalPlayerController())
+	{
+		return;
+	}
+	
+	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+	if (!PS)
+	{
+		QL_LOG(QLNetLog, Warning, TEXT("PlayerState is not founded"));
+		return;
+	}
+
+	StatUI->UpdateAmmo(PS->GetAmmoCnt());
+	StatUI->UpdateRemainingAmmo(0.0f); //임시값 삽입
+	StatUI->UpdateHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
+	//HUD 초기화
 }
 
 

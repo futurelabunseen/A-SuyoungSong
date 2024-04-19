@@ -25,6 +25,7 @@ class QUADLAND_API UQLAS_WeaponStat : public UAttributeSet
 public:
 	UQLAS_WeaponStat();
 
+	//Ammo 변경될 때 호출할 델리게이트 선언
     ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, AttackDamage);
     ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, MaxDamage);
     ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, AttackDistance);
