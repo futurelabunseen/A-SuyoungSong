@@ -11,7 +11,6 @@
 
 AQLPlayerController::AQLPlayerController()
 {
-	ASC = nullptr;
 }
 
 void AQLPlayerController::SetInvisibleFarming()
@@ -23,33 +22,10 @@ void AQLPlayerController::SetInvisibleFarming()
 	}
 }
 
-UAbilitySystemComponent* AQLPlayerController::GetAbilitySystemComponent() const
-{
-	return ASC;
-}
-
 void AQLPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsLocalController())
-	{
-		if (CrossHairHUDClass)
-		{
-			CrossHairUI = CreateWidget<UUserWidget>(this, CrossHairHUDClass);
-			CrossHairUI->AddToViewport();
-			CrossHairUI->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
-		}
-
-		if (PlayerStatHUDClass)
-		{
-			StatUI = CreateWidget<UQLUserWidget>(this, PlayerStatHUDClass);
-			StatUI->AddToViewport();
-			StatUI->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
-		}
-
-		CreateHUD();
-	}
 }
 
 void AQLPlayerController::SetVisibleFarming()
@@ -96,9 +72,24 @@ void AQLPlayerController::CreateHUD()
 		return;
 	}
 
-	StatUI->UpdateAmmo(PS->GetAmmoCnt());
+	if (CrossHairHUDClass)
+	{
+		CrossHairUI = CreateWidget<UUserWidget>(this, CrossHairHUDClass);
+		CrossHairUI->AddToViewport();
+		CrossHairUI->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
+	}
+
+	if (PlayerStatHUDClass)
+	{
+		StatUI = CreateWidget<UQLUserWidget>(this, PlayerStatHUDClass);
+		StatUI->AddToViewport();
+		StatUI->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
+	}
+
+
+	StatUI->ChangedAmmoCnt(PS->GetAmmoCnt());
 	StatUI->UpdateRemainingAmmo(0.0f); //임시값 삽입
-	StatUI->UpdateHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
+	StatUI->ChangedHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
 	//HUD 초기화
 }
 

@@ -10,7 +10,7 @@ UQLUserWidget::UQLUserWidget(const FObjectInitializer& ObjectInitializer)
 {
 }
 
-void UQLUserWidget::UpdateHPPercentage(float InHP,float InMaxHP)
+void UQLUserWidget::ChangedHPPercentage(float InHP,float InMaxHP)
 {
 	if (HpBar)
 	{
@@ -18,7 +18,7 @@ void UQLUserWidget::UpdateHPPercentage(float InHP,float InMaxHP)
 	}
 }
 
-void UQLUserWidget::UpdateAmmo(float InAmmo)
+void UQLUserWidget::ChangedAmmoCnt(float InAmmo)
 {
 	if (CharacterStat)
 	{
@@ -39,7 +39,8 @@ void UQLUserWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	//√ ±‚»≠ 
-	HpBar = Cast<UQLPlayerHpBarWidget>(GetWidgetFromName(TEXT("WBQL_HpBar")));
-	CharacterStat = Cast<UQLPlayerHUDWidget>(GetWidgetFromName(TEXT("WBQL_PlayerStat")));
-
+	HpBar = Cast<UQLPlayerHpBarWidget>(GetWidgetFromName(TEXT("WidgetHpBar")));
+	ensure(HpBar);
+	CharacterStat = Cast<UQLPlayerHUDWidget>(GetWidgetFromName(TEXT("WidgetAmmoCnt")));//WidgetAmmoCnt
+	ensure(CharacterStat);
 }

@@ -11,7 +11,7 @@
  * 
  */
 UCLASS()
-class QUADLAND_API AQLPlayerController : public APlayerController , public IAbilitySystemInterface
+class QUADLAND_API AQLPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
@@ -22,9 +22,9 @@ public:
 	void SetInvisibleFarming();
 	const class UUserWidget* GetCrossHairUIWidget() const { return CrossHairUI; }
 	class UQLUserWidget* GetPlayerUIWidget() const { return StatUI; }
-	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
 	virtual void BeginPlay() override;
+
+	void CreateHUD();
 protected:
 
 	// Server only
@@ -44,8 +44,4 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Widget)
 	TObjectPtr<class UQLUserWidget> StatUI;
 
-	void CreateHUD();
-
-	UPROPERTY(EditAnywhere, Category = GAS)
-	TObjectPtr<class UAbilitySystemComponent> ASC;
 };

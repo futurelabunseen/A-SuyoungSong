@@ -67,11 +67,11 @@ protected:
 	FDelegateHandle MaxHealthChangedDeleagteHandle;
 	FDelegateHandle AmmoChangedDeleagteHandle;
 
-	virtual void UpdateHp(const FOnAttributeChangeData& Data);
+	virtual void OnChangedHp(const FOnAttributeChangeData& Data);
 
-	virtual void UpdateMaxHp(const FOnAttributeChangeData& Data); //남아 있는 총알 개수가 있으면 -> 'R'eload 가능하게 할 예정
+	virtual void OnChangedMaxHp(const FOnAttributeChangeData& Data); //남아 있는 총알 개수가 있으면 -> 'R'eload 가능하게 할 예정
 
-	virtual void UpdateAmmoCnt(const FOnAttributeChangeData& Data);
+	virtual void OnChangedAmmoCnt(const FOnAttributeChangeData& Data);
 	
 	friend class AQLCharacterPlayer;
 };
