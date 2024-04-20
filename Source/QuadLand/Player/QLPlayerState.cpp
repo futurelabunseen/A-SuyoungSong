@@ -29,11 +29,6 @@ AQLPlayerState::AQLPlayerState()
     //TagEvent - Delegates
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Dead);
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_WIN, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Win);
-    //HUD - Delegates
-    HealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetHealthAttribute()).AddUObject(this, &AQLPlayerState::UpdateHp);
-    MaxHealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetMaxHealthAttribute()).AddUObject(this, &AQLPlayerState::UpdateMaxHp);
-    AmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetAmmoCntAttribute()).AddUObject(this, &AQLPlayerState::UpdateAmmoCnt);
-
 }
 
 UAbilitySystemComponent* AQLPlayerState::GetAbilitySystemComponent() const
@@ -57,50 +52,60 @@ void AQLPlayerState::SetWeaponStat(const UQLWeaponStat* Stat)
 void AQLPlayerState::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (ASC)
+    {
+        //HUD - Delegates
+        HealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetHealthAttribute()).AddUObject(this, &AQLPlayerState::OnChangedHp);
+        MaxHealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetMaxHealthAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxHp);
+        AmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetAmmoCntAttribute()).AddUObject(this, &AQLPlayerState::OnChangedAmmoCnt);
+    }
+
 }
 
-void AQLPlayerState::UpdateHp(const FOnAttributeChangeData& Data)
+void AQLPlayerState::OnChangedHp(const FOnAttributeChangeData& Data)
 {
     float CurrentHP = Data.NewValue;
 
     AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
 
-    if (PC)
+    if (PC && PC->IsLocalController())
     {
         //Player의 QLPlayerHpBarWidget 가져옴
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        Widget->UpdateHPPercentage(CurrentHP, GetMaxHealth());
+        Widget->ChangedHPPercentage(CurrentHP, GetMaxHealth());
+        
+        QL_LOG(QLNetLog, Log, TEXT("%lf %lf"), CurrentHP, GetMaxHealth());
     }
 }
 
-void AQLPlayerState::UpdateMaxHp(const FOnAttributeChangeData& Data)
+void AQLPlayerState::OnChangedMaxHp(const FOnAttributeChangeData& Data)
 {
     //아이템 도입되면 시작할 예정(다음주)
     float MaxHp = Data.NewValue;
 
     AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
 
-    if (PC)
+    if (PC && PC->IsLocalController())
     {
         //Player의 QLPlayerHUDWidget 가져옴 -> 이름변경해야할 각이보인다;;
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        Widget->UpdateHPPercentage(GetHealth(), MaxHp);
+        Widget->ChangedHPPercentage(GetHealth(), MaxHp);
     }
 }
 
-void AQLPlayerState::UpdateAmmoCnt(const FOnAttributeChangeData& Data)
+void AQLPlayerState::OnChangedAmmoCnt(const FOnAttributeChangeData& Data)
 {
     float CurrentAmmo = Data.NewValue;
 
     AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
 
-    if (PC)
+    if (PC && PC->IsLocalController())
     {
         //Player의 QLPlayerHUDWidget 가져옴 -> 이름변경해야할 각이보인다;;
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        Widget->UpdateAmmo(CurrentAmmo);
+        Widget->ChangedAmmoCnt(CurrentAmmo);
     }
-
 }
 
 

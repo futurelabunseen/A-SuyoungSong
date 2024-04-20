@@ -17,10 +17,10 @@ class QUADLAND_API UQLUserWidget : public UUserWidget
 public:
 	UQLUserWidget(const FObjectInitializer& ObjectInitializer);
 	
-
-	void UpdateAmmo(float InAmmo);
+	void ChangedAmmoCnt(float InAmmo);
 	void UpdateRemainingAmmo(float InAmmo);
-	void UpdateHPPercentage(float InHP,float InMaxHP);
+	void ChangedHPPercentage(float InHP,float InMaxHP);
+
 	FORCEINLINE class UQLPlayerHUDWidget* GetStatHUD() { return CharacterStat; }
 	FORCEINLINE class UQLPlayerHpBarWidget* GetHpHUD() { return HpBar; }
 protected:

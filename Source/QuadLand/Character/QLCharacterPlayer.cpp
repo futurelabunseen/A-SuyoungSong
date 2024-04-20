@@ -180,8 +180,13 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 		SetupStartAbilities();
 		//SetupGASInputComponent();
 
-		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
-		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+		AQLPlayerController* PC = Cast<AQLPlayerController>(NewController);
+
+		if (PC)
+		{
+			PC->ConsoleCommand(TEXT("showdebug abilitysystem"));
+			PC->CreateHUD();
+		}
 	}
 }
 
@@ -201,10 +206,11 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 		QL_LOG(QLNetLog, Log, TEXT("Current Class is called by Client only"));
 	}
 
-	APlayerController* PC = Cast<APlayerController>(GetController());
+	AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
 	if (PC)
 	{
 		PC->ConsoleCommand(TEXT("showdebug abilitysystem"));
+		PC->CreateHUD();
 	}
 }
 
