@@ -13,7 +13,7 @@
 /**
  * 
  */
-DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class AQLItemBox*);
+DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class AQLItem*);
 DECLARE_DELEGATE_OneParam(FOnTakeItemDestoryDelegate, class AQLItemBox*);
 USTRUCT(BlueprintType)
 struct FTakeItemDelegateWrapper
@@ -186,7 +186,9 @@ protected:
 	void FarmingItemReleased();
 
 	void FarmingItem();
-	void EquipWeapon(class AQLItemBox* ItemInfo);
+	void EquipWeapon(class AQLItem* ItemInfo);
+	void DrinkPotion(class AQLItem* ItemInfo);
+	void HasLifeStone(class AQLItem* ITemInfo);
 
 	//Take
 	UPROPERTY()
@@ -252,12 +254,27 @@ protected:
 	uint8 bIsReload : 1;
 
 	UFUNCTION(Server, Reliable)
-	void ServerRPCReload(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
+	void ServerRPCReload(); //Reload 행위는 Reliable
 
 	UPROPERTY(Replicated)
 	uint8 bIsShooting : 1;
 
 	UFUNCTION(Server, Unreliable)
 	void ServerRPCShooting(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
+
+	UFUNCTION()
+	void InitializeAttributes();
+
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<class UGameplayEffect> DefaultAttributes;
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> PutLifeStoneAction;
+
+	//Put LifeStone 
+	 //서버에게 눌렀음을 전달
+	void PutLifeStone();
 
 };

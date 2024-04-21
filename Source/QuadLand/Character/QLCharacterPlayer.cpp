@@ -13,14 +13,18 @@
 #include "Kismet/KismetMathLibrary.h"
 
 #include "Item/QLItemBox.h"
+#include "Item/QLItem.h"
+
 #include "Net/UnrealNetwork.h"
 #include "GameData/QLPunchAttackData.h"
+#include "Player/QLPlayerLifeStone.h"
 #include "Player/QLPlayerState.h"
 #include "Player/QLPlayerController.h"
 #include "Physics/QLCollision.h"
 #include "GameData/QLWeaponStat.h"
 #include "Item/QLWeaponComponent.h"
 #include "QLCharacterMovementComponent.h"
+#include "Abilities/GameplayAbility.h"
 #include "QuadLand.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer) :
@@ -110,6 +114,14 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	{
 		ReloadAction = ReloadActionRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> PutLifeStoneActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_PutLifeStone.IA_PutLifeStone'"));
+
+	if (PutLifeStoneActionRef.Object)
+	{
+		PutLifeStoneAction = PutLifeStoneActionRef.Object;
+	}
+
 	//InputContext Mapping
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextMappingRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/QuadLand/Inputs/IMC_Shoulder.IMC_Shoulder'"));
 
@@ -119,6 +131,8 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	}
 
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this,&AQLCharacterPlayer::EquipWeapon)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::DrinkPotion)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::HasLifeStone)));
 
 	static ConstructorHelpers::FObjectFinder<UCurveFloat> AimCurveRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/AimAlpha.AimAlpha'"));
 
@@ -188,6 +202,7 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 			PC->CreateHUD();
 		}
 	}
+	InitializeAttributes();
 }
 
 //Client Only 
@@ -205,6 +220,7 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 		//SetupGASInputComponent();
 		QL_LOG(QLNetLog, Log, TEXT("Current Class is called by Client only"));
 	}
+	InitializeAttributes();
 
 	AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
 	if (PC)
@@ -236,6 +252,9 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Aim);
 	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::StopAiming);
 
+	EnhancedInputComponent->BindAction(PutLifeStoneAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::PutLifeStone);
+
+	//PutLifeStone 
 	SetupGASInputComponent();
 }
 
@@ -324,7 +343,7 @@ void AQLCharacterPlayer::FarmingItem()
 			//PC->SetVisibleFarming();
 			if (bPressedFarmingKey) //꼭 무기라고 단정 지을 수는 없음. 
 			{
-				AQLItemBox* Item = Cast<AQLItemBox>(OutHitResult.GetActor());
+				AQLItem* Item = Cast<AQLItem>(OutHitResult.GetActor());
 
 				if (Item == nullptr)
 				{
@@ -333,19 +352,25 @@ void AQLCharacterPlayer::FarmingItem()
 				}
 				TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item);
 			}
-			bPressedFarmingKey = false;
 		}
 		else
 		{
 			//PC->SetInvisibleFarming();
 		}
+
+		if (HasAuthority())
+		{
+			bPressedFarmingKey = false;
+		}
 	}
 }
 
-void AQLCharacterPlayer::EquipWeapon(AQLItemBox* InItem)
+void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 { 
 	if (InItem == nullptr) return;
-	UQLItemData* InItemInfo = InItem->Stat;
+	QL_LOG(QLLog, Warning, TEXT("Equip Weapon"));
+	AQLItemBox* Item = Cast<AQLItemBox>(InItem);
+	UQLItemData* InItemInfo = Item->Stat;
 	//Weapon 위치는 소켓 
 	UQLWeaponStat* WeaponStat = CastChecked<UQLWeaponStat>(InItemInfo);
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
@@ -354,9 +379,26 @@ void AQLCharacterPlayer::EquipWeapon(AQLItemBox* InItem)
 	{
 		CurrentAttackType = ECharacterAttackType::GunAttack;
 		PS->SetWeaponStat(WeaponStat);
-
 	}
 	MulticastRPCFarming(WeaponStat);
+}
+
+void AQLCharacterPlayer::DrinkPotion(AQLItem* ItemInfo)
+{
+	QL_LOG(QLLog, Warning, TEXT("Drink Potion"));
+}
+
+void AQLCharacterPlayer::HasLifeStone(AQLItem* ITemInfo)
+{
+	AQLPlayerLifeStone* Item = Cast<AQLPlayerLifeStone>(ITemInfo);
+
+	QL_LOG(QLLog, Warning, TEXT("Has LifeStone"));
+
+	UAbilitySystemComponent* LifeStoneASC = Item->GetAbilitySystemComponent();
+	if (LifeStoneASC)
+	{
+		
+	}
 }
 
 void AQLCharacterPlayer::ServerRPCFarming_Implementation()
@@ -565,6 +607,7 @@ void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
 void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 {
 	//현재 Yaw>90.0f ->오른쪽
+	//방향 외적 (+/-)
 	if (CurrentYaw > 45.0f)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Right;
@@ -715,6 +758,37 @@ void AQLCharacterPlayer::TimelineFloatReturn(float Alpha)
 	float Length=FMath::Lerp(MaxArmLength, MinArmLength, Alpha);
 	CameraSpringArm->TargetArmLength = Length;
 }
+void AQLCharacterPlayer::InitializeAttributes()
+{
+	if (!ASC)
+	{
+		return;
+	}
+
+	if (!DefaultAttributes) //Gameplay Effect를 통해서 모든 어트리뷰트 기본값으로 초기화
+	{
+		return;
+	}
+
+	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	FGameplayEffectSpecHandle NewHandle = ASC->MakeOutgoingSpec(DefaultAttributes, 1, EffectContext);
+
+	if (NewHandle.IsValid())
+	{
+		FActiveGameplayEffectHandle ActiveGEHandle = ASC->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), ASC.Get());
+	}
+}
+void AQLCharacterPlayer::PutLifeStone() //Ctrl -> 
+{
+	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+
+	//서버와 클라 모두 해당 위치에서 Spawn
+	//플레이어의 위치를 가져온다
+	PS->ServerRPCPutLifeStone();
+}
+
 void AQLCharacterPlayer::ServerRPCShooting_Implementation()
 {
 	bIsShooting = !bIsShooting;
