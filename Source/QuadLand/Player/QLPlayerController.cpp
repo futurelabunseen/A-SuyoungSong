@@ -8,6 +8,8 @@
 #include "UI/QLPlayerHUDWidget.h"
 #include "UI/QLUserWidget.h"
 #include "QuadLand.h"
+#include "AttributeSet/QLAS_PlayerStat.h"
+#include "AttributeSet/QLAS_WeaponStat.h"
 
 AQLPlayerController::AQLPlayerController()
 {
@@ -27,7 +29,6 @@ void AQLPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 }
-
 void AQLPlayerController::SetVisibleFarming()
 {
 	if (IsLocalController())

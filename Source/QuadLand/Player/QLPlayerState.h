@@ -73,5 +73,18 @@ protected:
 
 	virtual void OnChangedAmmoCnt(const FOnAttributeChangeData& Data);
 	
+
+	//LifeStone Section
+protected:
+	
+	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
+	uint8 bHasLifeStone;
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCPutLifeStone(); //서버에게 눌렀음을 전달
+
+	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
+	TObjectPtr<class AQLPlayerLifeStone> LifeStone;
+
 	friend class AQLCharacterPlayer;
 };

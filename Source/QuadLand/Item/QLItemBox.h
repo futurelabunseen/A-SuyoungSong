@@ -3,20 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Item/QLItem.h"
 #include "QLItemBox.generated.h"
 
 UCLASS()
-class QUADLAND_API AQLItemBox : public AActor
+class QUADLAND_API AQLItemBox : public AQLItem
 {
 	GENERATED_BODY()
 	
 public:
 	// Sets default values for this actor's properties
 	AQLItemBox();
-
-	UPROPERTY(EditAnywhere, Category = Stat)
-	TObjectPtr<class UQLItemData> Stat;
 protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Collision)

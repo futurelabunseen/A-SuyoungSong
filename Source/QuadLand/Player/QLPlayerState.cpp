@@ -11,8 +11,8 @@
 #include "GameplayTag/GamplayTags.h"
 #include "QuadLand.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/QLPlayerLifeStone.h"
 #include "UI/QLUserWidget.h"
-
 AQLPlayerState::AQLPlayerState()
 {
     ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
@@ -29,6 +29,7 @@ AQLPlayerState::AQLPlayerState()
     //TagEvent - Delegates
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Dead);
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_WIN, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Win);
+    bHasLifeStone = true; 
 }
 
 UAbilitySystemComponent* AQLPlayerState::GetAbilitySystemComponent() const
@@ -53,14 +54,13 @@ void AQLPlayerState::BeginPlay()
 {
     Super::BeginPlay();
 
+
     if (ASC)
     {
-        //HUD - Delegates
         HealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetHealthAttribute()).AddUObject(this, &AQLPlayerState::OnChangedHp);
         MaxHealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetMaxHealthAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxHp);
         AmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetAmmoCntAttribute()).AddUObject(this, &AQLPlayerState::OnChangedAmmoCnt);
     }
-
 }
 
 void AQLPlayerState::OnChangedHp(const FOnAttributeChangeData& Data)
@@ -108,6 +108,21 @@ void AQLPlayerState::OnChangedAmmoCnt(const FOnAttributeChangeData& Data)
     }
 }
 
+void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
+{
+    bHasLifeStone = !bHasLifeStone;
+    QL_LOG(QLNetLog, Log, TEXT("HasLifeStone"));
+    if (bHasLifeStone)
+    {
+        FVector Location = GetOwner()->GetActorLocation();
+        FActorSpawnParameters Params;
+        Params.Owner = Owner;
+        AQLPlayerLifeStone* LifeStone = GetWorld()->SpawnActor<AQLPlayerLifeStone>(Location, FRotator::ZeroRotator, Params);
+        
+        QL_LOG(QLNetLog, Log, TEXT("Put LifeStone"));
+    }
+}
+
 
 float AQLPlayerState::GetHealth()
 {
@@ -142,6 +157,9 @@ void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
     DOREPLIFETIME(AQLPlayerState, bIsDead);
     DOREPLIFETIME(AQLPlayerState, bIsWin);
+    DOREPLIFETIME(AQLPlayerState, bHasLifeStone);
+    DOREPLIFETIME(AQLPlayerState, LifeStone);
+
 }
 
 
