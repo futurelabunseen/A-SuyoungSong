@@ -101,6 +101,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> ReloadAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> PutWeaponAction;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<class UInputMappingContext> InputMappingContext;
 
@@ -118,10 +121,10 @@ protected:
 	void RunInputPressed();
 	void RunInputReleased();
 
-	UFUNCTION(Server, Unreliable)
-	void ServerRPCRunning();
+//	UFUNCTION(Server, Unreliable)
+//	void ServerRPCRunning();
 
-	UPROPERTY(Replicated)
+	//UPROPERTY(Replicated)
 	uint8 bIsRunning : 1;
 
 	FRotator PreviousRotation;
@@ -188,8 +191,8 @@ protected:
 	void FarmingItem();
 	void EquipWeapon(class AQLItem* ItemInfo);
 	void DrinkPotion(class AQLItem* ItemInfo);
-	void HasLifeStone(class AQLItem* ITemInfo);
-
+	void HasLifeStone(class AQLItem* ItemInfo);
+	void GetAmmo(class AQLItem* IItemInfo);
 	//Take
 	UPROPERTY()
 	TArray<FTakeItemDelegateWrapper> TakeItemActions;
@@ -277,4 +280,12 @@ protected:
 	 //서버에게 눌렀음을 전달
 	void PutLifeStone();
 
+	//무기를 버림
+	void PutWeapon();
+
+	UFUNCTION(Server,WithValidation, Reliable)
+	void ServerRPCPuttingWeapon();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPCPuttingWeapon();
 };

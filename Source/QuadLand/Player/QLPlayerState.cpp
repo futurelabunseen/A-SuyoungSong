@@ -21,7 +21,7 @@ AQLPlayerState::AQLPlayerState()
 
     PlayerStatInfo = CreateDefaultSubobject<UQLAS_PlayerStat>(TEXT("PlayerStat"));
     WeaponStatInfo = CreateDefaultSubobject<UQLAS_WeaponStat>(TEXT("WeaponStat"));
-    
+   
     //Event 등록한다 -> Equip을 가질때
     //Event 등록한다 -> Equip없을 때
     NetUpdateFrequency = 30.0f;
@@ -29,6 +29,7 @@ AQLPlayerState::AQLPlayerState()
     //TagEvent - Delegates
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Dead);
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_WIN, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Win);
+    ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
     bHasLifeStone = true; 
 }
 
@@ -37,18 +38,39 @@ UAbilitySystemComponent* AQLPlayerState::GetAbilitySystemComponent() const
     return ASC;
 }
 
+
+void AQLPlayerState::SetAmmoStat(float RemainingAmmoCnt)
+{
+    if (HasAuthority() && RemainingAmmoCnt !=0.0f)
+    {
+        //현재 있는 개수 + RemainigAmmoCnt 
+        float MaxAmmo = WeaponStatInfo->GetMaxAmmoCnt() + RemainingAmmoCnt;
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAmmoCntAttribute(), MaxAmmo); //현재 남아있는 Ammo 업데이트
+    }
+}
+
 void AQLPlayerState::SetWeaponStat(const UQLWeaponStat* Stat)
 {
     //UAbilitySystemComponent *TargetASC = WeaponInfo->GetAbilitySystemComponent();
+
     if (HasAuthority()&& Stat && ASC)
     {
         //원래 Base값..
-        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAmmoCntAttribute(), Stat->AmmoCnt);
-        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), Stat->AmmoCnt);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDamageAttribute(), Stat->Damage);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDistanceAttribute(), Stat->AttackDist);
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), Stat->AmmoCnt);
     }
 
+}
+void AQLPlayerState::ResetWeaponStat(const UQLWeaponStat* Stat)
+{
+    if (HasAuthority() && Stat && ASC)
+    {
+        //원래 Base값..
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDamageAttribute(), 10.0f); //Default Attack - 잠시만 하드코딩
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDistanceAttribute(), WeaponStatInfo->GetAttackDistance() - Stat->AttackDist);
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), WeaponStatInfo->GetAmmoCnt() - Stat->AmmoCnt); //현재 가지고있는 총알은 변하지 않음 (대신 조건 부착, 총이 없다!!!!)
+    }
 }
 void AQLPlayerState::BeginPlay()
 {
@@ -59,7 +81,8 @@ void AQLPlayerState::BeginPlay()
     {
         HealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetHealthAttribute()).AddUObject(this, &AQLPlayerState::OnChangedHp);
         MaxHealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetMaxHealthAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxHp);
-        AmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetAmmoCntAttribute()).AddUObject(this, &AQLPlayerState::OnChangedAmmoCnt);
+        AmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetCurrentAmmoAttribute()).AddUObject(this, &AQLPlayerState::OnChangedAmmoCnt);
+        AmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetMaxAmmoCntAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxAmmoCnt);
     }
 }
 
@@ -108,18 +131,36 @@ void AQLPlayerState::OnChangedAmmoCnt(const FOnAttributeChangeData& Data)
     }
 }
 
+void AQLPlayerState::OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data)
+{
+    float MaxAmmo = Data.NewValue;
+
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+
+    if (PC && PC->IsLocalController())
+    {
+        //Player의 QLPlayerHUDWidget 가져옴 -> 이름변경해야할 각이보인다;;
+        UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
+        Widget->ChangedRemainingAmmo(MaxAmmo);
+    }
+}
+
 void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
 {
-    bHasLifeStone = !bHasLifeStone;
     QL_LOG(QLNetLog, Log, TEXT("HasLifeStone"));
     if (bHasLifeStone)
     {
-        FVector Location = GetOwner()->GetActorLocation();
+        FVector Location = GetPawn()->GetActorLocation(); //Possessed Pawn Position
         FActorSpawnParameters Params;
-        Params.Owner = Owner;
-        AQLPlayerLifeStone* LifeStone = GetWorld()->SpawnActor<AQLPlayerLifeStone>(Location, FRotator::ZeroRotator, Params);
-        
-        QL_LOG(QLNetLog, Log, TEXT("Put LifeStone"));
+        Params.Owner = this;
+        LifeStone = GetWorld()->SpawnActor<AQLPlayerLifeStone>(Location, FRotator::ZeroRotator, Params);
+     
+        FRepMovement Movement;
+        Movement.Location = LifeStone->GetActorLocation();
+        LifeStone->SetReplicatedMovement(Movement);
+
+
+        bHasLifeStone = false;
     }
 }
 
@@ -134,9 +175,14 @@ float AQLPlayerState::GetMaxHealth()
     return PlayerStatInfo->GetMaxHealth();
 }
 
-float AQLPlayerState::GetAmmoCnt()
+float AQLPlayerState::GetCurrentAmmoCnt()
 {
-    return WeaponStatInfo->GetAmmoCnt();
+    return WeaponStatInfo->GetCurrentAmmo();
+}
+
+float AQLPlayerState::GetMaxAmmoCnt()
+{
+    return WeaponStatInfo->GetMaxAmmoCnt();
 }
 
 void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
@@ -147,7 +193,13 @@ void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
 
 void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 {
+    if (bIsDead == false)
+    {
+        FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
+        ASC->TryActivateAbilitiesByTag(TargetTag);
+    }
     bIsDead = !bIsDead;
+    
     QL_LOG(QLNetLog, Log, TEXT("Current Dead %d"),bIsDead);
 }
 

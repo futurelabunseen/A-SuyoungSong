@@ -28,7 +28,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UProgressBar> HP;
 
-	int CurrentHP;
+	float CurrentHP;
 
-	int MaxHP;
+	float MaxHP;
 };

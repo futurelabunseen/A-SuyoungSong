@@ -4,20 +4,22 @@
 #include "Player/QLPlayerLifeStone.h"
 #include "Components/SphereComponent.h"
 #include "Physics/QLCollision.h"
+#include "GameData/QLItemData.h"
 
 // Sets default values
 AQLPlayerLifeStone::AQLPlayerLifeStone()
 {
-	ASC = nullptr;
 	Trigger = CreateDefaultSubobject<USphereComponent>(TEXT("Trigger"));
 	Trigger->SetCollisionProfileName(CPROFILE_QLTRIGGER);
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Stone"));	
 
-	Trigger->SetWorldScale3D(FVector(1.f, 1.f, 2.f));
-	Mesh->SetWorldScale3D(FVector(1.f, 1.f, 2.f));
+	Trigger->SetWorldScale3D(FVector(0.5f, 0.5f, 0.5f));
+	Mesh->SetWorldScale3D(FVector(0.2f, 0.2f, 0.5f));
 	Mesh->SetWorldRotation(FRotator(-90.0f, 0.f, 0.f));
-	Mesh->SetCollisionProfileName(TEXT("NoCollision"));
+
+	Mesh->SetCollisionProfileName(CPROFILE_QLPHYSICS);
+	Mesh->SetSimulatePhysics(true);
 	Mesh->SetupAttachment(Trigger);
 
 	static ConstructorHelpers::FObjectFinder<UMaterialInstance> MeterialMeshRef(TEXT("/Script/Engine.MaterialInstanceConstant'/Game/GemMaterial/Material/MI_Master_12.MI_Master_12'"));
@@ -36,10 +38,16 @@ AQLPlayerLifeStone::AQLPlayerLifeStone()
 	}
 
 	RootComponent = Trigger;
+
+	static ConstructorHelpers::FObjectFinder<UQLItemData> ItemTypeRef(TEXT("/Script/QuadLand.QLItemData'/Game/QuadLand/GameData/Stone/QLDA_LifeStone.QLDA_LifeStone'"));
+
+	if (ItemTypeRef.Object)
+	{
+		Stat = ItemTypeRef.Object;
+	}
+
+	bReplicates = true;
+
 }
 
-UAbilitySystemComponent* AQLPlayerLifeStone::GetAbilitySystemComponent() const
-{
-	return ASC;
-}
 

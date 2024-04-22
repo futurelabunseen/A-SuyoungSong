@@ -21,8 +21,9 @@ public:
 
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	
-	void SetWeaponStat(const class UQLWeaponStat *Stat);
-
+	void SetAmmoStat(float AmmoCnt);
+	void SetWeaponStat(const class UQLWeaponStat* Stat);
+	void ResetWeaponStat(const class UQLWeaponStat* Stat);
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetbIsWin() { return bIsWin; }
 
@@ -31,8 +32,8 @@ public:
 
 	float GetHealth();
 	float GetMaxHealth();
-	float GetAmmoCnt();
-
+	float GetCurrentAmmoCnt();
+	float GetMaxAmmoCnt();
 	UFUNCTION()
 	virtual void Win(const FGameplayTag CallbackTag, int32 NewCount);
 
@@ -60,6 +61,7 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bIsDead : 1;
 
+	void SetHasLifeStone(bool InGetStone) { bHasLifeStone = true; }
 	//HUD Update Section
 protected:
 
@@ -72,16 +74,16 @@ protected:
 	virtual void OnChangedMaxHp(const FOnAttributeChangeData& Data); //남아 있는 총알 개수가 있으면 -> 'R'eload 가능하게 할 예정
 
 	virtual void OnChangedAmmoCnt(const FOnAttributeChangeData& Data);
-	
 
-	//LifeStone Section
+	virtual void OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data);
+//LifeStone Section
 protected:
-	
-	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
-	uint8 bHasLifeStone;
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCPutLifeStone(); //서버에게 눌렀음을 전달
+
+	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
+	uint8 bHasLifeStone;
 
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	TObjectPtr<class AQLPlayerLifeStone> LifeStone;

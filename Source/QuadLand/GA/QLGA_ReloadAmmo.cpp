@@ -28,7 +28,7 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	if (Source)
 	{
 		const UQLAS_WeaponStat* WeaponStat=Source->GetSet<UQLAS_WeaponStat>();
-		if (!WeaponStat || WeaponStat->GetAmmoCnt() == WeaponStat->GetMaxAmmoCnt())
+		if (!WeaponStat || WeaponStat->GetMaxAmmoCnt() == 0)
 		{
 			OnCompletedCallback();
 			return;
@@ -56,9 +56,9 @@ void UQLGA_ReloadAmmo::OnCompletedCallback()
 	UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = Source->GetSet<UQLAS_WeaponStat>();
 	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReloadAmmoEffect);
-	if (EffectSpecHandle.IsValid())
+	if (WeaponStat->GetMaxAmmoCnt()>0.0f&&EffectSpecHandle.IsValid())
 	{
-		const float CurrentAmmoCnt = WeaponStat->GetMaxAmmoCnt() - WeaponStat->GetAmmoCnt();
+		const float CurrentAmmoCnt = WeaponStat->GetAmmoCnt();
 		EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_AMMOCNT, CurrentAmmoCnt);
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
 	}

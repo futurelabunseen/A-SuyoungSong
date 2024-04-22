@@ -11,20 +11,22 @@
 #include "AbilitySystemComponent.h"
 #include "EngineUtils.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "Net/UnrealNetwork.h"
+#include "Abilities/GameplayAbility.h"
 
+#include "GameplayTag/GamplayTags.h"
 #include "Item/QLItemBox.h"
 #include "Item/QLItem.h"
-
-#include "Net/UnrealNetwork.h"
-#include "GameData/QLPunchAttackData.h"
-#include "Player/QLPlayerLifeStone.h"
 #include "Player/QLPlayerState.h"
 #include "Player/QLPlayerController.h"
+#include "AttributeSet/QLAS_WeaponStat.h"
 #include "Physics/QLCollision.h"
 #include "GameData/QLWeaponStat.h"
+#include "GameData/QLAmmoData.h"
 #include "Item/QLWeaponComponent.h"
 #include "QLCharacterMovementComponent.h"
-#include "Abilities/GameplayAbility.h"
+
 #include "QuadLand.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer) :
@@ -51,7 +53,6 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	// Weapon Component
 	Weapon = CreateDefaultSubobject<UQLWeaponComponent>(TEXT("Weapon"));
 	Weapon->Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
-
 	//EnhancedInput 연결
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Move.IA_Move'"));
 
@@ -122,6 +123,13 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 		PutLifeStoneAction = PutLifeStoneActionRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> PutWeaponActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_PutWeapon.IA_PutWeapon'"));
+
+	if (PutWeaponActionRef.Object)
+	{
+		PutWeaponAction = PutWeaponActionRef.Object;
+	}
+	
 	//InputContext Mapping
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextMappingRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/QuadLand/Inputs/IMC_Shoulder.IMC_Shoulder'"));
 
@@ -133,6 +141,7 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this,&AQLCharacterPlayer::EquipWeapon)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::DrinkPotion)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::HasLifeStone)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetAmmo)));
 
 	static ConstructorHelpers::FObjectFinder<UCurveFloat> AimCurveRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/AimAlpha.AimAlpha'"));
 
@@ -253,7 +262,7 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::StopAiming);
 
 	EnhancedInputComponent->BindAction(PutLifeStoneAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::PutLifeStone);
-
+	EnhancedInputComponent->BindAction(PutWeaponAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::PutWeapon);
 	//PutLifeStone 
 	SetupGASInputComponent();
 }
@@ -302,12 +311,6 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 
 	FarmingItem();
 	RotateBornSetting(DeltaSeconds);
-
-//#if ENABLE_DRAW_DEBUG
-//	FColor Color = bResult ? FColor::Green : FColor::Red;
-//	DrawDebugLine(GetWorld(), CameraLocStart, LocEnd, Color, false, 5.0f);
-//#endif
-
 }
 
 void AQLCharacterPlayer::FarmingItem()
@@ -345,11 +348,13 @@ void AQLCharacterPlayer::FarmingItem()
 			{
 				AQLItem* Item = Cast<AQLItem>(OutHitResult.GetActor());
 
-				if (Item == nullptr)
+				if (Item == nullptr || Item->Stat == nullptr)
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Item is not founded"));
 					return;
 				}
+				UE_LOG(LogTemp, Warning, TEXT("Item Type %d"), Item->Stat->ItemType);
+				
 				TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item);
 			}
 		}
@@ -367,14 +372,19 @@ void AQLCharacterPlayer::FarmingItem()
 
 void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 { 
+
 	if (InItem == nullptr) return;
 	QL_LOG(QLLog, Warning, TEXT("Equip Weapon"));
 	AQLItemBox* Item = Cast<AQLItemBox>(InItem);
 	UQLItemData* InItemInfo = Item->Stat;
 	//Weapon 위치는 소켓 
-	UQLWeaponStat* WeaponStat = CastChecked<UQLWeaponStat>(InItemInfo);
+	UQLWeaponStat* WeaponStat = CastChecked<UQLWeaponStat>(InItemInfo); //부착
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-
+	
+	if (ASC->HasMatchingGameplayTag(CHARACTER_EQUIP_GUNTYPEA))
+	{
+		return; //있으면 리턴
+	}
 	if (HasAuthority())
 	{
 		CurrentAttackType = ECharacterAttackType::GunAttack;
@@ -388,16 +398,44 @@ void AQLCharacterPlayer::DrinkPotion(AQLItem* ItemInfo)
 	QL_LOG(QLLog, Warning, TEXT("Drink Potion"));
 }
 
-void AQLCharacterPlayer::HasLifeStone(AQLItem* ITemInfo)
+void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 {
-	AQLPlayerLifeStone* Item = Cast<AQLPlayerLifeStone>(ITemInfo);
+	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 
-	QL_LOG(QLLog, Warning, TEXT("Has LifeStone"));
-
-	UAbilitySystemComponent* LifeStoneASC = Item->GetAbilitySystemComponent();
-	if (LifeStoneASC)
+	FString ItemOwner = ItemInfo->GetOwner()->GetName(); //Owner -> PlayerState로 지정 ASC에 접근 가능하도록 변환
+	FString CurrentGetOwner = PS->GetName();
+	QL_LOG(QLLog, Warning, TEXT("Current Item Owner %s CurrentGetOwner %s"), *ItemOwner, *CurrentGetOwner);
+	if (HasAuthority())
 	{
-		
+		ItemInfo->SetActorEnableCollision(false);
+		ItemInfo->SetActorHiddenInGame(true);
+		ItemInfo->SetLifeSpan(3.f);
+
+		if (ItemOwner == CurrentGetOwner)
+		{
+			PS->SetHasLifeStone(true);
+			return;
+		}
+
+		//다르면 Dead 태그 부착
+		UAbilitySystemComponent* ItemASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ItemInfo->GetOwner());
+
+		if (ItemASC)
+		{
+			ItemASC->AddLooseGameplayTag(CHARACTER_STATE_DEAD);
+			QL_LOG(QLLog, Warning, TEXT("TargetASC is Dead"));
+		}
+	}
+}
+
+void AQLCharacterPlayer::GetAmmo(AQLItem* ItemInfo)
+{
+	UQLAmmoData* AmmoItem = Cast<UQLAmmoData>(ItemInfo->Stat);
+	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+	if (HasAuthority())
+	{
+		QL_LOG(QLNetLog, Log, TEXT("Get Ammo"));
+		PS->SetAmmoStat(AmmoItem->AmmoCnt);
 	}
 }
 
@@ -408,6 +446,9 @@ void AQLCharacterPlayer::ServerRPCFarming_Implementation()
 
 void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* WeaponStat)
 {
+	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
+	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA); //이것도 변경되어야할사항...
+
 	if (Weapon && WeaponStat->WeaponMesh)
 	{
 		QL_LOG(QLNetLog, Log, TEXT("current farming?"));
@@ -415,8 +456,10 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 		{
 			WeaponStat->WeaponMesh.LoadSynchronous();
 		}
+		Weapon->Stat = WeaponStat;
 		Weapon->Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh.Get());
 		bHasGun = true;
+
 	}
 }
 
@@ -476,14 +519,25 @@ void AQLCharacterPlayer::GASInputPressed(int32 id)
 		{
 			ASC->TryActivateAbility(Spec->Handle);
 		}
+		UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(this);
+		const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
+
 		if (IsLocallyControlled() && InputAttackSpecNumber == 1)
 		{
+			if (WeaponStat->GetCurrentAmmo() <= 0.0f)
+			{
+				return;
+			}
 			//클라이언트로부터 입력 들어옴 서버 호출
 			ServerRPCShooting();
 		}
 
 		if (IsLocallyControlled() && InputAttackSpecNumber == 2)
 		{
+			if (WeaponStat->GetMaxAmmoCnt() <= 0.0f)
+			{
+				return;
+			}
 			ServerRPCReload();
 		}
 	}
@@ -506,13 +560,20 @@ void AQLCharacterPlayer::GASInputReleased(int32 id)
 
 		if (IsLocallyControlled() && InputAttackSpecNumber == 1)
 		{
-			//클라이언트로부터 입력 들어옴 서버 호출
-			ServerRPCShooting();
+
+			if (bIsShooting)
+			{
+				//클라이언트로부터 입력 들어옴 서버 호출
+				ServerRPCShooting();
+			}
 		}
 
 		if (IsLocallyControlled() && InputAttackSpecNumber == 2)
 		{
-			ServerRPCReload();
+			if (bIsReload)
+			{
+				ServerRPCReload();
+			}
 		}
 	}
 }
@@ -555,8 +616,9 @@ void AQLCharacterPlayer::RunInputPressed()
 	if (QLMovement)
 	{
 		QLMovement->SetSprintCommand();
+		bIsRunning = true;
 	}
-	ServerRPCRunning();
+	//ServerRPCRunning();
 }
 
 void AQLCharacterPlayer::RunInputReleased()
@@ -566,15 +628,16 @@ void AQLCharacterPlayer::RunInputReleased()
 	if (QLMovement)
 	{
 		QLMovement->UnSetSprintCommand();
+		bIsRunning = false;
 	}
 
-	ServerRPCRunning();
+	//ServerRPCRunning();
 }
 
-void AQLCharacterPlayer::ServerRPCRunning_Implementation()
-{
-	bIsRunning = !bIsRunning;
-}
+//void AQLCharacterPlayer::ServerRPCRunning_Implementation()
+//{
+//	bIsRunning = !bIsRunning;
+//}
 
 void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
 {
@@ -694,7 +757,7 @@ void AQLCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AQLCharacterPlayer, bPressedFarmingKey);
 	DOREPLIFETIME(AQLCharacterPlayer, bIsShooting);
 	DOREPLIFETIME(AQLCharacterPlayer, bIsReload);
-	DOREPLIFETIME(AQLCharacterPlayer, bIsRunning);
+	//DOREPLIFETIME(AQLCharacterPlayer, bIsRunning);
 }
 
 void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
@@ -786,15 +849,66 @@ void AQLCharacterPlayer::PutLifeStone() //Ctrl ->
 
 	//서버와 클라 모두 해당 위치에서 Spawn
 	//플레이어의 위치를 가져온다
-	PS->ServerRPCPutLifeStone();
+	if (PS->bHasLifeStone)
+	{
+		PS->ServerRPCPutLifeStone();
+	}
+}
+
+void AQLCharacterPlayer::PutWeapon()
+{
+	if (HasAuthority())
+	{
+		CurrentAttackType = ECharacterAttackType::HookAttack;
+	}
+	ServerRPCPuttingWeapon();
+	//조건 -> 총이 있으면 ServerRPC 호출 - Validation을 통해서 총이 있는지 유무를 체크 -> MulticastRPC 전달
+	//Detach 해서 분리하면된다.
+	//AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+	////Reset
+	//QL_LOG(QLLog, Log, TEXT("Put Weapon"));
+	//Weapon->Weapon->SetSkeletalMesh(nullptr);
+	//PS->ResetWeaponStat(Weapon->GetStat());
+	//bHasGun = false;
+}
+
+bool AQLCharacterPlayer::ServerRPCPuttingWeapon_Validate()
+{
+	return bHasGun != false;
+}
+
+void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
+{
+	MulticastRPCPuttingWeapon();
+}
+
+void AQLCharacterPlayer::MulticastRPCPuttingWeapon_Implementation()
+{
+	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
+	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON); //이것도 변경되어야할사항...
+	
+	FVector Location = GetActorLocation(); //Possessed Pawn Position
+	FActorSpawnParameters Params;
+	Params.Owner = this;
+
+	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+	//Reset
+	QL_LOG(QLLog, Log, TEXT("Put Weapon"));
+	Weapon->Weapon->SetSkeletalMesh(nullptr);
+	PS->ResetWeaponStat(Weapon->GetStat());
+	Weapon->Weapon = nullptr; //정리
+	Weapon->Stat = nullptr; //정리
+	bHasGun = false;
 }
 
 void AQLCharacterPlayer::ServerRPCShooting_Implementation()
 {
+	//만약 Stat없으면 리턴 시켜
 	bIsShooting = !bIsShooting;
 }
 void AQLCharacterPlayer::ServerRPCReload_Implementation()
-{
+{	//MaxAmmo 없으면 실행 불가능 
+
 	bIsReload = !bIsReload;
 }
 

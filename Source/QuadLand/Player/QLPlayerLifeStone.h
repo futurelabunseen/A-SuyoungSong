@@ -4,19 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "Item/QLItem.h"
-#include "AbilitySystemInterface.h"
 #include "QLPlayerLifeStone.generated.h"
 
 UCLASS()
-class QUADLAND_API AQLPlayerLifeStone : public AQLItem, public IAbilitySystemInterface
+class QUADLAND_API AQLPlayerLifeStone : public AQLItem
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
 	AQLPlayerLifeStone();
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Mesh)
@@ -25,7 +22,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Mesh)
 	TObjectPtr<class USphereComponent> Trigger;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GAS)
-	TObjectPtr<class UAbilitySystemComponent> ASC;
-
+	//UFUNCTION()
+	//void OnBeginOverllap(class UPrimitiveComponent *HitComp, class AActor *OtherActor, class UPrimitiveComponent *OtherComp, int32 OtherBodyIndex,bool bFromSweep, const FHitResult &SweepResult);
 };

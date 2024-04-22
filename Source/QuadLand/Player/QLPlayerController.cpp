@@ -87,10 +87,9 @@ void AQLPlayerController::CreateHUD()
 		StatUI->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
 	}
 
-
-	StatUI->ChangedAmmoCnt(PS->GetAmmoCnt());
-	StatUI->UpdateRemainingAmmo(0.0f); //임시값 삽입
-	StatUI->ChangedHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
+	StatUI->ChangedAmmoCnt(0.0f);
+	StatUI->ChangedRemainingAmmo(0.0f); //임시값 삽입
+	StatUI->ChangedHPPercentage(100.0f, 100.0f);
 	//HUD 초기화
 }
 

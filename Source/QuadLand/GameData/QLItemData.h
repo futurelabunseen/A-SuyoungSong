@@ -16,6 +16,7 @@ enum class EItemType
 	Weapon = 0,
 	Potion,
 	Stone,
+	Ammo,
 	None
 };
 

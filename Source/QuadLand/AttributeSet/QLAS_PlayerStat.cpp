@@ -7,7 +7,7 @@
 #include "GameplayEffectExtension.h"
 #include "GameplayTag/GamplayTags.h"
 
-UQLAS_PlayerStat::UQLAS_PlayerStat():MaxHealth(100.0f), Stamina(30.0f),MaxStamina(50.0f)
+UQLAS_PlayerStat::UQLAS_PlayerStat()
 {
 	InitHealth(GetMaxHealth());
 }
@@ -52,7 +52,7 @@ void UQLAS_PlayerStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	if ((GetHealth() <= 0.0f))
 	{
 		FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
-		//Data.Target.TryActivateAbilitiesByTag(TargetTag);
+		Data.Target.TryActivateAbilitiesByTag(TargetTag);
 
 		Data.Target.AddLooseGameplayTag(CHARACTER_STATE_DEAD); //Á¦°Å´Â RemoveLooseGameplayTag
 	}
