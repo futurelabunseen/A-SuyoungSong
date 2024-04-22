@@ -24,7 +24,7 @@ void UQLPlayerHUDWidget::UpdateAmmo(float Ammo)
 { 
 	CurrentAmmoCnt = Ammo;
 
-	if (CurrentAmmoCnt)
+	if (CurrentAmmoCntTxt)
 	{
 		FString CurrentAmmoTxt = FString::Printf(TEXT("%d"), CurrentAmmoCnt);
 		CurrentAmmoCntTxt->SetText(FText::FromString(CurrentAmmoTxt));

@@ -7,7 +7,7 @@
 #include "GameplayEffectExtension.h"
 #include "GameplayTag/GamplayTags.h"
 
-UQLAS_PlayerStat::UQLAS_PlayerStat():MaxHealth(100.0f), Stamina(30.0f),MaxStamina(50.0f)
+UQLAS_PlayerStat::UQLAS_PlayerStat()
 {
 	InitHealth(GetMaxHealth());
 }

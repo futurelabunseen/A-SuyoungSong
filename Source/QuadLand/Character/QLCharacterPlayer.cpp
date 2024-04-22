@@ -20,8 +20,10 @@
 #include "Item/QLItem.h"
 #include "Player/QLPlayerState.h"
 #include "Player/QLPlayerController.h"
+#include "AttributeSet/QLAS_WeaponStat.h"
 #include "Physics/QLCollision.h"
 #include "GameData/QLWeaponStat.h"
+#include "GameData/QLAmmoData.h"
 #include "Item/QLWeaponComponent.h"
 #include "QLCharacterMovementComponent.h"
 
@@ -133,6 +135,7 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this,&AQLCharacterPlayer::EquipWeapon)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::DrinkPotion)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::HasLifeStone)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetAmmo)));
 
 	static ConstructorHelpers::FObjectFinder<UCurveFloat> AimCurveRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/AimAlpha.AimAlpha'"));
 
@@ -415,6 +418,17 @@ void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 	}
 }
 
+void AQLCharacterPlayer::GetAmmo(AQLItem* ItemInfo)
+{
+	UQLAmmoData* AmmoItem = Cast<UQLAmmoData>(ItemInfo->Stat);
+	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+	if (HasAuthority())
+	{
+		QL_LOG(QLNetLog, Log, TEXT("Get Ammo"));
+		PS->SetAmmoStat(AmmoItem->AmmoCnt);
+	}
+}
+
 void AQLCharacterPlayer::ServerRPCFarming_Implementation()
 {
 	bPressedFarmingKey = !bPressedFarmingKey;
@@ -491,14 +505,25 @@ void AQLCharacterPlayer::GASInputPressed(int32 id)
 		{
 			ASC->TryActivateAbility(Spec->Handle);
 		}
+		UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(this);
+		const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
+
 		if (IsLocallyControlled() && InputAttackSpecNumber == 1)
 		{
+			if (WeaponStat->GetCurrentAmmo() <= 0.0f)
+			{
+				return;
+			}
 			//클라이언트로부터 입력 들어옴 서버 호출
 			ServerRPCShooting();
 		}
 
 		if (IsLocallyControlled() && InputAttackSpecNumber == 2)
 		{
+			if (WeaponStat->GetMaxAmmoCnt() <= 0.0f)
+			{
+				return;
+			}
 			ServerRPCReload();
 		}
 	}
@@ -521,13 +546,20 @@ void AQLCharacterPlayer::GASInputReleased(int32 id)
 
 		if (IsLocallyControlled() && InputAttackSpecNumber == 1)
 		{
-			//클라이언트로부터 입력 들어옴 서버 호출
-			ServerRPCShooting();
+
+			if (bIsShooting)
+			{
+				//클라이언트로부터 입력 들어옴 서버 호출
+				ServerRPCShooting();
+			}
 		}
 
 		if (IsLocallyControlled() && InputAttackSpecNumber == 2)
 		{
-			ServerRPCReload();
+			if (bIsReload)
+			{
+				ServerRPCReload();
+			}
 		}
 	}
 }
@@ -801,15 +833,20 @@ void AQLCharacterPlayer::PutLifeStone() //Ctrl ->
 
 	//서버와 클라 모두 해당 위치에서 Spawn
 	//플레이어의 위치를 가져온다
-	PS->ServerRPCPutLifeStone();
+	if (PS->bHasLifeStone)
+	{
+		PS->ServerRPCPutLifeStone();
+	}
 }
 
 void AQLCharacterPlayer::ServerRPCShooting_Implementation()
 {
+	//만약 Stat없으면 리턴 시켜
 	bIsShooting = !bIsShooting;
 }
 void AQLCharacterPlayer::ServerRPCReload_Implementation()
-{
+{	//MaxAmmo 없으면 실행 불가능 
+
 	bIsReload = !bIsReload;
 }
 

@@ -49,6 +49,6 @@ public:
 	float AttackDist;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat)
-	float AmmoCnt;
+	float AmmoCnt; //처음 장전할 수 있는 총알 개수 
 
 };

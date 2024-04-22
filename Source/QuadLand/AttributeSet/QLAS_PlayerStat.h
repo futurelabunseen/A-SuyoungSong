@@ -50,6 +50,7 @@ protected:
     UPROPERTY(BlueprintReadOnly, Category = "Damage", ReplicatedUsing = OnRep_Damage, Meta = (AllowPrivateAccess = true))
     FGameplayAttributeData Damage; //Meta Damage 
 
+
 protected:
 
     UFUNCTION()

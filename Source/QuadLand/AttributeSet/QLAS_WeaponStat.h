@@ -30,6 +30,7 @@ public:
     ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, MaxDamage);
     ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, AttackDistance);
     ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, MaxAttackDistance);
+	ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, CurrentAmmo);
 	ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, AmmoCnt);
 	ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, MaxAmmoCnt);
 
@@ -50,10 +51,14 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_MaxAttackDistance, Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxAttackDistance;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_CurrentAmmoCnt, Meta = (AllowPrivateAccess = true))
+	FGameplayAttributeData CurrentAmmo; //현재 총알 개수 
+
 	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_AmmoCnt, Meta = (AllowPrivateAccess = true))
-	FGameplayAttributeData AmmoCnt;
+	FGameplayAttributeData AmmoCnt; //총을 쏘기 위해서 필요한 총알
+
 	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_MaxAmmoCnt, Meta = (AllowPrivateAccess = true))
-	FGameplayAttributeData MaxAmmoCnt;
+	FGameplayAttributeData MaxAmmoCnt; //미리 가지고 있을 수 있는 남아있는 총알
 
 protected:
 
@@ -75,5 +80,7 @@ protected:
 	UFUNCTION()
 	virtual void OnRep_MaxAmmoCnt(const FGameplayAttributeData& OldMaxAmmoCnt);
 
+	UFUNCTION()
+	virtual void OnRep_CurrentAmmoCnt(const FGameplayAttributeData& OldMaxAmmoCnt);
 
 };

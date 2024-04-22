@@ -28,7 +28,7 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
 
-	if (WeaponStat && WeaponStat->GetAmmoCnt() <= 0.0f)
+	if (WeaponStat && WeaponStat->GetCurrentAmmo() <= 0.0f)
 	{
 		OnCompletedCallback();
 		return;

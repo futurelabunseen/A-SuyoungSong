@@ -18,7 +18,7 @@ public:
 	UQLUserWidget(const FObjectInitializer& ObjectInitializer);
 	
 	void ChangedAmmoCnt(float InAmmo);
-	void UpdateRemainingAmmo(float InAmmo);
+	void ChangedRemainingAmmo(float InAmmo);
 	void ChangedHPPercentage(float InHP,float InMaxHP);
 
 	FORCEINLINE class UQLPlayerHUDWidget* GetStatHUD() { return CharacterStat; }

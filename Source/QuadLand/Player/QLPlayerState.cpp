@@ -37,16 +37,26 @@ UAbilitySystemComponent* AQLPlayerState::GetAbilitySystemComponent() const
     return ASC;
 }
 
+
+void AQLPlayerState::SetAmmoStat(float RemainingAmmoCnt)
+{
+    if (HasAuthority() && RemainingAmmoCnt !=0.0f)
+    {
+        //현재 있는 개수 + RemainigAmmoCnt 
+        float MaxAmmo = WeaponStatInfo->GetMaxAmmoCnt() + RemainingAmmoCnt;
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAmmoCntAttribute(), MaxAmmo); //현재 남아있는 Ammo 업데이트
+    }
+}
+
 void AQLPlayerState::SetWeaponStat(const UQLWeaponStat* Stat)
 {
     //UAbilitySystemComponent *TargetASC = WeaponInfo->GetAbilitySystemComponent();
     if (HasAuthority()&& Stat && ASC)
     {
         //원래 Base값..
-        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAmmoCntAttribute(), Stat->AmmoCnt);
-        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), Stat->AmmoCnt);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDamageAttribute(), Stat->Damage);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDistanceAttribute(), Stat->AttackDist);
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), Stat->AmmoCnt);
     }
 
 }
@@ -59,7 +69,8 @@ void AQLPlayerState::BeginPlay()
     {
         HealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetHealthAttribute()).AddUObject(this, &AQLPlayerState::OnChangedHp);
         MaxHealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetMaxHealthAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxHp);
-        AmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetAmmoCntAttribute()).AddUObject(this, &AQLPlayerState::OnChangedAmmoCnt);
+        AmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetCurrentAmmoAttribute()).AddUObject(this, &AQLPlayerState::OnChangedAmmoCnt);
+        AmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetMaxAmmoCntAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxAmmoCnt);
     }
 }
 
@@ -108,6 +119,20 @@ void AQLPlayerState::OnChangedAmmoCnt(const FOnAttributeChangeData& Data)
     }
 }
 
+void AQLPlayerState::OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data)
+{
+    float MaxAmmo = Data.NewValue;
+
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+
+    if (PC && PC->IsLocalController())
+    {
+        //Player의 QLPlayerHUDWidget 가져옴 -> 이름변경해야할 각이보인다;;
+        UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
+        Widget->ChangedRemainingAmmo(MaxAmmo);
+    }
+}
+
 void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
 {
     QL_LOG(QLNetLog, Log, TEXT("HasLifeStone"));
@@ -138,9 +163,14 @@ float AQLPlayerState::GetMaxHealth()
     return PlayerStatInfo->GetMaxHealth();
 }
 
-float AQLPlayerState::GetAmmoCnt()
+float AQLPlayerState::GetCurrentAmmoCnt()
 {
-    return WeaponStatInfo->GetAmmoCnt();
+    return WeaponStatInfo->GetCurrentAmmo();
+}
+
+float AQLPlayerState::GetMaxAmmoCnt()
+{
+    return WeaponStatInfo->GetMaxAmmoCnt();
 }
 
 void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)

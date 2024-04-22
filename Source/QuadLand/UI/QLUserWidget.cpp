@@ -26,7 +26,7 @@ void UQLUserWidget::ChangedAmmoCnt(float InAmmo)
 	}
 }
 
-void UQLUserWidget::UpdateRemainingAmmo(float InAmmo)
+void UQLUserWidget::ChangedRemainingAmmo(float InAmmo)
 {
 	if (CharacterStat)
 	{

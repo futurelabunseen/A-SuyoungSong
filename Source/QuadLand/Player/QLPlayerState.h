@@ -21,7 +21,8 @@ public:
 
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	
-	void SetWeaponStat(const class UQLWeaponStat *Stat);
+	void SetAmmoStat(float AmmoCnt);
+	void SetWeaponStat(const class UQLWeaponStat* Stat);
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetbIsWin() { return bIsWin; }
@@ -31,8 +32,8 @@ public:
 
 	float GetHealth();
 	float GetMaxHealth();
-	float GetAmmoCnt();
-
+	float GetCurrentAmmoCnt();
+	float GetMaxAmmoCnt();
 	UFUNCTION()
 	virtual void Win(const FGameplayTag CallbackTag, int32 NewCount);
 
@@ -73,7 +74,8 @@ protected:
 	virtual void OnChangedMaxHp(const FOnAttributeChangeData& Data); //남아 있는 총알 개수가 있으면 -> 'R'eload 가능하게 할 예정
 
 	virtual void OnChangedAmmoCnt(const FOnAttributeChangeData& Data);
-	
+
+	virtual void OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data);
 //LifeStone Section
 protected:
 

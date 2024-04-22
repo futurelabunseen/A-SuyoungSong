@@ -8,7 +8,7 @@
 #include "GameplayEffectAggregatorLibrary.h"
 
 //주먹의 경우 Default
-UQLAS_WeaponStat::UQLAS_WeaponStat() : AttackDamage(10.0f), MaxDamage(55.0f), AttackDistance(0.0f), MaxAttackDistance(0.0f), AmmoCnt(0.0f), MaxAmmoCnt(0.0f)
+UQLAS_WeaponStat::UQLAS_WeaponStat()
 {
 	
 }
@@ -25,11 +25,19 @@ void UQLAS_WeaponStat::PreAttributeChange(const FGameplayAttribute& Attribute, f
 void UQLAS_WeaponStat::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	float Minimum = 0.0f;
-	if (Data.EvaluatedData.Attribute == GetAmmoCntAttribute())
+	float Maximum = 1000.0f;
+	//실제 사용 CurrentAmmo = CurrentAmmo -1
+	// CurrentAmmo = GetAmmoCnt
+	// MaxAmmoCnt = MaxAmmoCnt - GetAmmoCnt
+
+	if (Data.EvaluatedData.Attribute == GetCurrentAmmoAttribute())
 	{
+		float RemainingCnt = GetMaxAmmoCnt() - GetAmmoCnt();
 		//Ammo 개수가 음수 이면 리셋
 		UE_LOG(LogTemp, Log, TEXT("Current Ammo %lf"), GetAmmoCnt());
-		SetAmmoCnt(FMath::Clamp(GetAmmoCnt(), Minimum, GetMaxAmmoCnt()));
+		SetCurrentAmmo(FMath::Clamp(GetCurrentAmmo(), Minimum, GetAmmoCnt()));
+		SetMaxAmmoCnt(FMath::Clamp(RemainingCnt, Minimum, Maximum));
+		//Ammo 변경되어서 전달.. MaxAmmo - Ammo 
 	}
 }
 
@@ -56,9 +64,9 @@ void UQLAS_WeaponStat::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_WeaponStat, MaxDamage, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_WeaponStat, AttackDistance, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_WeaponStat, MaxAttackDistance, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_WeaponStat, CurrentAmmo, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_WeaponStat, AmmoCnt, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_WeaponStat, MaxAmmoCnt, COND_None, REPNOTIFY_Always);
-
 }
 void UQLAS_WeaponStat::OnRep_Damage(const FGameplayAttributeData& OldDamage)
 {
@@ -88,4 +96,9 @@ void UQLAS_WeaponStat::OnRep_AmmoCnt(const FGameplayAttributeData& OldAmmoCnt)
 void UQLAS_WeaponStat::OnRep_MaxAmmoCnt(const FGameplayAttributeData& OldMaxAmmoCnt)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UQLAS_WeaponStat, MaxAmmoCnt, OldMaxAmmoCnt);
+}
+
+void UQLAS_WeaponStat::OnRep_CurrentAmmoCnt(const FGameplayAttributeData& OldAmmoCnt)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UQLAS_WeaponStat, CurrentAmmo, OldAmmoCnt);
 }
