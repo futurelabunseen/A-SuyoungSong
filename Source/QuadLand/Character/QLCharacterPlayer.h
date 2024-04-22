@@ -118,10 +118,10 @@ protected:
 	void RunInputPressed();
 	void RunInputReleased();
 
-	UFUNCTION(Server, Unreliable)
-	void ServerRPCRunning();
+//	UFUNCTION(Server, Unreliable)
+//	void ServerRPCRunning();
 
-	UPROPERTY(Replicated)
+	//UPROPERTY(Replicated)
 	uint8 bIsRunning : 1;
 
 	FRotator PreviousRotation;

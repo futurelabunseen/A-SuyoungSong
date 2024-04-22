@@ -602,8 +602,9 @@ void AQLCharacterPlayer::RunInputPressed()
 	if (QLMovement)
 	{
 		QLMovement->SetSprintCommand();
+		bIsRunning = true;
 	}
-	ServerRPCRunning();
+	//ServerRPCRunning();
 }
 
 void AQLCharacterPlayer::RunInputReleased()
@@ -613,15 +614,16 @@ void AQLCharacterPlayer::RunInputReleased()
 	if (QLMovement)
 	{
 		QLMovement->UnSetSprintCommand();
+		bIsRunning = false;
 	}
 
-	ServerRPCRunning();
+	//ServerRPCRunning();
 }
 
-void AQLCharacterPlayer::ServerRPCRunning_Implementation()
-{
-	bIsRunning = !bIsRunning;
-}
+//void AQLCharacterPlayer::ServerRPCRunning_Implementation()
+//{
+//	bIsRunning = !bIsRunning;
+//}
 
 void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
 {
@@ -741,7 +743,7 @@ void AQLCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AQLCharacterPlayer, bPressedFarmingKey);
 	DOREPLIFETIME(AQLCharacterPlayer, bIsShooting);
 	DOREPLIFETIME(AQLCharacterPlayer, bIsReload);
-	DOREPLIFETIME(AQLCharacterPlayer, bIsRunning);
+	//DOREPLIFETIME(AQLCharacterPlayer, bIsRunning);
 }
 
 void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
