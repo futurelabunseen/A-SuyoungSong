@@ -101,6 +101,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> ReloadAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> PutWeaponAction;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<class UInputMappingContext> InputMappingContext;
 
@@ -277,4 +280,12 @@ protected:
 	 //서버에게 눌렀음을 전달
 	void PutLifeStone();
 
+	//무기를 버림
+	void PutWeapon();
+
+	UFUNCTION(Server,WithValidation, Reliable)
+	void ServerRPCPuttingWeapon();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPCPuttingWeapon();
 };

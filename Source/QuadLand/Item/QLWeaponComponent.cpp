@@ -3,6 +3,7 @@
 
 #include "Item/QLWeaponComponent.h"
 #include "GameFramework/Character.h"
+#include "GameData/QLWeaponStat.h"
 UQLWeaponComponent::UQLWeaponComponent()
 {
 	//GetOwner()
@@ -15,6 +16,13 @@ UQLWeaponComponent::UQLWeaponComponent()
 	{
 		Weapon->SetAnimClass(AnimInstanceRef.Class);
 	}
+	
+	//static ConstructorHelpers::FObjectFinder<UQLWeaponStat> WeaponStat(TEXT("/Script/QuadLand.QLWeaponStat'/Game/QuadLand/GameData/Weapon/QLDA_WeaponTypeA.QLDA_WeaponTypeA'"));
+
+	//if (WeaponStat.Object)
+	//{
+	//	Stat = WeaponStat.Object;
+	//}
 
 }
 

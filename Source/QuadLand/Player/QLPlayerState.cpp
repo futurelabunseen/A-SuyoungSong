@@ -21,7 +21,7 @@ AQLPlayerState::AQLPlayerState()
 
     PlayerStatInfo = CreateDefaultSubobject<UQLAS_PlayerStat>(TEXT("PlayerStat"));
     WeaponStatInfo = CreateDefaultSubobject<UQLAS_WeaponStat>(TEXT("WeaponStat"));
-    
+   
     //Event 등록한다 -> Equip을 가질때
     //Event 등록한다 -> Equip없을 때
     NetUpdateFrequency = 30.0f;
@@ -29,6 +29,7 @@ AQLPlayerState::AQLPlayerState()
     //TagEvent - Delegates
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Dead);
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_WIN, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Win);
+    ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
     bHasLifeStone = true; 
 }
 
@@ -51,6 +52,7 @@ void AQLPlayerState::SetAmmoStat(float RemainingAmmoCnt)
 void AQLPlayerState::SetWeaponStat(const UQLWeaponStat* Stat)
 {
     //UAbilitySystemComponent *TargetASC = WeaponInfo->GetAbilitySystemComponent();
+
     if (HasAuthority()&& Stat && ASC)
     {
         //원래 Base값..
@@ -59,6 +61,16 @@ void AQLPlayerState::SetWeaponStat(const UQLWeaponStat* Stat)
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), Stat->AmmoCnt);
     }
 
+}
+void AQLPlayerState::ResetWeaponStat(const UQLWeaponStat* Stat)
+{
+    if (HasAuthority() && Stat && ASC)
+    {
+        //원래 Base값..
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDamageAttribute(), 10.0f); //Default Attack - 잠시만 하드코딩
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDistanceAttribute(), WeaponStatInfo->GetAttackDistance() - Stat->AttackDist);
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), WeaponStatInfo->GetAmmoCnt() - Stat->AmmoCnt); //현재 가지고있는 총알은 변하지 않음 (대신 조건 부착, 총이 없다!!!!)
+    }
 }
 void AQLPlayerState::BeginPlay()
 {

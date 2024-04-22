@@ -5,6 +5,7 @@
 #include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffect.h"
+#include "GameplayTag/GamplayTags.h"
 #include "GameplayEffectAggregatorLibrary.h"
 
 //주먹의 경우 Default
@@ -36,7 +37,14 @@ void UQLAS_WeaponStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		//Ammo 개수가 음수 이면 리셋
 		UE_LOG(LogTemp, Log, TEXT("Current Ammo %lf"), GetAmmoCnt());
 		SetCurrentAmmo(FMath::Clamp(GetCurrentAmmo(), Minimum, GetAmmoCnt()));
-		SetMaxAmmoCnt(FMath::Clamp(RemainingCnt, Minimum, Maximum));
+
+		//현재 태그가 Reload가 아니면 아래는 적용이 안되도록.
+		if (Data.Target.HasMatchingGameplayTag(CHARACTER_STATE_RELOAD))
+		{
+			UE_LOG(LogTemp, Log, TEXT("Reload"), GetAmmoCnt());
+
+			SetMaxAmmoCnt(FMath::Clamp(RemainingCnt, Minimum, Maximum));
+		}
 		//Ammo 변경되어서 전달.. MaxAmmo - Ammo 
 	}
 }

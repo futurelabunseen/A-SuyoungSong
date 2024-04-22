@@ -23,7 +23,7 @@ public:
 	
 	void SetAmmoStat(float AmmoCnt);
 	void SetWeaponStat(const class UQLWeaponStat* Stat);
-
+	void ResetWeaponStat(const class UQLWeaponStat* Stat);
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetbIsWin() { return bIsWin; }
 
