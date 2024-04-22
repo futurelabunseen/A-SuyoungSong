@@ -110,16 +110,20 @@ void AQLPlayerState::OnChangedAmmoCnt(const FOnAttributeChangeData& Data)
 
 void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
 {
-    bHasLifeStone = !bHasLifeStone;
     QL_LOG(QLNetLog, Log, TEXT("HasLifeStone"));
     if (bHasLifeStone)
     {
-        FVector Location = GetOwner()->GetActorLocation();
+        FVector Location = GetPawn()->GetActorLocation(); //Possessed Pawn Position
         FActorSpawnParameters Params;
-        Params.Owner = Owner;
-        AQLPlayerLifeStone* LifeStone = GetWorld()->SpawnActor<AQLPlayerLifeStone>(Location, FRotator::ZeroRotator, Params);
-        
-        QL_LOG(QLNetLog, Log, TEXT("Put LifeStone"));
+        Params.Owner = this;
+        LifeStone = GetWorld()->SpawnActor<AQLPlayerLifeStone>(Location, FRotator::ZeroRotator, Params);
+     
+        FRepMovement Movement;
+        Movement.Location = LifeStone->GetActorLocation();
+        LifeStone->SetReplicatedMovement(Movement);
+
+
+        bHasLifeStone = false;
     }
 }
 
@@ -147,7 +151,13 @@ void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
 
 void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 {
+    if (bIsDead == false)
+    {
+        FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
+        ASC->TryActivateAbilitiesByTag(TargetTag);
+    }
     bIsDead = !bIsDead;
+    
     QL_LOG(QLNetLog, Log, TEXT("Current Dead %d"),bIsDead);
 }
 

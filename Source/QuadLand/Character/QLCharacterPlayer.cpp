@@ -11,20 +11,20 @@
 #include "AbilitySystemComponent.h"
 #include "EngineUtils.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "Net/UnrealNetwork.h"
+#include "Abilities/GameplayAbility.h"
 
+#include "GameplayTag/GamplayTags.h"
 #include "Item/QLItemBox.h"
 #include "Item/QLItem.h"
-
-#include "Net/UnrealNetwork.h"
-#include "GameData/QLPunchAttackData.h"
-#include "Player/QLPlayerLifeStone.h"
 #include "Player/QLPlayerState.h"
 #include "Player/QLPlayerController.h"
 #include "Physics/QLCollision.h"
 #include "GameData/QLWeaponStat.h"
 #include "Item/QLWeaponComponent.h"
 #include "QLCharacterMovementComponent.h"
-#include "Abilities/GameplayAbility.h"
+
 #include "QuadLand.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer) :
@@ -302,12 +302,6 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 
 	FarmingItem();
 	RotateBornSetting(DeltaSeconds);
-
-//#if ENABLE_DRAW_DEBUG
-//	FColor Color = bResult ? FColor::Green : FColor::Red;
-//	DrawDebugLine(GetWorld(), CameraLocStart, LocEnd, Color, false, 5.0f);
-//#endif
-
 }
 
 void AQLCharacterPlayer::FarmingItem()
@@ -345,11 +339,13 @@ void AQLCharacterPlayer::FarmingItem()
 			{
 				AQLItem* Item = Cast<AQLItem>(OutHitResult.GetActor());
 
-				if (Item == nullptr)
+				if (Item == nullptr || Item->Stat == nullptr)
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Item is not founded"));
 					return;
 				}
+				UE_LOG(LogTemp, Warning, TEXT("Item Type %d"), Item->Stat->ItemType);
+				
 				TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item);
 			}
 		}
@@ -367,6 +363,7 @@ void AQLCharacterPlayer::FarmingItem()
 
 void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 { 
+
 	if (InItem == nullptr) return;
 	QL_LOG(QLLog, Warning, TEXT("Equip Weapon"));
 	AQLItemBox* Item = Cast<AQLItemBox>(InItem);
@@ -388,16 +385,33 @@ void AQLCharacterPlayer::DrinkPotion(AQLItem* ItemInfo)
 	QL_LOG(QLLog, Warning, TEXT("Drink Potion"));
 }
 
-void AQLCharacterPlayer::HasLifeStone(AQLItem* ITemInfo)
+void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 {
-	AQLPlayerLifeStone* Item = Cast<AQLPlayerLifeStone>(ITemInfo);
+	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 
-	QL_LOG(QLLog, Warning, TEXT("Has LifeStone"));
-
-	UAbilitySystemComponent* LifeStoneASC = Item->GetAbilitySystemComponent();
-	if (LifeStoneASC)
+	FString ItemOwner = ItemInfo->GetOwner()->GetName(); //Owner -> PlayerState로 지정 ASC에 접근 가능하도록 변환
+	FString CurrentGetOwner = PS->GetName();
+	QL_LOG(QLLog, Warning, TEXT("Current Item Owner %s CurrentGetOwner %s"), *ItemOwner, *CurrentGetOwner);
+	if (HasAuthority())
 	{
-		
+		ItemInfo->SetActorEnableCollision(false);
+		ItemInfo->SetActorHiddenInGame(true);
+		ItemInfo->SetLifeSpan(3.f);
+
+		if (ItemOwner == CurrentGetOwner)
+		{
+			PS->SetHasLifeStone(true);
+			return;
+		}
+
+		//다르면 Dead 태그 부착
+		UAbilitySystemComponent* ItemASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ItemInfo->GetOwner());
+
+		if (ItemASC)
+		{
+			ItemASC->AddLooseGameplayTag(CHARACTER_STATE_DEAD);
+			QL_LOG(QLLog, Warning, TEXT("TargetASC is Dead"));
+		}
 	}
 }
 
@@ -417,6 +431,7 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 		}
 		Weapon->Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh.Get());
 		bHasGun = true;
+
 	}
 }
 

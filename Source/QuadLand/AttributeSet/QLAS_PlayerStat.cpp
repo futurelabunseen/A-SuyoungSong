@@ -52,7 +52,7 @@ void UQLAS_PlayerStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	if ((GetHealth() <= 0.0f))
 	{
 		FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
-		//Data.Target.TryActivateAbilitiesByTag(TargetTag);
+		Data.Target.TryActivateAbilitiesByTag(TargetTag);
 
 		Data.Target.AddLooseGameplayTag(CHARACTER_STATE_DEAD); //Á¦°Å´Â RemoveLooseGameplayTag
 	}

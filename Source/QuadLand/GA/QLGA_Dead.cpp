@@ -25,11 +25,10 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	*/
 
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
-
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	Character->SetActorEnableCollision(false);
 	Character->bUseControllerRotationYaw = false;
-	//Character->SetLifeSpan(3.0f);
+	Character->SetLifeSpan(3.0f);
 	//플레이어 스테이트도 제거해야할듯! (하지만 나중에 해보자)
 
 	OnCompleted();
