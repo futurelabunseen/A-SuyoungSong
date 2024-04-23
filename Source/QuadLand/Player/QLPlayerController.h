@@ -10,38 +10,36 @@
 /**
  * 
  */
+UENUM()
+enum class EHUDType : uint8
+{
+	None,
+	CrossHair,
+	HUD,
+	Inventory
+};
 UCLASS()
 class QUADLAND_API AQLPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
 public:
-	AQLPlayerController();
+	void SetVisibilityCrossHair();
+	void SetHiddenCrossHair();
+	void SetVisibilityInventory();
+	void SetHiddenInventory();
 
-	void SetVisibleFarming();
-	void SetInvisibleFarming();
-	const class UUserWidget* GetCrossHairUIWidget() const { return CrossHairUI; }
-	class UQLUserWidget* GetPlayerUIWidget() const { return StatUI; }
+	const class UUserWidget* GetCrossHairUIWidget() const { return HUDs[EHUDType::CrossHair]; }
+	class UUserWidget* GetPlayerUIWidget() const { return HUDs[EHUDType::HUD]; }
 	virtual void BeginPlay() override;
 
 	void CreateHUD();
 protected:
 
-	// Server only
-	virtual void OnPossess(APawn* InPawn) override;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
+	TMap<EHUDType,TSubclassOf<class UUserWidget>> HUDClass;
 
-	virtual void OnRep_PlayerState() override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Widget)
-	TSubclassOf<class UUserWidget> CrossHairHUDClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Widget)
-	TSubclassOf<class UQLUserWidget> PlayerStatHUDClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Widget)
-	TObjectPtr<class UUserWidget> CrossHairUI;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Widget)
-	TObjectPtr<class UQLUserWidget> StatUI;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
+	TMap<EHUDType, TObjectPtr<class UUserWidget>> HUDs;
 
 };

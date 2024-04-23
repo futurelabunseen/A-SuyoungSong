@@ -129,6 +129,16 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	{
 		PutWeaponAction = PutWeaponActionRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> VisibilityInventoryActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Inventory.IA_Inventory'"));
+
+	if (VisibilityInventoryActionRef.Object)
+	{
+		VisibilityInventoryAction = VisibilityInventoryActionRef.Object;
+	}
+
+	bIsSetVisibleInventory = false;
+
 	
 	//InputContext Mapping
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextMappingRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/QuadLand/Inputs/IMC_Shoulder.IMC_Shoulder'"));
@@ -137,6 +147,7 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	{
 		InputMappingContext = InputContextMappingRef.Object;
 	}
+
 
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this,&AQLCharacterPlayer::EquipWeapon)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::DrinkPotion)));
@@ -251,9 +262,6 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::FarmingItemPressed);
 	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::FarmingItemReleased);
 
-	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::RunInputPressed);
-	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::RunInputReleased);
-
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::JumpPressed);
 
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, & AQLCharacterPlayer::PressedCrouch);
@@ -263,6 +271,8 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 
 	EnhancedInputComponent->BindAction(PutLifeStoneAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::PutLifeStone);
 	EnhancedInputComponent->BindAction(PutWeaponAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::PutWeapon);
+	EnhancedInputComponent->BindAction(VisibilityInventoryAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::SetInventory);
+
 	//PutLifeStone 
 	SetupGASInputComponent();
 }
@@ -277,6 +287,8 @@ void AQLCharacterPlayer::SetupGASInputComponent()
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased, (int32)CurrentAttackType);
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed,2);
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased,2);
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed, 3);
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased, 3);
 	}
 }
 void AQLCharacterPlayer::SetCharacterControl()
@@ -343,7 +355,7 @@ void AQLCharacterPlayer::FarmingItem()
 		}
 		if (bResult)
 		{
-			//PC->SetVisibleFarming();
+			//PC->SetVisibilityCrossHair();
 			if (bPressedFarmingKey) //꼭 무기라고 단정 지을 수는 없음. 
 			{
 				AQLItem* Item = Cast<AQLItem>(OutHitResult.GetActor());
@@ -360,7 +372,7 @@ void AQLCharacterPlayer::FarmingItem()
 		}
 		else
 		{
-			//PC->SetInvisibleFarming();
+			//PC->SetHiddenCrossHair();
 		}
 
 		if (HasAuthority())
@@ -456,10 +468,10 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 		{
 			WeaponStat->WeaponMesh.LoadSynchronous();
 		}
+		Weapon->GroundWeapon = WeaponStat->GroundWeapon;
 		Weapon->Stat = WeaponStat;
 		Weapon->Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh.Get());
 		bHasGun = true;
-
 	}
 }
 
@@ -492,7 +504,10 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 
 void AQLCharacterPlayer::GASInputPressed(int32 id)
 {
-	if (bIsRunning && CurrentAttackType == ECharacterAttackType::GunAttack)
+	FGameplayTagContainer TargetTag(CHARACTER_STATE_RUN);
+	TargetTag.AddTag(CHARACTER_EQUIP_GUNTYPEA);
+
+	if (ASC->HasAllMatchingGameplayTags(TargetTag))
 	{
 		return; 
 	}
@@ -592,17 +607,12 @@ void AQLCharacterPlayer::FarmingItemPressed()
 {
 	//ServerRPC 호출
 	ServerRPCFarming();
-	//Raycast 를 사용해서 해당 오브젝트 파악하기
-//	FVector Start = Get
 	
 }
 void AQLCharacterPlayer::FarmingItemReleased()
 {
 	//ServerRPC호출
 	ServerRPCFarming();
-	//Raycast 를 사용해서 해당 오브젝트 파악하기
-//	FVector Start = Get
-
 }
 float AQLCharacterPlayer::CalculateSpeed()
 {
@@ -610,34 +620,6 @@ float AQLCharacterPlayer::CalculateSpeed()
 	Velocity.Z = 0; //Z는 점프축
 	return Velocity.Size2D();
 }
-void AQLCharacterPlayer::RunInputPressed()
-{
-	UQLCharacterMovementComponent* QLMovement = Cast< UQLCharacterMovementComponent>(GetMovementComponent());
-	if (QLMovement)
-	{
-		QLMovement->SetSprintCommand();
-		bIsRunning = true;
-	}
-	//ServerRPCRunning();
-}
-
-void AQLCharacterPlayer::RunInputReleased()
-{
-	UQLCharacterMovementComponent* QLMovement = Cast<UQLCharacterMovementComponent>(GetMovementComponent());
-
-	if (QLMovement)
-	{
-		QLMovement->UnSetSprintCommand();
-		bIsRunning = false;
-	}
-
-	//ServerRPCRunning();
-}
-
-//void AQLCharacterPlayer::ServerRPCRunning_Implementation()
-//{
-//	bIsRunning = !bIsRunning;
-//}
 
 void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
 {
@@ -796,7 +778,7 @@ void AQLCharacterPlayer::TimelineCameraUpDownFloatReturn(float Alpha)
 
 void AQLCharacterPlayer::Aim()
 {
-	if (bIsRunning) return;
+	if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_RUN)) return;
 
 	if (bHasGun)
 	{
@@ -836,13 +818,14 @@ void AQLCharacterPlayer::InitializeAttributes()
 	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 	EffectContext.AddSourceObject(this);
 
-	FGameplayEffectSpecHandle NewHandle = ASC->MakeOutgoingSpec(DefaultAttributes, 1, EffectContext);
+	FGameplayEffectSpecHandle NewHandle = ASC->MakeOutgoingSpec(DefaultAttributes,1, EffectContext);
 
 	if (NewHandle.IsValid())
 	{
 		FActiveGameplayEffectHandle ActiveGEHandle = ASC->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), ASC.Get());
 	}
 }
+
 void AQLCharacterPlayer::PutLifeStone() //Ctrl -> 
 {
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
@@ -862,14 +845,27 @@ void AQLCharacterPlayer::PutWeapon()
 		CurrentAttackType = ECharacterAttackType::HookAttack;
 	}
 	ServerRPCPuttingWeapon();
-	//조건 -> 총이 있으면 ServerRPC 호출 - Validation을 통해서 총이 있는지 유무를 체크 -> MulticastRPC 전달
-	//Detach 해서 분리하면된다.
-	//AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	////Reset
-	//QL_LOG(QLLog, Log, TEXT("Put Weapon"));
-	//Weapon->Weapon->SetSkeletalMesh(nullptr);
-	//PS->ResetWeaponStat(Weapon->GetStat());
-	//bHasGun = false;
+}
+
+void AQLCharacterPlayer::SetInventory()
+{
+	
+	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
+
+	if (PlayerController)
+	{
+		if (!bIsSetVisibleInventory)
+		{
+			PlayerController->SetVisibilityInventory();
+			bIsSetVisibleInventory = true;
+		}
+		else
+		{
+			PlayerController->SetHiddenInventory();
+			bIsSetVisibleInventory = false;
+		}
+
+	}
 }
 
 bool AQLCharacterPlayer::ServerRPCPuttingWeapon_Validate()
@@ -879,6 +875,12 @@ bool AQLCharacterPlayer::ServerRPCPuttingWeapon_Validate()
 
 void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 {
+	// Multicast 위치 or Server 위치하고 Replicated할지.. 
+	FVector Location = GetActorLocation();
+	FActorSpawnParameters Params;
+	AQLItemBox *GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GetStat()->GroundWeapon, Location, FRotator::ZeroRotator, Params);
+
+	GroundItem->SetReplicates(true);
 	MulticastRPCPuttingWeapon();
 }
 
@@ -887,16 +889,13 @@ void AQLCharacterPlayer::MulticastRPCPuttingWeapon_Implementation()
 	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
 	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON); //이것도 변경되어야할사항...
 	
-	FVector Location = GetActorLocation(); //Possessed Pawn Position
-	FActorSpawnParameters Params;
-	Params.Owner = this;
-
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 	//Reset
 	QL_LOG(QLLog, Log, TEXT("Put Weapon"));
 	Weapon->Weapon->SetSkeletalMesh(nullptr);
 	PS->ResetWeaponStat(Weapon->GetStat());
-	Weapon->Weapon = nullptr; //정리
+	
+	//Spawn 한다.
 	Weapon->Stat = nullptr; //정리
 	bHasGun = false;
 }

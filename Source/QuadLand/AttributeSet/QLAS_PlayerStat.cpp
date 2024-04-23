@@ -10,6 +10,7 @@
 UQLAS_PlayerStat::UQLAS_PlayerStat()
 {
 	InitHealth(GetMaxHealth());
+	InitStamina(GetMaxStamina());
 }
 
 void UQLAS_PlayerStat::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -20,9 +21,9 @@ void UQLAS_PlayerStat::PreAttributeChange(const FGameplayAttribute& Attribute, f
 		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
 	}
 
-	if (Attribute == GetStaminaAttribute())
+	if (Attribute == GetMetaStaminaAttribute())
 	{
-		NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxStamina());
+		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
 	}
 }
 
@@ -44,15 +45,21 @@ void UQLAS_PlayerStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 
 		//여기서 맞은 애니메이션을 플레이하고 싶을 때 TargetCharacter에 대해 PlayHitReact를 표현하네, 그러면 Ability 없애도될듯?
 	}
-	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
+	if (Data.EvaluatedData.Attribute == GetMetaStaminaAttribute())
 	{
-		SetStamina(FMath::Clamp(GetStamina(), Minimum, GetMaxStamina()));
+		const float LocalReduceStamina = GetMetaStamina();
+		SetMetaStamina(0.0f);
+
+		float NewStamina = FMath::Clamp(GetStamina() - LocalReduceStamina, Minimum, GetMaxStamina());
+
+		UE_LOG(LogTemp, Log, TEXT("Stamina %lf MataStamina %lf"), NewStamina, LocalReduceStamina);
+		SetStamina(NewStamina);
 	}
 	
 	if ((GetHealth() <= 0.0f))
 	{
-		FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
-		Data.Target.TryActivateAbilitiesByTag(TargetTag);
+		//FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
+		//Data.Target.TryActivateAbilitiesByTag(TargetTag);
 
 		Data.Target.AddLooseGameplayTag(CHARACTER_STATE_DEAD); //제거는 RemoveLooseGameplayTag
 	}
@@ -67,6 +74,7 @@ void UQLAS_PlayerStat::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, Stamina, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, MaxStamina, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, Damage, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, MetaStamina, COND_None, REPNOTIFY_Always);
 }
 
 void UQLAS_PlayerStat::OnRep_Health(const FGameplayAttributeData& OldHealth)
@@ -92,4 +100,9 @@ void UQLAS_PlayerStat::OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStam
 void UQLAS_PlayerStat::OnRep_Damage(const FGameplayAttributeData& OldDamage)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UQLAS_PlayerStat, Damage, OldDamage);
+}
+
+void UQLAS_PlayerStat::OnRep_MetaStamina(const FGameplayAttributeData& OldeMetaStamina)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UQLAS_PlayerStat, MetaStamina, OldeMetaStamina);
 }

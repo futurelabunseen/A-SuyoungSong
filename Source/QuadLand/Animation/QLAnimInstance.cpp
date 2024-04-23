@@ -9,7 +9,7 @@
 UQLAnimInstance::UQLAnimInstance()
 {
 	MovingThreshold = 3.0f; //변경하면서 확인해보자.
-	JumpingThreshold = 100.0f;
+	JumpingThreshold = 50.0f;
 	AimSpeedRate = 1.7f;
 }
 
@@ -44,7 +44,7 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsCrunching = Player->GetIsCrunching();
 		Direction = CalculateDirection(Velocity, Owner->GetActorRotation()); //Locomotion Angle
 		bIsAiming = Player->GetIsAiming();
-		AimSpeedRate = Player->GetIsRunning()? 1.0f : 1.5f;
+		//AimSpeedRate = Player->GetIsRunning()? 1.0f : 1.5f;
 		RootYawOffset = Player->GetCurrnetYaw();
 		TurningInPlaceType = Player->GetTurningInPlaceType();
 	}

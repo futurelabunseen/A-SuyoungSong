@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "AbilitySystemInterface.h"
 #include "GameData/QLTurningInPlaceType.h"
+#include "GameplayEffectTypes.h"
 #include "Components/TimelineComponent.h"
 #include "QLCharacterPlayer.generated.h"
 
@@ -64,7 +65,6 @@ public:
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrouched; }
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 	FORCEINLINE bool GetIsReload() const { return bIsReload; }
-	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
 	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
 
 	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
@@ -104,6 +104,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> PutWeaponAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> VisibilityInventoryAction;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<class UInputMappingContext> InputMappingContext;
 
@@ -118,17 +121,10 @@ protected:
 	//Movement Section
 protected:
 	FORCEINLINE float CalculateSpeed();
-	void RunInputPressed();
-	void RunInputReleased();
-
-//	UFUNCTION(Server, Unreliable)
-//	void ServerRPCRunning();
-
-	//UPROPERTY(Replicated)
-	uint8 bIsRunning : 1;
-
 	FRotator PreviousRotation;
 
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<class UGameplayEffect> DefaultAttributes;
 
 	//Turning in Place Section
 protected:
@@ -139,8 +135,6 @@ protected:
 
 	float InterpYaw; //보간용도
 	float CurrentYaw;
-	//float CurrentPitch;
-	//Attack Section
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
@@ -267,9 +261,7 @@ protected:
 
 	UFUNCTION()
 	void InitializeAttributes();
-
-	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<class UGameplayEffect> DefaultAttributes;
+//	void ReduceStamina();
 
 protected:
 
@@ -288,4 +280,11 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRPCPuttingWeapon();
+
+protected:
+	//Inventory Section
+	void SetInventory();
+
+	uint8 bIsSetVisibleInventory : 1;
+
 };

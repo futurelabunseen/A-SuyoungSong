@@ -82,7 +82,37 @@ void AQLPlayerState::BeginPlay()
         HealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetHealthAttribute()).AddUObject(this, &AQLPlayerState::OnChangedHp);
         MaxHealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetMaxHealthAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxHp);
         AmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetCurrentAmmoAttribute()).AddUObject(this, &AQLPlayerState::OnChangedAmmoCnt);
-        AmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetMaxAmmoCntAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxAmmoCnt);
+        MaxAmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetMaxAmmoCntAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxAmmoCnt);
+        StaminaChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetStaminaAttribute()).AddUObject(this, &AQLPlayerState::OnChangedStamina);
+        MaxStaminaChangedDeleagteHandle= ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetMaxStaminaAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxStamina);
+    }
+}
+
+void AQLPlayerState::OnChangedStamina(const FOnAttributeChangeData& Data)
+{
+    float CurrentStamina = Data.NewValue;
+
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+
+    if (PC && PC->IsLocalController())
+    {
+        //Player의 QLPlayerHpBarWidget 가져옴
+        UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
+        Widget->ChangedStaminaPercentage(CurrentStamina, GetMaxStamina());
+    }
+}
+
+void AQLPlayerState::OnChangedMaxStamina(const FOnAttributeChangeData& Data)
+{
+    float CurrentMaxStamina = Data.NewValue;
+
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+
+    if (PC && PC->IsLocalController())
+    {
+        //Player의 QLPlayerHpBarWidget 가져옴
+        UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
+        Widget->ChangedStaminaPercentage(GetStamina(), CurrentMaxStamina);
     }
 }
 
@@ -164,6 +194,16 @@ void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
     }
 }
 
+
+float AQLPlayerState::GetStamina()
+{
+    return PlayerStatInfo->GetStamina();
+}
+
+float AQLPlayerState::GetMaxStamina()
+{
+    return PlayerStatInfo->GetMaxStamina();
+}
 
 float AQLPlayerState::GetHealth()
 {

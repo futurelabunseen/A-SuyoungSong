@@ -30,6 +30,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetbIsDead() { return bIsDead; }
 
+	float GetStamina();
+	float GetMaxStamina();
 	float GetHealth();
 	float GetMaxHealth();
 	float GetCurrentAmmoCnt();
@@ -68,6 +70,14 @@ protected:
 	FDelegateHandle HealthChangedDeleagteHandle;
 	FDelegateHandle MaxHealthChangedDeleagteHandle;
 	FDelegateHandle AmmoChangedDeleagteHandle;
+	FDelegateHandle MaxAmmoChangedDeleagteHandle;
+	FDelegateHandle StaminaChangedDeleagteHandle;
+	FDelegateHandle MaxStaminaChangedDeleagteHandle;
+
+
+	virtual void OnChangedStamina(const FOnAttributeChangeData& Data);
+
+	virtual void OnChangedMaxStamina(const FOnAttributeChangeData& Data);
 
 	virtual void OnChangedHp(const FOnAttributeChangeData& Data);
 
