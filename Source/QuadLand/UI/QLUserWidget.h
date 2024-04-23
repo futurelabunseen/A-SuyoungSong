@@ -20,6 +20,7 @@ public:
 	void ChangedAmmoCnt(float InAmmo);
 	void ChangedRemainingAmmo(float InAmmo);
 	void ChangedHPPercentage(float InHP,float InMaxHP);
+	void ChangedStaminaPercentage(float InStamina, float InMaxStamina);
 
 	FORCEINLINE class UQLPlayerHUDWidget* GetStatHUD() { return CharacterStat; }
 	FORCEINLINE class UQLPlayerHpBarWidget* GetHpHUD() { return HpBar; }

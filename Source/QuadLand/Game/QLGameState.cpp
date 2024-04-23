@@ -30,7 +30,6 @@ void AQLGameState::AddPlayerState(APlayerState* PlayerState)
 		QL_LOG(QLNetLog, Log, TEXT("[Iterator] : Current Player %s %d"), *PlayerStatus.Key.ToString(), PlayerStatus.Value);
 	}
 
-
 	AQLPlayerState* NewPlayerState = CastChecked<AQLPlayerState>(PlayerState);
 	UAbilitySystemComponent* ASC = NewPlayerState->GetAbilitySystemComponent();
 

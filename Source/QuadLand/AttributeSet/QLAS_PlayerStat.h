@@ -30,6 +30,7 @@ public:
     ATTRIBUTE_ACCESSORS(UQLAS_PlayerStat, Stamina);
     ATTRIBUTE_ACCESSORS(UQLAS_PlayerStat, MaxStamina);
     ATTRIBUTE_ACCESSORS(UQLAS_PlayerStat, Damage);
+    ATTRIBUTE_ACCESSORS(UQLAS_PlayerStat, MetaStamina);
 
     virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
     virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
@@ -39,18 +40,21 @@ protected:
 
     UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Health, Meta = (AllowPrivateAccess = true))
     FGameplayAttributeData Health;
+
     UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_MaxHealth, Meta = (AllowPrivateAccess = true))
     FGameplayAttributeData MaxHealth;
 
     UPROPERTY(BlueprintReadOnly, Category = "Stemina", ReplicatedUsing = OnRep_Stamina, Meta = (AllowPrivateAccess = true))
     FGameplayAttributeData Stamina;
+
     UPROPERTY(BlueprintReadOnly, Category = "Stemina", ReplicatedUsing = OnRep_MaxStamina, Meta = (AllowPrivateAccess = true))
     FGameplayAttributeData MaxStamina;
 
     UPROPERTY(BlueprintReadOnly, Category = "Damage", ReplicatedUsing = OnRep_Damage, Meta = (AllowPrivateAccess = true))
     FGameplayAttributeData Damage; //Meta Damage 
 
-
+    UPROPERTY(BlueprintReadOnly, Category = "Stemina", ReplicatedUsing = OnRep_Stamina, Meta = (AllowPrivateAccess = true))
+    FGameplayAttributeData MetaStamina; //Meta Data
 protected:
 
     UFUNCTION()
@@ -67,5 +71,8 @@ protected:
 
     UFUNCTION()
     virtual void OnRep_Damage(const FGameplayAttributeData& OldHealth); //이 함수가 호출되었을 때에는 이미 변경된 값을 가짐. 그래서 OldHealth를 전달 
+
+    UFUNCTION()
+    virtual void OnRep_MetaStamina(const FGameplayAttributeData& OldHealth); //이 함수가 호출되었을 때에는 이미 변경된 값을 가짐. 그래서 OldHealth를 전달 
 
 };

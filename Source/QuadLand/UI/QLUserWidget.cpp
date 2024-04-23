@@ -18,6 +18,14 @@ void UQLUserWidget::ChangedHPPercentage(float InHP,float InMaxHP)
 	}
 }
 
+void UQLUserWidget::ChangedStaminaPercentage(float InStamina, float InMaxStamina)
+{
+	if (HpBar)
+	{
+		HpBar->UpdateStaminaPercentage(InStamina, InMaxStamina);
+	}
+}
+
 void UQLUserWidget::ChangedAmmoCnt(float InAmmo)
 {
 	if (CharacterStat)

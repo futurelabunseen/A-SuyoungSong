@@ -51,4 +51,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat)
 	float AmmoCnt; //처음 장전할 수 있는 총알 개수 
 
+	//바닥에 있는 Weapon에 대한 기본 정보 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AQLItemBox> GroundWeapon;
 };

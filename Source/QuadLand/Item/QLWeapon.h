@@ -3,17 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
-#include "QLWeaponComponent.generated.h"
+#include "GameFramework/Actor.h"
+#include "QLWeapon.generated.h"
 
-
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class QUADLAND_API UQLWeaponComponent : public UActorComponent
+UCLASS()
+class QUADLAND_API AQLWeapon : public AActor
 {
 	GENERATED_BODY()
-
+	
 public:	
-	UQLWeaponComponent();
+	// Sets default values for this actor's properties
+	AQLWeapon();
 
 	const class USkeletalMeshComponent* GetWeaponMesh() const { return Weapon; }
 	const class UQLWeaponStat* GetStat() const { return Stat; }
@@ -29,4 +29,5 @@ protected:
 	TSubclassOf<class AQLItemBox> GroundWeapon;
 
 	friend class AQLCharacterPlayer;
+
 };

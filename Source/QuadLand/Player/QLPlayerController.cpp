@@ -11,16 +11,12 @@
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 
-AQLPlayerController::AQLPlayerController()
-{
-}
-
-void AQLPlayerController::SetInvisibleFarming()
+void AQLPlayerController::SetHiddenCrossHair()
 {
 
 	if (IsLocalController())
 	{
-		CrossHairUI->SetVisibility(ESlateVisibility::Hidden); //보이도록 함.
+		HUDs[EHUDType::CrossHair]->SetVisibility(ESlateVisibility::Hidden); //보이도록 함.
 	}
 }
 
@@ -29,37 +25,32 @@ void AQLPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 }
-void AQLPlayerController::SetVisibleFarming()
+void AQLPlayerController::SetVisibilityCrossHair()
 {
 	if (IsLocalController())
 	{
-		CrossHairUI->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
+		HUDs[EHUDType::CrossHair]->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
-//Only Server
-void AQLPlayerController::OnPossess(APawn* InPawn)
+void AQLPlayerController::SetVisibilityInventory()
 {
-	Super::OnPossess(InPawn);
-
-	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-	
-	if (PS)
+	if (IsLocalController())
 	{
-		// Init ASC with PS (Owner) and our new Pawn (AvatarActor)
-		PS->GetAbilitySystemComponent()->InitAbilityActorInfo(PS, InPawn);
+		HUDs[EHUDType::Inventory]->SetVisibility(ESlateVisibility::Visible);
 	}
 }
-
-//Only Client
-void AQLPlayerController::OnRep_PlayerState()
+void AQLPlayerController::SetHiddenInventory()
 {
-	Super::OnRep_PlayerState();
+	if (IsLocalController())
+	{
+		HUDs[EHUDType::Inventory]->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void AQLPlayerController::CreateHUD()
 {
-	if (!CrossHairHUDClass || !PlayerStatHUDClass) return;
+	if (HUDClass.Num() == 0) return;
 
 	if (!IsLocalPlayerController())
 	{
@@ -73,34 +64,21 @@ void AQLPlayerController::CreateHUD()
 		return;
 	}
 
-	if (CrossHairHUDClass)
+	for (const auto &HUD : HUDClass)
 	{
-		CrossHairUI = CreateWidget<UUserWidget>(this, CrossHairHUDClass);
-		CrossHairUI->AddToViewport();
-		CrossHairUI->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
+		UUserWidget *Widget = CreateWidget<UUserWidget>(this, HUD.Value);
+		Widget->AddToViewport();
+		Widget->SetVisibility(ESlateVisibility::Visible);
+		HUDs.Add(HUD.Key, Widget);
 	}
 
-	if (PlayerStatHUDClass)
-	{
-		StatUI = CreateWidget<UQLUserWidget>(this, PlayerStatHUDClass);
-		StatUI->AddToViewport();
-		StatUI->SetVisibility(ESlateVisibility::Visible); //보이도록 함.
-	}
+	UQLUserWidget *Widget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 
-	StatUI->ChangedAmmoCnt(0.0f);
-	StatUI->ChangedRemainingAmmo(0.0f); //임시값 삽입
-	StatUI->ChangedHPPercentage(100.0f, 100.0f);
+	Widget->ChangedAmmoCnt(PS->GetCurrentAmmoCnt());
+	Widget->ChangedRemainingAmmo(PS->GetMaxAmmoCnt()); //임시값 삽입
+	Widget->ChangedHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
+	Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
+
+	HUDs[EHUDType::Inventory]->SetVisibility(ESlateVisibility::Hidden);
 	//HUD 초기화
 }
-
-
-/*
-FVector2D ScreenPosition = YourHUDWidget->GetCachedGeometry().GetAbsolutePosition();
-FVector WorldLocation, WorldDirection;
-
-// 화면 좌표를 월드 좌표로 변환
-APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-PlayerController->DeprojectScreenPositionToWorld(ScreenPosition.X, ScreenPosition.Y, WorldLocation, WorldDirection);
-
-
-*/
