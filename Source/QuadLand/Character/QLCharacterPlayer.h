@@ -72,7 +72,10 @@ public:
 	FORCEINLINE ETurningPlaceType GetTurningInPlaceType() const { return TurningInPlace; }
 	FORCEINLINE const class UQLWeaponComponent* GetWeapon() const { return Weapon; }
 	FORCEINLINE float GetCurrnetYaw() { return CurrentYaw; }
-
+	UFUNCTION(Server, Unreliable)
+	void ServerRPCShooting(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
+	UFUNCTION(Server, Reliable)
+	void ServerRPCReload(); //Reload 행위는 Reliable
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
@@ -250,14 +253,8 @@ protected:
 	UPROPERTY(Replicated)
 	uint8 bIsReload : 1;
 
-	UFUNCTION(Server, Reliable)
-	void ServerRPCReload(); //Reload 행위는 Reliable
-
 	UPROPERTY(Replicated)
 	uint8 bIsShooting : 1;
-
-	UFUNCTION(Server, Unreliable)
-	void ServerRPCShooting(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
 
 	UFUNCTION()
 	void InitializeAttributes();
