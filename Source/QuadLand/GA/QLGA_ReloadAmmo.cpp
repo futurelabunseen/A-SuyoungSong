@@ -4,6 +4,7 @@
 #include "GA/QLGA_ReloadAmmo.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayTag/GamplayTags.h"
+#include "Character/QLCharacterPlayer.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "QuadLand.h"
@@ -28,7 +29,7 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	if (Source)
 	{
 		const UQLAS_WeaponStat* WeaponStat=Source->GetSet<UQLAS_WeaponStat>();
-		if (!WeaponStat || WeaponStat->GetMaxAmmoCnt() == 0)
+		if (!WeaponStat || WeaponStat->GetMaxAmmoCnt() <= 0.0f)
 		{
 			OnCompletedCallback();
 			return;
@@ -42,6 +43,11 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		QL_GASLOG(QLNetLog, Log, TEXT("1"));
 	//Reload 하는 애니메이션 동작 - Weapon
 
+	}
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
+	if (IsLocallyControlled())
+	{
+		Player->ServerRPCReload();
 	}
 }
 
@@ -62,7 +68,15 @@ void UQLGA_ReloadAmmo::OnCompletedCallback()
 		EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_AMMOCNT, CurrentAmmoCnt);
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
 	}
-	
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+	if (IsLocallyControlled())
+	{
+		if (Player->GetIsReload())
+		{
+			Player->ServerRPCReload();
+		}
+	}
+
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = true;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);

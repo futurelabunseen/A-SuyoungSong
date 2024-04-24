@@ -504,13 +504,6 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 
 void AQLCharacterPlayer::GASInputPressed(int32 id)
 {
-	FGameplayTagContainer TargetTag(CHARACTER_STATE_RUN);
-	TargetTag.AddTag(CHARACTER_EQUIP_GUNTYPEA);
-
-	if (ASC->HasAllMatchingGameplayTags(TargetTag))
-	{
-		return; 
-	}
 
 	QL_LOG(QLNetLog, Log, TEXT("begin"));
 	uint8 InputAttackSpecNumber = GetInputNumber(id);
@@ -520,7 +513,6 @@ void AQLCharacterPlayer::GASInputPressed(int32 id)
 		return;
 	}
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
-
 	if (Spec)
 	{
 
@@ -534,27 +526,6 @@ void AQLCharacterPlayer::GASInputPressed(int32 id)
 		{
 			ASC->TryActivateAbility(Spec->Handle);
 		}
-		UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(this);
-		const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
-
-		if (IsLocallyControlled() && InputAttackSpecNumber == 1)
-		{
-			if (WeaponStat->GetCurrentAmmo() <= 0.0f)
-			{
-				return;
-			}
-			//클라이언트로부터 입력 들어옴 서버 호출
-			ServerRPCShooting();
-		}
-
-		if (IsLocallyControlled() && InputAttackSpecNumber == 2)
-		{
-			if (WeaponStat->GetMaxAmmoCnt() <= 0.0f)
-			{
-				return;
-			}
-			ServerRPCReload();
-		}
 	}
 }
 
@@ -562,7 +533,7 @@ void AQLCharacterPlayer::GASInputReleased(int32 id)
 {
 	uint8 InputAttackSpecNumber = GetInputNumber(id);
 
-	QL_LOG(QLNetLog, Log, TEXT("begin"));
+	QL_LOG(QLNetLog, Log, TEXT("begin %d"), InputAttackSpecNumber);
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
 
 	if (Spec)
@@ -571,24 +542,6 @@ void AQLCharacterPlayer::GASInputReleased(int32 id)
 		if (Spec->IsActive())
 		{
 			ASC->AbilitySpecInputReleased(*Spec);
-		}
-
-		if (IsLocallyControlled() && InputAttackSpecNumber == 1)
-		{
-
-			if (bIsShooting)
-			{
-				//클라이언트로부터 입력 들어옴 서버 호출
-				ServerRPCShooting();
-			}
-		}
-
-		if (IsLocallyControlled() && InputAttackSpecNumber == 2)
-		{
-			if (bIsReload)
-			{
-				ServerRPCReload();
-			}
 		}
 	}
 }

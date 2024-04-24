@@ -7,6 +7,7 @@
 #include "GameplayEffectExtension.h"
 #include "GameplayTag/GamplayTags.h"
 
+#include "QuadLand.h"
 UQLAS_PlayerStat::UQLAS_PlayerStat()
 {
 	InitHealth(GetMaxHealth());
@@ -21,10 +22,31 @@ void UQLAS_PlayerStat::PreAttributeChange(const FGameplayAttribute& Attribute, f
 		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
 	}
 
-	if (Attribute == GetMetaStaminaAttribute())
+	if (Attribute == GetStaminaAttribute())
 	{
 		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
+
+		//UE_LOG(LogTemp, Log, TEXT("Current Stamina %lf"), GetStamina());
+		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+		if (GetStamina() <= 0.0f)
+		{
+			if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_STOP) == false)
+			{
+				UE_LOG(LogTemp, Log, TEXT("Current Stamina %lf"), GetStamina());
+				//FGameplayTagContainer TargetTag(CHARACTER_STATE_STOP);
+				ASC->AddLooseGameplayTag(CHARACTER_STATE_STOP);
+			}
+		}
+		else
+		{
+			if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_STOP))
+			{
+				ASC->RemoveLooseGameplayTag(CHARACTER_STATE_STOP); //제거는 RemoveLooseGameplayTag
+			}
+		}
+
 	}
+	UE_LOG(QLNetLog, Log, TEXT("Current Stamina %lf\n"), GetStamina());
 }
 
 void UQLAS_PlayerStat::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -45,22 +67,19 @@ void UQLAS_PlayerStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 
 		//여기서 맞은 애니메이션을 플레이하고 싶을 때 TargetCharacter에 대해 PlayHitReact를 표현하네, 그러면 Ability 없애도될듯?
 	}
-	if (Data.EvaluatedData.Attribute == GetMetaStaminaAttribute())
+
+	//처음에 호출되는 0.0때문에 STOP딱지가 붙였다면, 100으로 리셋되면서 태그를 제거해줌
+	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
 	{
-		const float LocalReduceStamina = GetMetaStamina();
-		SetMetaStamina(0.0f);
-
-		float NewStamina = FMath::Clamp(GetStamina() - LocalReduceStamina, Minimum, GetMaxStamina());
-
-		UE_LOG(LogTemp, Log, TEXT("Stamina %lf MataStamina %lf"), NewStamina, LocalReduceStamina);
-		SetStamina(NewStamina);
+		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+		if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_STOP))
+		{
+			ASC->RemoveLooseGameplayTag(CHARACTER_STATE_STOP); //제거는 RemoveLooseGameplayTag
+		}
 	}
-	
+
 	if ((GetHealth() <= 0.0f))
 	{
-		//FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
-		//Data.Target.TryActivateAbilitiesByTag(TargetTag);
-
 		Data.Target.AddLooseGameplayTag(CHARACTER_STATE_DEAD); //제거는 RemoveLooseGameplayTag
 	}
 }
@@ -74,8 +93,8 @@ void UQLAS_PlayerStat::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, Stamina, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, MaxStamina, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, Damage, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, MetaStamina, COND_None, REPNOTIFY_Always);
 }
+
 
 void UQLAS_PlayerStat::OnRep_Health(const FGameplayAttributeData& OldHealth)
 {
@@ -100,9 +119,4 @@ void UQLAS_PlayerStat::OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStam
 void UQLAS_PlayerStat::OnRep_Damage(const FGameplayAttributeData& OldDamage)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UQLAS_PlayerStat, Damage, OldDamage);
-}
-
-void UQLAS_PlayerStat::OnRep_MetaStamina(const FGameplayAttributeData& OldeMetaStamina)
-{
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UQLAS_PlayerStat, MetaStamina, OldeMetaStamina);
 }

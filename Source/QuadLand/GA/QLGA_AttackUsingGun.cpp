@@ -23,10 +23,18 @@ void UQLGA_AttackUsingGun::InputPressed(const FGameplayAbilitySpecHandle Handle,
 void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	QL_GASLOG(QLNetLog, Log, TEXT("Current"));
+
 	//Ammo Cnt 개수를 체크한다 만약 0이라면, 어빌리티를 실행하지 않고 종료한다.
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
+
+	if (SourceASC->HasMatchingGameplayTag(CHARACTER_STATE_RUN))
+	{
+		OnCompletedCallback();
+		return;
+	}
+
+	QL_GASLOG(QLNetLog, Log, TEXT("Current"));
 
 	if (WeaponStat && WeaponStat->GetCurrentAmmo() <= 0.0f)
 	{
@@ -44,7 +52,17 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	AttackUsingGunMontage->OnCompleted.AddDynamic(this, &UQLGA_AttackUsingGun::OnCompletedCallback);
 	AttackUsingGunMontage->OnInterrupted.AddDynamic(this, &UQLGA_AttackUsingGun::OnInterruptedCallback);
 
-	
+	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+	if (IsLocallyControlled())
+	{
+		if (WeaponStat->GetCurrentAmmo() <= 0.0f)
+		{
+			return;
+		}
+		//클라이언트로부터 입력 들어옴 서버 호출
+		Character->ServerRPCShooting();
+	}
+
 	/*
 	여기서 발동 -> 총알 횟수 주는 Effect수행
 	*/
@@ -80,6 +98,14 @@ void UQLGA_AttackUsingGun::OnCompletedCallback()
 {
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = true;
+	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+	if (IsLocallyControlled())
+	{
+		if (Character->GetIsShooting())
+		{
+			Character->ServerRPCShooting();
+		}
+	}
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
