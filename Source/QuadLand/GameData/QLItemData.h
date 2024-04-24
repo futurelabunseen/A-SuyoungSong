@@ -17,6 +17,9 @@ enum class EItemType
 	Potion,
 	Stone,
 	Ammo,
+	StaminaRecoveryItem,
+	HPRecoveryItem,
+	DiscoveryItem,
 	None
 };
 

@@ -7,7 +7,6 @@
 #include "GameplayTag/GamplayTags.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "Character/QLCharacterMovementComponent.h"
-
 #include "QuadLand.h"
 
 UQLGA_Run::UQLGA_Run()
