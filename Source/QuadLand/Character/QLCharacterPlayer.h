@@ -187,9 +187,12 @@ protected:
 
 	void FarmingItem();
 	void EquipWeapon(class AQLItem* ItemInfo);
-	void DrinkPotion(class AQLItem* ItemInfo);
+	void DrinkStaminaPotion(class AQLItem* ItemInfo);
 	void HasLifeStone(class AQLItem* ItemInfo);
 	void GetAmmo(class AQLItem* IItemInfo);
+	void DrinkHPPotion(class AQLItem* ItemInfo);
+	void UseDiscoveryItem(class AQLItem* ItemInfo);
+
 	//Take
 	UPROPERTY()
 	TArray<FTakeItemDelegateWrapper> TakeItemActions;

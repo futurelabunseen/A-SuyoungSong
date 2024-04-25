@@ -24,6 +24,7 @@
 #include "Physics/QLCollision.h"
 #include "GameData/QLWeaponStat.h"
 #include "GameData/QLAmmoData.h"
+#include "GameData/QLRecoveryData.h"
 #include "Item/QLWeaponComponent.h"
 #include "QLCharacterMovementComponent.h"
 
@@ -150,9 +151,11 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 
 
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this,&AQLCharacterPlayer::EquipWeapon)));
-	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::DrinkPotion)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::HasLifeStone)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetAmmo)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::DrinkStaminaPotion)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::DrinkHPPotion)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::UseDiscoveryItem)));
 
 	static ConstructorHelpers::FObjectFinder<UCurveFloat> AimCurveRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/AimAlpha.AimAlpha'"));
 
@@ -362,7 +365,7 @@ void AQLCharacterPlayer::FarmingItem()
 
 				if (Item == nullptr || Item->Stat == nullptr)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Item is not founded"));
+					QL_LOG(QLNetLog, Warning, TEXT("Item is not founded"));
 					return;
 				}
 				UE_LOG(LogTemp, Warning, TEXT("Item Type %d"), Item->Stat->ItemType);
@@ -405,18 +408,12 @@ void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 	MulticastRPCFarming(WeaponStat);
 }
 
-void AQLCharacterPlayer::DrinkPotion(AQLItem* ItemInfo)
-{
-	QL_LOG(QLLog, Warning, TEXT("Drink Potion"));
-}
-
 void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 {
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 
 	FString ItemOwner = ItemInfo->GetOwner()->GetName(); //Owner -> PlayerState로 지정 ASC에 접근 가능하도록 변환
 	FString CurrentGetOwner = PS->GetName();
-	QL_LOG(QLLog, Warning, TEXT("Current Item Owner %s CurrentGetOwner %s"), *ItemOwner, *CurrentGetOwner);
 	if (HasAuthority())
 	{
 		ItemInfo->SetActorEnableCollision(false);
@@ -449,6 +446,31 @@ void AQLCharacterPlayer::GetAmmo(AQLItem* ItemInfo)
 		QL_LOG(QLNetLog, Log, TEXT("Get Ammo"));
 		PS->SetAmmoStat(AmmoItem->AmmoCnt);
 	}
+}
+
+void AQLCharacterPlayer::DrinkStaminaPotion(AQLItem* ItemInfo)
+{
+	UQLRecoveryData* RecoveryItemData = Cast<UQLRecoveryData>(ItemInfo->Stat);
+	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+	if (HasAuthority())
+	{
+		PS->AddStaminaStat(RecoveryItemData->RecoveryRate);
+	}
+}
+
+void AQLCharacterPlayer::DrinkHPPotion(AQLItem* ItemInfo)
+{
+	UQLRecoveryData* RecoveryItemData = Cast<UQLRecoveryData>(ItemInfo->Stat);
+	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+	if (RecoveryItemData && HasAuthority())
+	{
+		PS->AddHPStat(RecoveryItemData->RecoveryRate);
+	}
+}
+
+void AQLCharacterPlayer::UseDiscoveryItem(AQLItem* ItemInfo)
+{
+	QL_LOG(QLNetLog, Log, TEXT("Use Discovery Item"));
 }
 
 void AQLCharacterPlayer::ServerRPCFarming_Implementation()
@@ -692,7 +714,6 @@ void AQLCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AQLCharacterPlayer, bPressedFarmingKey);
 	DOREPLIFETIME(AQLCharacterPlayer, bIsShooting);
 	DOREPLIFETIME(AQLCharacterPlayer, bIsReload);
-	//DOREPLIFETIME(AQLCharacterPlayer, bIsRunning);
 }
 
 void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)

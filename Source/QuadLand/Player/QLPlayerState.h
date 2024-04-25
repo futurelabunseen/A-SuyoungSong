@@ -23,6 +23,8 @@ public:
 	
 	void SetAmmoStat(float AmmoCnt);
 	void SetWeaponStat(const class UQLWeaponStat* Stat);
+	void AddHPStat(float HP);
+	void AddStaminaStat(float Stamina);
 	void ResetWeaponStat(const class UQLWeaponStat* Stat);
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetbIsWin() { return bIsWin; }

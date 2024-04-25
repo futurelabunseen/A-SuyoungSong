@@ -16,26 +16,9 @@ UQLGA_TakenDamage::UQLGA_TakenDamage()
 void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	CommitAbility(Handle, ActorInfo, ActivationInfo); //CommitAbility
 
 	UE_LOG(LogTemp, Log, TEXT("Current Class TakenDamage Class"));
-
-	//데미지가 0이면 죽는다. - 원천자는 승리한다.
-	
-	//UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo_Checked(); 
-	//UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitResult.GetActor());
-	//if (Source)
-	//{
-	//	const UQLAS_PlayerStat* PlayerStat = Source->GetSet<UQLAS_PlayerStat>();
-	//	FGameplayEventData Payload;
-
-	//	if (PlayerStat && PlayerStat->GetHealth() <= 0.0f)
-	//	{
-	//		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(ActorInfo->AvatarActor.Get(), CHARACTER_STATE_DEAD, Payload);
-	//		
-	//		OnCompletedCallback();
-	//		return;
-	//	}
-	//}
 	
 	float AnimSpeedRate = 1.0f;
 	float CurrentTypeIdx = TriggerEventData->EventMagnitude;
