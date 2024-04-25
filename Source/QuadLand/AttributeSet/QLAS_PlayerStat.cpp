@@ -18,22 +18,18 @@ void UQLAS_PlayerStat::PreAttributeChange(const FGameplayAttribute& Attribute, f
 {
 	if (Attribute == GetDamageAttribute())
 	{
-		//NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth());
 		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
 	}
 
 	if (Attribute == GetStaminaAttribute())
 	{
 		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
-
-		//UE_LOG(LogTemp, Log, TEXT("Current Stamina %lf"), GetStamina());
+	
 		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
 		if (GetStamina() <= 0.0f)
 		{
 			if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_STOP) == false)
 			{
-				UE_LOG(LogTemp, Log, TEXT("Current Stamina %lf"), GetStamina());
-				//FGameplayTagContainer TargetTag(CHARACTER_STATE_STOP);
 				ASC->AddLooseGameplayTag(CHARACTER_STATE_STOP);
 			}
 		}

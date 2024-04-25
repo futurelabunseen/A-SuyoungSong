@@ -21,3 +21,6 @@
 #define CHARACTER_STATE_WIN FGameplayTag::RequestGameplayTag(FName("Character.State.Win"))
 #define CHARACTER_STATE_DEAD FGameplayTag::RequestGameplayTag(FName("Character.State.Dead"))
 #define CHARACTER_STATE_RELOAD FGameplayTag::RequestGameplayTag(FName("Character.State.Reload")) //Damage를 받았을때
+
+#define STAT_STAMINA_STATUS_REDUCE FGameplayTag::RequestGameplayTag(FName("Stat.Stamina.Status.Reduce"))
+
