@@ -284,8 +284,8 @@ protected:
 	//Inventory Section
 
 	void SetInventory();
-	//UFUNCTION(NetMulticast, Reliable)
-	//void MulticastRPCAddItem();
+	UFUNCTION(Client , Reliable)
+	void ClientRPCAddItem(AQLItem* ItemInfo);
 
 	uint8 bIsSetVisibleInventory : 1;
 

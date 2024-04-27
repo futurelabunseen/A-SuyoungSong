@@ -66,19 +66,26 @@ void AQLPlayerController::CreateHUD()
 
 void AQLPlayerController::AddItemEntry(UObject* Item)
 {
-	UQLInventory* InventoryUI =Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
-	if (InventoryUI)
+
+	if (IsLocalController())
 	{
-		InventoryUI->AddItem(Item);
+		UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
+		if (InventoryUI)
+		{
+			InventoryUI->AddItem(Item);
+		}
 	}
 }
 
 void AQLPlayerController::UpdateItemEntry(UObject* Item, int32 CurrentItemCnt)
 {
-	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
-	if (InventoryUI)
+	if (IsLocalController())
 	{
-		InventoryUI->UpdateItemEntry(Item, CurrentItemCnt);
+		UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
+		if (InventoryUI)
+		{
+			InventoryUI->UpdateItemEntry(Item, CurrentItemCnt);
+		}
 	}
 }
 

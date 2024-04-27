@@ -404,26 +404,23 @@ void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 
 	FString ItemOwner = ItemInfo->GetOwner()->GetName(); //Owner -> PlayerState로 지정 ASC에 접근 가능하도록 변환
 	FString CurrentGetOwner = PS->GetName();
-	if (HasAuthority())
+	ItemInfo->SetActorEnableCollision(false);
+	ItemInfo->SetActorHiddenInGame(true);
+	ItemInfo->SetLifeSpan(3.f);
+
+	if (ItemOwner == CurrentGetOwner)
 	{
-		ItemInfo->SetActorEnableCollision(false);
-		ItemInfo->SetActorHiddenInGame(true);
-		ItemInfo->SetLifeSpan(3.f);
+		PS->SetHasLifeStone(true);
+		return;
+	}
 
-		if (ItemOwner == CurrentGetOwner)
-		{
-			PS->SetHasLifeStone(true);
-			return;
-		}
+	//다르면 Dead 태그 부착
+	UAbilitySystemComponent* ItemASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ItemInfo->GetOwner());
 
-		//다르면 Dead 태그 부착
-		UAbilitySystemComponent* ItemASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ItemInfo->GetOwner());
-
-		if (ItemASC)
-		{
-			ItemASC->AddLooseGameplayTag(CHARACTER_STATE_DEAD);
-			QL_LOG(QLLog, Warning, TEXT("TargetASC is Dead"));
-		}
+	if (ItemASC)
+	{
+		ItemASC->AddLooseGameplayTag(CHARACTER_STATE_DEAD);
+		QL_LOG(QLLog, Warning, TEXT("TargetASC is Dead"));
 	}
 }
 
@@ -431,36 +428,14 @@ void AQLCharacterPlayer::GetAmmo(AQLItem* ItemInfo)
 {
 	UQLAmmoData* AmmoItem = Cast<UQLAmmoData>(ItemInfo->Stat);
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	if (HasAuthority())
-	{
-		QL_LOG(QLNetLog, Log, TEXT("Get Ammo"));
-		PS->SetAmmoStat(AmmoItem->AmmoCnt);
-	}
+	QL_LOG(QLNetLog, Log, TEXT("Get Ammo"));
+	PS->SetAmmoStat(AmmoItem->AmmoCnt);
 	GetItem(ItemInfo);
 }
 
 void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 {
-	UQLItemData* ItemData = Cast<UQLItemData>(ItemInfo->Stat);
-	AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner());
-
-	if (PC->IsLocalController())
-	{
-		int32 ItemCnt = 1;
-		if (!InventoryItem.Find(ItemData->ItemType))
-		{
-			InventoryItem.Add(ItemData->ItemType, ItemCnt);
-			ItemData->CurrentItemCnt = ItemCnt;
-			PC->AddItemEntry(ItemData);
-		}
-		else
-		{
-			ItemCnt = ++InventoryItem[ItemData->ItemType];
-			PC->UpdateItemEntry(ItemData, ItemCnt);
-		}
-
-		QL_LOG(QLNetLog, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, ItemCnt);
-	}
+	ClientRPCAddItem(ItemInfo);
 }
 
 void AQLCharacterPlayer::ServerRPCFarming_Implementation()
@@ -829,6 +804,27 @@ void AQLCharacterPlayer::SetInventory()
 			PlayerController->SetHiddenHUD(EHUDType::Inventory);
 		}
 	}
+}
+
+void AQLCharacterPlayer::ClientRPCAddItem_Implementation(AQLItem* ItemInfo)
+{
+	UQLItemData* ItemData = Cast<UQLItemData>(ItemInfo->Stat);
+	AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner());
+
+	int32 ItemCnt = 1;
+	if (!InventoryItem.Find(ItemData->ItemType))
+	{
+		InventoryItem.Add(ItemData->ItemType, ItemCnt);
+		ItemData->CurrentItemCnt = ItemCnt;
+		PC->AddItemEntry(ItemData);
+	}
+	else
+	{
+		ItemCnt = ++InventoryItem[ItemData->ItemType];
+		PC->UpdateItemEntry(ItemData, ItemCnt);
+	}
+	QL_LOG(QLNetLog, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, ItemCnt);
+
 }
 
 bool AQLCharacterPlayer::ServerRPCPuttingWeapon_Validate()
