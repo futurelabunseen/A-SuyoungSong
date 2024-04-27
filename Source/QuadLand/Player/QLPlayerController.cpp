@@ -7,46 +7,27 @@
 #include "Player/QLPlayerState.h"
 #include "UI/QLPlayerHUDWidget.h"
 #include "UI/QLUserWidget.h"
+#include "UI/QLInventory.h"
 #include "QuadLand.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 
-void AQLPlayerController::SetHiddenCrossHair()
+void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
 {
 
 	if (IsLocalController())
 	{
-		HUDs[EHUDType::CrossHair]->SetVisibility(ESlateVisibility::Hidden); //보이도록 함.
+		HUDs[UItype]->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
-
-void AQLPlayerController::BeginPlay()
-{
-	Super::BeginPlay();
-
-}
-void AQLPlayerController::SetVisibilityCrossHair()
+void AQLPlayerController::SetVisibilityHUD(EHUDType UItype)
 {
 	if (IsLocalController())
 	{
-		HUDs[EHUDType::CrossHair]->SetVisibility(ESlateVisibility::Visible);
+		HUDs[UItype]->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
-void AQLPlayerController::SetVisibilityInventory()
-{
-	if (IsLocalController())
-	{
-		HUDs[EHUDType::Inventory]->SetVisibility(ESlateVisibility::Visible);
-	}
-}
-void AQLPlayerController::SetHiddenInventory()
-{
-	if (IsLocalController())
-	{
-		HUDs[EHUDType::Inventory]->SetVisibility(ESlateVisibility::Hidden);
-	}
-}
 
 void AQLPlayerController::CreateHUD()
 {
@@ -78,7 +59,30 @@ void AQLPlayerController::CreateHUD()
 	Widget->ChangedRemainingAmmo(PS->GetMaxAmmoCnt()); //임시값 삽입
 	Widget->ChangedHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
 	Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
-
-	HUDs[EHUDType::Inventory]->SetVisibility(ESlateVisibility::Hidden);
+	
+	SetHiddenHUD(EHUDType::Inventory);
 	//HUD 초기화
+}
+
+void AQLPlayerController::AddItemEntry(UObject* Item)
+{
+	UQLInventory* InventoryUI =Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
+	if (InventoryUI)
+	{
+		InventoryUI->AddItem(Item);
+	}
+}
+
+void AQLPlayerController::UpdateItemEntry(UObject* Item, int32 CurrentItemCnt)
+{
+	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
+	if (InventoryUI)
+	{
+		InventoryUI->UpdateItemEntry(Item, CurrentItemCnt);
+	}
+}
+
+void AQLPlayerController::RemoveItemEntry(int8 ItemIdx)
+{
+
 }

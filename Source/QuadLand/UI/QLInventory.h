@@ -20,6 +20,12 @@ protected:
 
 public:
 
-	UPROPERTY()
-	TArray<TObjectPtr<class UQLListItemEntry>> Items;
+	UPROPERTY(meta = (BindWidget)) //자동으로 연결되나봄..!
+	TObjectPtr<class UListView> ItemList;
+
+
+	void AddItem(UObject* Item);
+	void UpdateItemEntry(UObject* Item, int32 InItemCnt);
+	void DeleteItem(UObject* Item);
+
 };

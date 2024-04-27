@@ -41,7 +41,7 @@ void UQLGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 
 	if (!StaminaTimer.IsValid())
 	{
-		GetWorld()->GetTimerManager().SetTimer(StaminaTimer, this, &UQLGA_Run::ReduceStamina, 1.0f, true, 0.0f);//타이머를 걸어서 1초마다 실행 -> 만약 Released에 의해서 bIsRunning 멈췄으면 Handle 해제
+		GetWorld()->GetTimerManager().SetTimer(StaminaTimer, this, &UQLGA_Run::ReduceStamina, 0.25f, true, 0.0f);//타이머를 걸어서 1초마다 실행 -> 만약 Released에 의해서 bIsRunning 멈췄으면 Handle 해제
 	}
 }
 
