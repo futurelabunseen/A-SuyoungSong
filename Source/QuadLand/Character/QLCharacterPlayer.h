@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "AbilitySystemInterface.h"
 #include "GameData/QLTurningInPlaceType.h"
+#include "GameData/QLItemType.h"
 #include "GameplayEffectTypes.h"
 #include "Components/TimelineComponent.h"
 #include "QLCharacterPlayer.generated.h"
@@ -187,11 +188,9 @@ protected:
 
 	void FarmingItem();
 	void EquipWeapon(class AQLItem* ItemInfo);
-	void DrinkStaminaPotion(class AQLItem* ItemInfo);
+	void GetItem(class AQLItem* ItemInfo);
 	void HasLifeStone(class AQLItem* ItemInfo);
 	void GetAmmo(class AQLItem* IItemInfo);
-	void DrinkHPPotion(class AQLItem* ItemInfo);
-	void UseDiscoveryItem(class AQLItem* ItemInfo);
 
 	//Take
 	UPROPERTY()
@@ -283,8 +282,14 @@ protected:
 
 protected:
 	//Inventory Section
+
 	void SetInventory();
+	//UFUNCTION(NetMulticast, Reliable)
+	//void MulticastRPCAddItem();
 
 	uint8 bIsSetVisibleInventory : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item, Meta = (AllowPrivateAccess = "true"))
+	TMap<EItemType,int32> InventoryItem;
 
 };

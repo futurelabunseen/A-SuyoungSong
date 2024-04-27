@@ -15,6 +15,9 @@ class QUADLAND_API UQLListItemEntry : public UUserWidget , public IUserObjectLis
 {
 	GENERATED_BODY()
 
+public:
+
+	virtual void SetItemCntTxt(int32 ItemCnt);
 protected:
 	virtual void NativeConstruct() override;
 	/** Follows the same pattern as the NativeOn[X] methods in UUserWidget - super calls are expected in order to route the event to BP. */
@@ -31,5 +34,4 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class UTextBlock> TxtItemCnt;
-
 };

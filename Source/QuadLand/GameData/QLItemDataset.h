@@ -18,7 +18,6 @@ public:
 
 	class UQLItemData* GetItem(int id);
 
-protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	TArray<TObjectPtr<class UQLItemData>> ItemList;
 

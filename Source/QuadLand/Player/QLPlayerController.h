@@ -4,36 +4,31 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "UI/QLUIType.h"
 #include "AbilitySystemInterface.h"
 #include "QLPlayerController.generated.h"
 
 /**
  * 
  */
-UENUM()
-enum class EHUDType : uint8
-{
-	None,
-	CrossHair,
-	HUD,
-	Inventory
-};
+
 UCLASS()
 class QUADLAND_API AQLPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
 public:
-	void SetVisibilityCrossHair();
-	void SetHiddenCrossHair();
-	void SetVisibilityInventory();
-	void SetHiddenInventory();
+	void SetVisibilityHUD(EHUDType UItype);
+	void SetHiddenHUD(EHUDType UItype);
 
 	const class UUserWidget* GetCrossHairUIWidget() const { return HUDs[EHUDType::CrossHair]; }
 	class UUserWidget* GetPlayerUIWidget() const { return HUDs[EHUDType::HUD]; }
-	virtual void BeginPlay() override;
 
 	void CreateHUD();
+
+	void AddItemEntry(UObject* Item); //아이템이 생김 - Stat을 넘기자
+	void UpdateItemEntry(UObject* Item, int32 CurrentItemCnt);
+	void RemoveItemEntry(int8 ItemIdx); //선택된 arr값 - id를 넘겨서 제거하자
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)

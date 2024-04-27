@@ -17,6 +17,7 @@
 
 #include "GameplayTag/GamplayTags.h"
 #include "Item/QLItemBox.h"
+#include "UI/QLUIType.h"
 #include "Item/QLItem.h"
 #include "Player/QLPlayerState.h"
 #include "Player/QLPlayerController.h"
@@ -153,9 +154,9 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this,&AQLCharacterPlayer::EquipWeapon)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::HasLifeStone)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetAmmo)));
-	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::DrinkStaminaPotion)));
-	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::DrinkHPPotion)));
-	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::UseDiscoveryItem)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetItem)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetItem)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetItem)));
 
 	static ConstructorHelpers::FObjectFinder<UCurveFloat> AimCurveRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/AimAlpha.AimAlpha'"));
 
@@ -262,8 +263,7 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Look);
 
-	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::FarmingItemPressed);
-	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::FarmingItemReleased);
+	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::FarmingItemPressed);
 
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::JumpPressed);
 
@@ -273,7 +273,9 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::StopAiming);
 
 	EnhancedInputComponent->BindAction(PutLifeStoneAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::PutLifeStone);
+
 	EnhancedInputComponent->BindAction(PutWeaponAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::PutWeapon);
+
 	EnhancedInputComponent->BindAction(VisibilityInventoryAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::SetInventory);
 
 	//PutLifeStone 
@@ -323,15 +325,12 @@ UAbilitySystemComponent* AQLCharacterPlayer::GetAbilitySystemComponent() const
 void AQLCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	FarmingItem();
 	RotateBornSetting(DeltaSeconds);
 }
 
 void AQLCharacterPlayer::FarmingItem()
 {
-	if (HasAuthority())
-	{
+	
 		bool bResult = false;
 		FHitResult OutHitResult;
 
@@ -356,9 +355,9 @@ void AQLCharacterPlayer::FarmingItem()
 		{
 			return;
 		}
+
 		if (bResult)
 		{
-			//PC->SetVisibilityCrossHair();
 			if (bPressedFarmingKey) //꼭 무기라고 단정 지을 수는 없음. 
 			{
 				AQLItem* Item = Cast<AQLItem>(OutHitResult.GetActor());
@@ -373,16 +372,7 @@ void AQLCharacterPlayer::FarmingItem()
 				TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item);
 			}
 		}
-		else
-		{
-			//PC->SetHiddenCrossHair();
-		}
-
-		if (HasAuthority())
-		{
-			bPressedFarmingKey = false;
-		}
-	}
+	
 }
 
 void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
@@ -446,36 +436,42 @@ void AQLCharacterPlayer::GetAmmo(AQLItem* ItemInfo)
 		QL_LOG(QLNetLog, Log, TEXT("Get Ammo"));
 		PS->SetAmmoStat(AmmoItem->AmmoCnt);
 	}
+	GetItem(ItemInfo);
 }
 
-void AQLCharacterPlayer::DrinkStaminaPotion(AQLItem* ItemInfo)
+void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 {
-	UQLRecoveryData* RecoveryItemData = Cast<UQLRecoveryData>(ItemInfo->Stat);
-	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	if (HasAuthority())
+	UQLItemData* ItemData = Cast<UQLItemData>(ItemInfo->Stat);
+	AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner());
+
+	if (PC->IsLocalController())
 	{
-		PS->AddStaminaStat(RecoveryItemData->RecoveryRate);
-	}
-}
+		int32 ItemCnt = 1;
+		if (!InventoryItem.Find(ItemData->ItemType))
+		{
+			InventoryItem.Add(ItemData->ItemType, ItemCnt);
+			ItemData->CurrentItemCnt = ItemCnt;
+			PC->AddItemEntry(ItemData);
+		}
+		else
+		{
+			ItemCnt = ++InventoryItem[ItemData->ItemType];
+			PC->UpdateItemEntry(ItemData, ItemCnt);
+		}
 
-void AQLCharacterPlayer::DrinkHPPotion(AQLItem* ItemInfo)
-{
-	UQLRecoveryData* RecoveryItemData = Cast<UQLRecoveryData>(ItemInfo->Stat);
-	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	if (RecoveryItemData && HasAuthority())
-	{
-		PS->AddHPStat(RecoveryItemData->RecoveryRate);
+		QL_LOG(QLNetLog, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, ItemCnt);
 	}
-}
-
-void AQLCharacterPlayer::UseDiscoveryItem(AQLItem* ItemInfo)
-{
-	QL_LOG(QLNetLog, Log, TEXT("Use Discovery Item"));
 }
 
 void AQLCharacterPlayer::ServerRPCFarming_Implementation()
 {
-	bPressedFarmingKey = !bPressedFarmingKey;
+	bPressedFarmingKey = true;
+	
+	if (bPressedFarmingKey)
+	{
+		FarmingItem();
+		bPressedFarmingKey = false;
+	}
 }
 
 void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* WeaponStat)
@@ -584,11 +580,7 @@ void AQLCharacterPlayer::FarmingItemPressed()
 	ServerRPCFarming();
 	
 }
-void AQLCharacterPlayer::FarmingItemReleased()
-{
-	//ServerRPC호출
-	ServerRPCFarming();
-}
+
 float AQLCharacterPlayer::CalculateSpeed()
 {
 	FVector Velocity = GetVelocity();
@@ -825,20 +817,17 @@ void AQLCharacterPlayer::SetInventory()
 {
 	
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
-
+	bIsSetVisibleInventory = !bIsSetVisibleInventory;
 	if (PlayerController)
 	{
-		if (!bIsSetVisibleInventory)
+		if (bIsSetVisibleInventory)
 		{
-			PlayerController->SetVisibilityInventory();
-			bIsSetVisibleInventory = true;
+			PlayerController->SetVisibilityHUD(EHUDType::Inventory);
 		}
 		else
 		{
-			PlayerController->SetHiddenInventory();
-			bIsSetVisibleInventory = false;
+			PlayerController->SetHiddenHUD(EHUDType::Inventory);
 		}
-
 	}
 }
 
