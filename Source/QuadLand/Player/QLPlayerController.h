@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "UI/QLUIType.h"
+#include "GameData/QLItemType.h"
 #include "AbilitySystemInterface.h"
 #include "QLPlayerController.generated.h"
 
@@ -28,7 +29,7 @@ public:
 
 	void AddItemEntry(UObject* Item); //아이템이 생김 - Stat을 넘기자
 	void UpdateItemEntry(UObject* Item, int32 CurrentItemCnt);
-	void RemoveItemEntry(int8 ItemIdx); //선택된 arr값 - id를 넘겨서 제거하자
+	void RemoveItemEntry(EItemType ItemIdx,int32 ItemCnt); //선택된 arr값 - id를 넘겨서 제거하자
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
@@ -37,4 +38,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
 	TMap<EHUDType, TObjectPtr<class UUserWidget>> HUDs;
 
+	UFUNCTION(BlueprintCallable)
+	void CloseInventory();
 };

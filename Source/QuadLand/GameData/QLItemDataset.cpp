@@ -3,11 +3,7 @@
 
 #include "GameData/QLItemDataset.h"
 
-UQLItemData* UQLItemDataset::GetItem(int id)
+UQLItemData* UQLItemDataset::GetItem(EItemType ItemId)
 {
-	if (ItemList.Num() <= id)
-	{
-		return nullptr;
-	}
-	return ItemList[id];
+	return ItemList[ItemId];
 }

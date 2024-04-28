@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameData/QLItemType.h"
 #include "Engine/DataAsset.h"
 #include "QLItemDataset.generated.h"
 
@@ -16,9 +17,9 @@ class QUADLAND_API UQLItemDataset : public UDataAsset
 	
 public:
 
-	class UQLItemData* GetItem(int id);
+	class UQLItemData* GetItem(EItemType ItemId);
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	TArray<TObjectPtr<class UQLItemData>> ItemList;
+	TMap<EItemType,TObjectPtr<class UQLItemData>> ItemList;
 
 };

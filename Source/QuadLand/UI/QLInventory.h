@@ -13,19 +13,19 @@ UCLASS()
 class QUADLAND_API UQLInventory : public UUserWidget
 {
 	GENERATED_BODY()
-	
-
-protected:
-	virtual void NativeConstruct() override;
 
 public:
-
+	UQLInventory(const FObjectInitializer& ObjectInitializer);
 	UPROPERTY(meta = (BindWidget)) //자동으로 연결되나봄..!
 	TObjectPtr<class UListView> ItemList;
 
 
 	void AddItem(UObject* Item);
 	void UpdateItemEntry(UObject* Item, int32 InItemCnt);
+
+	UFUNCTION(BlueprintCallable)
+	void OnClickedItem();
+	
 	void DeleteItem(UObject* Item);
 
 };

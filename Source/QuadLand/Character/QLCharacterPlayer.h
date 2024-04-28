@@ -280,16 +280,22 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRPCPuttingWeapon();
 
-protected:
 	//Inventory Section
 
-	void SetInventory();
-	UFUNCTION(Client , Reliable)
+protected:
+	UFUNCTION(Client, Reliable)
 	void ClientRPCAddItem(AQLItem* ItemInfo);
 
 	uint8 bIsSetVisibleInventory : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item, Meta = (AllowPrivateAccess = "true"))
-	TMap<EItemType,int32> InventoryItem;
+	TMap<EItemType, int32> InventoryItem;
+
+public:
+	UFUNCTION(Server, WithValidation, Reliable)
+	void ServerRPCRemoveItem(EItemType ItemId, int32 ItemCnt);
+
+	UFUNCTION(BlueprintCallable)
+	void SetInventory();
 
 };
