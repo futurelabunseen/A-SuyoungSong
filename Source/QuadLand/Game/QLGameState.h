@@ -22,12 +22,8 @@ public:
 	UFUNCTION()
 	void GetWinner(const FGameplayTag CallbackTag, int32 NewCount);
 
-	class UQLItemData* GetItemStat(int8 id);
 protected:
 	int LivePlayerCount; //PlayerDieStatus.Num 값이랑 동일
 
 	TMap<FName, bool> PlayerDieStatus;
-	
-	UPROPERTY()
-	TObjectPtr<class UQLItemDataset> ItemSet;
 };

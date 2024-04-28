@@ -26,6 +26,7 @@
 #include "GameData/QLWeaponStat.h"
 #include "GameData/QLAmmoData.h"
 #include "GameData/QLRecoveryData.h"
+#include "GameData/QLDataManager.h"
 #include "Item/QLWeaponComponent.h"
 #include "QLCharacterMovementComponent.h"
 
@@ -330,49 +331,49 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 
 void AQLCharacterPlayer::FarmingItem()
 {
-	
-		bool bResult = false;
-		FHitResult OutHitResult;
+	//드래그엔 드롭 방식은 이 파밍 아이템 사용 안할 예정. 
+	bool bResult = false;
+	FHitResult OutHitResult;
 
-		FVector CameraLocStart = CalPlayerLocalCameraStartPos(); //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
+	FVector CameraLocStart = CalPlayerLocalCameraStartPos(); //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
 
-		FVector LocEnd = CameraLocStart + (GetCameraForward() * FarmingTraceDist);
+	FVector LocEnd = CameraLocStart + (GetCameraForward() * FarmingTraceDist);
 
-		FCollisionQueryParams Params(SCENE_QUERY_STAT(ItemFarmingLineTrace), false, this); //식별자 
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(ItemFarmingLineTrace), false, this); //식별자 
 
-		bResult = GetWorld()->LineTraceSingleByChannel(
-			OutHitResult,
-			CameraLocStart,
-			LocEnd,
-			CCHANNEL_QLITEMACTION,
-			Params
-		);
+	bResult = GetWorld()->LineTraceSingleByChannel(
+		OutHitResult,
+		CameraLocStart,
+		LocEnd,
+		CCHANNEL_QLITEMACTION,
+		Params
+	);
 
 
-		AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
+	AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
 
-		if (!PC)
+	if (!PC)
+	{
+		return;
+	}
+
+	if (bResult)
+	{
+		if (bPressedFarmingKey) //꼭 무기라고 단정 지을 수는 없음. 
 		{
-			return;
-		}
-
-		if (bResult)
-		{
-			if (bPressedFarmingKey) //꼭 무기라고 단정 지을 수는 없음. 
+			AQLItem* Item = Cast<AQLItem>(OutHitResult.GetActor());
+			if (Item == nullptr || Item->Stat == nullptr)
 			{
-				AQLItem* Item = Cast<AQLItem>(OutHitResult.GetActor());
-
-				if (Item == nullptr || Item->Stat == nullptr)
-				{
-					QL_LOG(QLNetLog, Warning, TEXT("Item is not founded"));
-					return;
-				}
-				UE_LOG(LogTemp, Warning, TEXT("Item Type %d"), Item->Stat->ItemType);
-				
-				TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item);
+				QL_LOG(QLNetLog, Warning, TEXT("Item is not founded"));
+				return;
 			}
+			UE_LOG(LogTemp, Warning, TEXT("Item Type %d"), Item->Stat->ItemType);
+
+			TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item);
 		}
-	
+	}
+	QL_LOG(QLNetLog, Warning, TEXT("Item is not founded %d"), bPressedFarmingKey);
+	//파밍키 타이머로 3초 뒤 해제 
 }
 
 void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
@@ -404,26 +405,23 @@ void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 
 	FString ItemOwner = ItemInfo->GetOwner()->GetName(); //Owner -> PlayerState로 지정 ASC에 접근 가능하도록 변환
 	FString CurrentGetOwner = PS->GetName();
-	if (HasAuthority())
+	ItemInfo->SetActorEnableCollision(false);
+	ItemInfo->SetActorHiddenInGame(true);
+	ItemInfo->SetLifeSpan(3.f);
+
+	if (ItemOwner == CurrentGetOwner)
 	{
-		ItemInfo->SetActorEnableCollision(false);
-		ItemInfo->SetActorHiddenInGame(true);
-		ItemInfo->SetLifeSpan(3.f);
+		PS->SetHasLifeStone(true);
+		return;
+	}
 
-		if (ItemOwner == CurrentGetOwner)
-		{
-			PS->SetHasLifeStone(true);
-			return;
-		}
+	//다르면 Dead 태그 부착
+	UAbilitySystemComponent* ItemASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ItemInfo->GetOwner());
 
-		//다르면 Dead 태그 부착
-		UAbilitySystemComponent* ItemASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ItemInfo->GetOwner());
-
-		if (ItemASC)
-		{
-			ItemASC->AddLooseGameplayTag(CHARACTER_STATE_DEAD);
-			QL_LOG(QLLog, Warning, TEXT("TargetASC is Dead"));
-		}
+	if (ItemASC)
+	{
+		ItemASC->AddLooseGameplayTag(CHARACTER_STATE_DEAD);
+		QL_LOG(QLLog, Warning, TEXT("TargetASC is Dead"));
 	}
 }
 
@@ -431,11 +429,8 @@ void AQLCharacterPlayer::GetAmmo(AQLItem* ItemInfo)
 {
 	UQLAmmoData* AmmoItem = Cast<UQLAmmoData>(ItemInfo->Stat);
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	if (HasAuthority())
-	{
-		QL_LOG(QLNetLog, Log, TEXT("Get Ammo"));
-		PS->SetAmmoStat(AmmoItem->AmmoCnt);
-	}
+	QL_LOG(QLNetLog, Log, TEXT("Get Ammo"));
+	PS->SetAmmoStat(AmmoItem->AmmoCnt);
 	GetItem(ItemInfo);
 }
 
@@ -444,34 +439,41 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 	UQLItemData* ItemData = Cast<UQLItemData>(ItemInfo->Stat);
 	AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner());
 
-	if (PC->IsLocalController())
+	int32 ItemCnt = 1;
+	if (!InventoryItem.Find(ItemData->ItemType))
 	{
-		int32 ItemCnt = 1;
-		if (!InventoryItem.Find(ItemData->ItemType))
-		{
-			InventoryItem.Add(ItemData->ItemType, ItemCnt);
-			ItemData->CurrentItemCnt = ItemCnt;
-			PC->AddItemEntry(ItemData);
-		}
-		else
-		{
-			ItemCnt = ++InventoryItem[ItemData->ItemType];
-			PC->UpdateItemEntry(ItemData, ItemCnt);
-		}
-
-		QL_LOG(QLNetLog, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, ItemCnt);
+		InventoryItem.Add(ItemData->ItemType, ItemCnt);
+		ItemData->CurrentItemCnt = ItemCnt;
+		PC->AddItemEntry(ItemData);
 	}
+	else
+	{
+		ItemCnt = ++InventoryItem[ItemData->ItemType];
+		PC->UpdateItemEntry(ItemData, ItemCnt);
+	}
+	QL_LOG(QLNetLog, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, ItemCnt);
+
+
+	ClientRPCAddItem(ItemInfo);
 }
 
 void AQLCharacterPlayer::ServerRPCFarming_Implementation()
 {
+	if (bPressedFarmingKey) return;
+
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	FTimerHandle ItemMotionTimer;
+	GetWorld()->GetTimerManager().SetTimer(ItemMotionTimer, FTimerDelegate::CreateLambda([&]()
+		{
+			bPressedFarmingKey = false;
+			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		}
+	), 1.5f, false);
+
 	bPressedFarmingKey = true;
+	FarmingItem();
 	
-	if (bPressedFarmingKey)
-	{
-		FarmingItem();
-		bPressedFarmingKey = false;
-	}
+	QL_LOG(QLNetLog, Warning, TEXT("Pickup Item"));
 }
 
 void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* WeaponStat)
@@ -813,21 +815,78 @@ void AQLCharacterPlayer::PutWeapon()
 	ServerRPCPuttingWeapon();
 }
 
+bool AQLCharacterPlayer::ServerRPCRemoveItem_Validate(EItemType ItemId, int32 ItemCnt)
+{
+	if (InventoryItem.Find(ItemId) == false)
+	{
+		QL_LOG(QLNetLog, Warning, TEXT("Index is currently exceeded"));
+		return false;
+	}
+
+	if (InventoryItem[ItemId] != ItemCnt)
+	{
+		QL_LOG(QLNetLog, Warning, TEXT("The number of items does not match."));
+		return false;
+	}
+	return true;
+}
+/* 버그 수정해라 */
+void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType ItemId, int32 ItemCnt)
+{
+	QL_LOG(QLNetLog, Warning, TEXT("found a matching item"));
+
+	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+	UQLDataManager *DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	//아이템을 보관하고 있는 Manager 가져온다.
+	if (DataManager)
+	{
+		UQLItemData* ItemInfo = DataManager->GetItem(ItemId);
+		switch (ItemId)
+		{
+		case EItemType::StaminaRecoveryItem:
+			break;
+		case EItemType::HPRecoveryItem:
+			break;
+		case EItemType::DiscoveryItem:
+			break;
+		}
+		InventoryItem[ItemId]--; //하나 사용
+	}
+}
+
 void AQLCharacterPlayer::SetInventory()
 {
-	
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
-	bIsSetVisibleInventory = !bIsSetVisibleInventory;
 	if (PlayerController)
 	{
-		if (bIsSetVisibleInventory)
+		FInputModeUIOnly UIOnlyInputMode;
+		PlayerController->SetVisibilityHUD(EHUDType::Inventory);
+		PlayerController->bShowMouseCursor = true;
+		PlayerController->SetInputMode(UIOnlyInputMode);
+	}
+}
+
+void AQLCharacterPlayer::ClientRPCAddItem_Implementation(AQLItem* ItemInfo)
+{
+
+	if (HasAuthority() == false) //Server에서 이미 삽입했음.
+	{
+		UQLItemData* ItemData = Cast<UQLItemData>(ItemInfo->Stat);
+		AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner());
+
+		int32 ItemCnt = 1;
+		if (!InventoryItem.Find(ItemData->ItemType))
 		{
-			PlayerController->SetVisibilityHUD(EHUDType::Inventory);
+			InventoryItem.Add(ItemData->ItemType, ItemCnt);
+			ItemData->CurrentItemCnt = ItemCnt;
+			PC->AddItemEntry(ItemData);
 		}
 		else
 		{
-			PlayerController->SetHiddenHUD(EHUDType::Inventory);
+			ItemCnt = ++InventoryItem[ItemData->ItemType];
+			PC->UpdateItemEntry(ItemData, ItemCnt);
 		}
+		QL_LOG(QLNetLog, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, ItemCnt);
 	}
 }
 

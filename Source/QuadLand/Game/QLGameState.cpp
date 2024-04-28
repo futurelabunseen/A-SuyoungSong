@@ -12,7 +12,6 @@
 AQLGameState::AQLGameState()
 {
 	LivePlayerCount = 0;
-	ItemSet = CreateDefaultSubobject<UQLItemDataset>(TEXT("ItemDataset"));
 }
 
 void AQLGameState::AddPlayerState(APlayerState* PlayerState)
@@ -85,9 +84,4 @@ void AQLGameState::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 	}
 
 	
-}
-
-UQLItemData* AQLGameState::GetItemStat(int8 id)
-{
-	return ItemSet->GetItem(id);
 }

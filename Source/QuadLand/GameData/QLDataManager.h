@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameData/QLItemType.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "QLDataManager.generated.h"
 
@@ -17,9 +18,7 @@ class QUADLAND_API UQLDataManager : public UWorldSubsystem
 public:
 	UQLDataManager();
 
-	UFUNCTION(BlueprintCallable)
-	void PrintItemList();
-
+	class UQLItemData* GetItem(EItemType ItemId);
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 

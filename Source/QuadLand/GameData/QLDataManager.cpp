@@ -15,15 +15,9 @@ UQLDataManager::UQLDataManager()
 	}
 }
 
-void UQLDataManager::PrintItemList()
+UQLItemData* UQLDataManager::GetItem(EItemType ItemId)
 {
-	if (ItemDataManager)
-	{
-		for (const auto& ItemData : ItemDataManager->ItemList)
-		{
-			UE_LOG(LogTemp, Log, TEXT("%d"), ItemData->ItemType);
-		}
-	}
+	return ItemDataManager->GetItem(ItemId);
 }
 
 void UQLDataManager::Initialize(FSubsystemCollectionBase& Collection)
