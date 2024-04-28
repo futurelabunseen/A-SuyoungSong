@@ -67,6 +67,7 @@ public:
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 	FORCEINLINE bool GetIsReload() const { return bIsReload; }
 	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
+	FORCEINLINE bool GetPickup() const { return bPressedFarmingKey; }
 
 	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
 
@@ -181,6 +182,7 @@ protected:
 
 	UPROPERTY(Replicated) //복제만 수행하면 된다.
 	uint8 bPressedFarmingKey : 1;
+
 	int32 FarmingTraceDist;
 
 	void FarmingItemPressed();
@@ -191,7 +193,6 @@ protected:
 	void GetItem(class AQLItem* ItemInfo);
 	void HasLifeStone(class AQLItem* ItemInfo);
 	void GetAmmo(class AQLItem* IItemInfo);
-
 	//Take
 	UPROPERTY()
 	TArray<FTakeItemDelegateWrapper> TakeItemActions;
@@ -260,7 +261,6 @@ protected:
 
 	UFUNCTION()
 	void InitializeAttributes();
-//	void ReduceStamina();
 
 protected:
 

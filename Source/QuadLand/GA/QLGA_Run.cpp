@@ -17,7 +17,7 @@ UQLGA_Run::UQLGA_Run()
 //Client로부터 입력이 들어옴
 void UQLGA_Run::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
-	//StopStamina();
+	StopStamina();
 	ServerRPCStop();
 }
 

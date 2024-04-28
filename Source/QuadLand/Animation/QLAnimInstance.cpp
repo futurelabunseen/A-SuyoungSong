@@ -47,5 +47,6 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		//AimSpeedRate = Player->GetIsRunning()? 1.0f : 1.5f;
 		RootYawOffset = Player->GetCurrnetYaw();
 		TurningInPlaceType = Player->GetTurningInPlaceType();
+		bIsPickup = Player->GetPickup();
 	}
 }

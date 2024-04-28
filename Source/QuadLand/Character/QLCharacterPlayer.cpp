@@ -331,49 +331,49 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 
 void AQLCharacterPlayer::FarmingItem()
 {
-	
-		bool bResult = false;
-		FHitResult OutHitResult;
+	//드래그엔 드롭 방식은 이 파밍 아이템 사용 안할 예정. 
+	bool bResult = false;
+	FHitResult OutHitResult;
 
-		FVector CameraLocStart = CalPlayerLocalCameraStartPos(); //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
+	FVector CameraLocStart = CalPlayerLocalCameraStartPos(); //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
 
-		FVector LocEnd = CameraLocStart + (GetCameraForward() * FarmingTraceDist);
+	FVector LocEnd = CameraLocStart + (GetCameraForward() * FarmingTraceDist);
 
-		FCollisionQueryParams Params(SCENE_QUERY_STAT(ItemFarmingLineTrace), false, this); //식별자 
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(ItemFarmingLineTrace), false, this); //식별자 
 
-		bResult = GetWorld()->LineTraceSingleByChannel(
-			OutHitResult,
-			CameraLocStart,
-			LocEnd,
-			CCHANNEL_QLITEMACTION,
-			Params
-		);
+	bResult = GetWorld()->LineTraceSingleByChannel(
+		OutHitResult,
+		CameraLocStart,
+		LocEnd,
+		CCHANNEL_QLITEMACTION,
+		Params
+	);
 
 
-		AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
+	AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
 
-		if (!PC)
+	if (!PC)
+	{
+		return;
+	}
+
+	if (bResult)
+	{
+		if (bPressedFarmingKey) //꼭 무기라고 단정 지을 수는 없음. 
 		{
-			return;
-		}
-
-		if (bResult)
-		{
-			if (bPressedFarmingKey) //꼭 무기라고 단정 지을 수는 없음. 
+			AQLItem* Item = Cast<AQLItem>(OutHitResult.GetActor());
+			if (Item == nullptr || Item->Stat == nullptr)
 			{
-				AQLItem* Item = Cast<AQLItem>(OutHitResult.GetActor());
-
-				if (Item == nullptr || Item->Stat == nullptr)
-				{
-					QL_LOG(QLNetLog, Warning, TEXT("Item is not founded"));
-					return;
-				}
-				UE_LOG(LogTemp, Warning, TEXT("Item Type %d"), Item->Stat->ItemType);
-				
-				TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item);
+				QL_LOG(QLNetLog, Warning, TEXT("Item is not founded"));
+				return;
 			}
+			UE_LOG(LogTemp, Warning, TEXT("Item Type %d"), Item->Stat->ItemType);
+
+			TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item);
 		}
-	
+	}
+	QL_LOG(QLNetLog, Warning, TEXT("Item is not founded %d"), bPressedFarmingKey);
+	//파밍키 타이머로 3초 뒤 해제 
 }
 
 void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
@@ -459,13 +459,21 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 
 void AQLCharacterPlayer::ServerRPCFarming_Implementation()
 {
+	if (bPressedFarmingKey) return;
+
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	FTimerHandle ItemMotionTimer;
+	GetWorld()->GetTimerManager().SetTimer(ItemMotionTimer, FTimerDelegate::CreateLambda([&]()
+		{
+			bPressedFarmingKey = false;
+			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		}
+	), 1.5f, false);
+
 	bPressedFarmingKey = true;
+	FarmingItem();
 	
-	if (bPressedFarmingKey)
-	{
-		FarmingItem();
-		bPressedFarmingKey = false;
-	}
+	QL_LOG(QLNetLog, Warning, TEXT("Pickup Item"));
 }
 
 void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* WeaponStat)
