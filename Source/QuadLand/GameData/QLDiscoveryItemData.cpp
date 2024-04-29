@@ -3,3 +3,7 @@
 
 #include "GameData/QLDiscoveryItemData.h"
 
+float UQLDiscoveryItemData::GetStat()
+{
+    return DiscoverySec;
+}
