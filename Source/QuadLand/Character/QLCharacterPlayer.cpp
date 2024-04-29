@@ -25,7 +25,7 @@
 #include "Physics/QLCollision.h"
 #include "GameData/QLWeaponStat.h"
 #include "GameData/QLAmmoData.h"
-#include "GameData/QLRecoveryData.h"
+#include "Interface/QLGetItemStat.h"
 #include "GameData/QLDataManager.h"
 #include "Item/QLWeaponComponent.h"
 #include "QLCharacterMovementComponent.h"
@@ -433,28 +433,102 @@ void AQLCharacterPlayer::GetAmmo(AQLItem* ItemInfo)
 	PS->SetAmmoStat(AmmoItem->AmmoCnt);
 	GetItem(ItemInfo);
 }
-
+//Server Section
 void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 {
 	UQLItemData* ItemData = Cast<UQLItemData>(ItemInfo->Stat);
-	AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner());
-
+	
 	int32 ItemCnt = 1;
 	if (!InventoryItem.Find(ItemData->ItemType))
 	{
 		InventoryItem.Add(ItemData->ItemType, ItemCnt);
-		ItemData->CurrentItemCnt = ItemCnt;
-		PC->AddItemEntry(ItemData);
 	}
 	else
 	{
-		ItemCnt = ++InventoryItem[ItemData->ItemType];
-		PC->UpdateItemEntry(ItemData, ItemCnt);
+		ItemCnt = ++InventoryItem[ItemData->ItemType]; //없으면 0을 리턴
 	}
+
 	QL_LOG(QLNetLog, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, ItemCnt);
+	ClientRPCAddItem(ItemData,ItemCnt);
+}
+//Client Section
+void AQLCharacterPlayer::ClientRPCAddItem_Implementation(UQLItemData* ItemData, int32 ItemCnt)
+{
+	AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner());
 
+	if (!InventoryItem.Find(ItemData->ItemType))
+	{
+		InventoryItem.Add(ItemData->ItemType, ItemCnt);
+	}
+	else
+	{
+		InventoryItem[ItemData->ItemType] = ItemCnt;
+	}
 
-	ClientRPCAddItem(ItemInfo);
+	ItemData->CurrentItemCnt = ItemCnt;
+	PC->UpdateItemEntry(ItemData, ItemCnt);
+}
+
+bool AQLCharacterPlayer::ServerRPCRemoveItem_Validate(EItemType ItemId, int32 ItemCnt)
+{
+	if (InventoryItem.Find(ItemId) == false)
+	{
+		QL_LOG(QLNetLog, Warning, TEXT("Index is currently exceeded"));
+		return false;
+	}
+
+	if (InventoryItem[ItemId] != ItemCnt)
+	{
+		QL_LOG(QLNetLog, Warning, TEXT("The number of items does not match."));
+		return false;
+	}
+	return true;
+}
+/* 버그 수정해라 */
+void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType ItemId, int32 ItemCnt)
+{
+	QL_LOG(QLNetLog, Warning, TEXT("found a matching item"));
+
+	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	//아이템을 보관하고 있는 Manager 가져온다.
+
+	UQLItemData* ItemData = DataManager->GetItem(ItemId);
+	IQLGetItemStat* ItemStat = Cast<IQLGetItemStat>(ItemData);
+
+	if (ItemStat == nullptr)
+	{
+		//총알도 아이템으로 넣어놓자
+		return;
+	}
+	if (DataManager)
+	{
+		//QL_LOG(QLNetLog, Warning, TEXT("Current Selected Item %d"), ItemInfo->ItemType);
+		switch (ItemId)
+		{
+		case EItemType::StaminaRecoveryItem:
+			PS->AddStaminaStat(ItemStat->GetStat());
+			break;
+		case EItemType::HPRecoveryItem:
+			PS->AddHPStat(ItemStat->GetStat());
+			break;
+		case EItemType::DiscoveryItem:
+			break;
+		}
+		InventoryItem[ItemId]--; //하나 사용
+
+		ClientRPCRemoveItem(ItemData, InventoryItem[ItemId]); //클라랑 서버랑 개수 일치
+	}
+}
+
+void AQLCharacterPlayer::ClientRPCRemoveItem_Implementation(UQLItemData* Item, int32 ItemCnt)
+{
+	AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner());
+
+	InventoryItem[Item->ItemType] = ItemCnt;
+	Item->CurrentItemCnt = ItemCnt;
+	PC->UpdateItemEntry(Item, ItemCnt);
+	QL_LOG(QLNetLog, Warning, TEXT("update? %s"), *Item->ItemName);
 }
 
 void AQLCharacterPlayer::ServerRPCFarming_Implementation()
@@ -815,45 +889,6 @@ void AQLCharacterPlayer::PutWeapon()
 	ServerRPCPuttingWeapon();
 }
 
-bool AQLCharacterPlayer::ServerRPCRemoveItem_Validate(EItemType ItemId, int32 ItemCnt)
-{
-	if (InventoryItem.Find(ItemId) == false)
-	{
-		QL_LOG(QLNetLog, Warning, TEXT("Index is currently exceeded"));
-		return false;
-	}
-
-	if (InventoryItem[ItemId] != ItemCnt)
-	{
-		QL_LOG(QLNetLog, Warning, TEXT("The number of items does not match."));
-		return false;
-	}
-	return true;
-}
-/* 버그 수정해라 */
-void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType ItemId, int32 ItemCnt)
-{
-	QL_LOG(QLNetLog, Warning, TEXT("found a matching item"));
-
-	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	UQLDataManager *DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
-	//아이템을 보관하고 있는 Manager 가져온다.
-	if (DataManager)
-	{
-		UQLItemData* ItemInfo = DataManager->GetItem(ItemId);
-		switch (ItemId)
-		{
-		case EItemType::StaminaRecoveryItem:
-			break;
-		case EItemType::HPRecoveryItem:
-			break;
-		case EItemType::DiscoveryItem:
-			break;
-		}
-		InventoryItem[ItemId]--; //하나 사용
-	}
-}
-
 void AQLCharacterPlayer::SetInventory()
 {
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
@@ -863,30 +898,6 @@ void AQLCharacterPlayer::SetInventory()
 		PlayerController->SetVisibilityHUD(EHUDType::Inventory);
 		PlayerController->bShowMouseCursor = true;
 		PlayerController->SetInputMode(UIOnlyInputMode);
-	}
-}
-
-void AQLCharacterPlayer::ClientRPCAddItem_Implementation(AQLItem* ItemInfo)
-{
-
-	if (HasAuthority() == false) //Server에서 이미 삽입했음.
-	{
-		UQLItemData* ItemData = Cast<UQLItemData>(ItemInfo->Stat);
-		AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner());
-
-		int32 ItemCnt = 1;
-		if (!InventoryItem.Find(ItemData->ItemType))
-		{
-			InventoryItem.Add(ItemData->ItemType, ItemCnt);
-			ItemData->CurrentItemCnt = ItemCnt;
-			PC->AddItemEntry(ItemData);
-		}
-		else
-		{
-			ItemCnt = ++InventoryItem[ItemData->ItemType];
-			PC->UpdateItemEntry(ItemData, ItemCnt);
-		}
-		QL_LOG(QLNetLog, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, ItemCnt);
 	}
 }
 

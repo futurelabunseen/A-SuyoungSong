@@ -3,3 +3,7 @@
 
 #include "QLRecoveryData.h"
 
+float UQLRecoveryData::GetStat()
+{
+    return RecoveryRate;
+}

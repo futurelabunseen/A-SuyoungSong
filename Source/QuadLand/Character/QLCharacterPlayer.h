@@ -284,7 +284,7 @@ protected:
 
 protected:
 	UFUNCTION(Client, Reliable)
-	void ClientRPCAddItem(AQLItem* ItemInfo);
+	void ClientRPCAddItem(UQLItemData* Item, int32 ItemCnt);
 
 	uint8 bIsSetVisibleInventory : 1;
 
@@ -294,6 +294,9 @@ protected:
 public:
 	UFUNCTION(Server, WithValidation, Reliable)
 	void ServerRPCRemoveItem(EItemType ItemId, int32 ItemCnt);
+
+	UFUNCTION(Client,Reliable)
+	void ClientRPCRemoveItem(UQLItemData* Item, int32 ItemCnt);
 
 	UFUNCTION(BlueprintCallable)
 	void SetInventory();
