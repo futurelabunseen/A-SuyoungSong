@@ -8,3 +8,8 @@ UQLAmmoData::UQLAmmoData()
 {
 	ItemType = EItemType::Ammo;
 }
+
+float UQLAmmoData::GetStat()
+{
+	return AmmoCnt;
+}
