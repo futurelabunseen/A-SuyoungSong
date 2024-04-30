@@ -21,4 +21,6 @@ AQLItemBox::AQLItemBox()
 
 	Mesh->SetRelativeLocationAndRotation(FVector(-20.0f, -10.0f, 0.f), FRotator(90.f, -90.f, 0.f)); //Weapon 기준이기 때문에 아이템에서는 변경 예정
 	Mesh->SetCollisionProfileName(TEXT("NoCollision"));
+
+	bReplicates = true;
 }
