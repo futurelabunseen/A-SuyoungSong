@@ -22,8 +22,4 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Mesh)
 	TObjectPtr<class UStaticMeshComponent> Mesh;
-
-	UPROPERTY(VisibleAnywhere, Category = Stage, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UBoxComponent> StageTrigger;
-
 };

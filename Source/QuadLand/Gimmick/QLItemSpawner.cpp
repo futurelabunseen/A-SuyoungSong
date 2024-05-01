@@ -6,11 +6,12 @@
 #include "Components/BoxComponent.h"
 #include "Item/QLItemBox.h"
 #include "Net/UnrealNetwork.h"
+#include "QuadLand.h"
 // Sets default values
 AQLItemSpawner::AQLItemSpawner()
 {
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Stage"));
-
+	Mesh->Mobility = EComponentMobility::Static;
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshRef(TEXT("/Script/Engine.StaticMesh'/Engine/MapTemplates/SM_Template_Map_Floor.SM_Template_Map_Floor'"));
 
 	if (MeshRef.Object)
@@ -18,26 +19,25 @@ AQLItemSpawner::AQLItemSpawner()
 		Mesh->SetStaticMesh(MeshRef.Object);
 	}
 
-	StageTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("StageTrigger"));
-	StageTrigger->SetBoxExtent(FVector(775.0, 775.0f, 300.0f));
-	StageTrigger->SetupAttachment(Mesh);
-	StageTrigger->SetRelativeLocation(FVector(0.0f, 0.0f, 250.0f));
-	//StageTrigger->SetCollisionProfileName(CPROFILE_ABTRIGGER);
-
+	RootComponent = Mesh;
 }
 
 // Called when the game starts or when spawned
 void AQLItemSpawner::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	for (const auto& ItemBox : ItemBoxClass)
+
+	QL_LOG(QLNetLog, Log, TEXT("Current ownership"));
+	if (HasAuthority()) //World 위치하기 때문에 Role로 체크
 	{
-		AQLItemBox * Item= NewObject<AQLItemBox>(this);
-		Item->SetReplicateMovement(true);
+		for (const auto& ItemBox : ItemBoxClass)
+		{
+			FVector Location = GetActorLocation(); //Possessed Pawn Position
+			Location.Z = 100.0f;
+			FActorSpawnParameters Params;
+			Params.Owner = this;
+			AQLItemBox* Item = GetWorld()->SpawnActor<AQLItemBox>(ItemBox.Key,Location, FRotator::ZeroRotator, Params);
+		}
 	}
 	
 }
-
-
-
