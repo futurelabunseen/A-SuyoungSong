@@ -32,11 +32,16 @@ void AQLItemSpawner::BeginPlay()
 	{
 		for (const auto& ItemBox : ItemBoxClass)
 		{
-			FVector Location = GetActorLocation(); //Possessed Pawn Position
-			Location.Z = 100.0f;
-			FActorSpawnParameters Params;
-			Params.Owner = this;
-			AQLItemBox* Item = GetWorld()->SpawnActor<AQLItemBox>(ItemBox.Key,Location, FRotator::ZeroRotator, Params);
+			int RandomCnt = FMath::RandRange(1.0f,ItemBox.Value); //int에 대해서 나오는 랜덤
+			
+			for (int Idx = 0; Idx < RandomCnt; Idx++)
+			{
+				FVector Location = GetActorLocation(); //Possessed Pawn Position
+				Location.Z = 100.0f;
+				FActorSpawnParameters Params;
+				Params.Owner = this;
+				AQLItemBox* Item = GetWorld()->SpawnActor<AQLItemBox>(ItemBox.Key, Location, FRotator::ZeroRotator, Params);
+			}
 		}
 	}
 	

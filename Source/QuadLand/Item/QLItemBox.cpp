@@ -9,7 +9,7 @@
 #include "QuadLand.h"
 
 // Sets default values
-AQLItemBox::AQLItemBox()
+AQLItemBox::AQLItemBox() : Power(100.0f), Radius(100.0f)
 {
 	Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
@@ -30,17 +30,28 @@ AQLItemBox::AQLItemBox()
 void AQLItemBox::BeginPlay()
 {
 	Super::BeginPlay();
+
 	if (HasAuthority())
 	{
-		float RandomImpulseX = FMath::FRandRange(-1000.0f, 1000.0f); // MaxImpulseX는 최대 힘의 크기
-		float RandomImpulseY = FMath::FRandRange(-1000.0f, 1000.0f); // MaxImpulseX는 최대 힘의 크기
-
-		// 생성된 힘을 X축 방향으로 적용하고, 다른 축은 0으로 설정합니다.
-		FVector Impulse = FVector(RandomImpulseX, RandomImpulseY, 0.0f);
-		Mesh->AddImpulse(Impulse);
+		InitPosition();
 	}
 }
 
+
+void AQLItemBox::InitPosition()
+{
+	FVector StartLoc = Mesh->GetRelativeLocation();
+
+	float Theta = FMath::FRandRange(-360.0f, 360.0f);
+
+	float XValue = Radius * FMath::Cos(Theta);
+	float YValue= Radius* FMath::Sin(Theta);
+
+	FVector TargetLoc(XValue, YValue, 0.0f); //방향
+	
+	Mesh->AddImpulse(TargetLoc * Power); //방향 * 힘
+
+}
 
 void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
@@ -48,10 +59,6 @@ void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector N
 	{
 		Trigger->SetSimulatePhysics(false);
 		Mesh->SetSimulatePhysics(false);
-
-		//UE_LOG(LogTemp, Warning, TEXT("Current Mesh Pos %s"), *Mesh->GetRelativeLocation().ToString());
-		//UE_LOG(LogTemp, Warning, TEXT("Current Trigger Pos %s"), *Trigger->GetRelativeLocation().ToString());
-
 		Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
 	}
 
