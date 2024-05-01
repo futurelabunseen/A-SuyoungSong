@@ -18,12 +18,8 @@ public:
 	void BeginPlay();
 protected:
 	UPROPERTY(EditAnywhere, Category = Item)
-	TMap<TSubclassOf<class AQLItemBox>, int32> ItemBoxClass; //int32 는 최대 숫자를 의미함.
+	TMap<TSubclassOf<class AQLItemBox>, float> ItemBoxClass; //int32 는 최대 숫자를 의미함.
 
 	UPROPERTY(VisibleAnywhere, Category = Mesh)
 	TObjectPtr<class UStaticMeshComponent> Mesh;
-
-	UPROPERTY(VisibleAnywhere, Category = Stage, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UBoxComponent> StageTrigger;
-
 };
