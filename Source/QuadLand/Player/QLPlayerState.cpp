@@ -41,6 +41,7 @@ UAbilitySystemComponent* AQLPlayerState::GetAbilitySystemComponent() const
 
 void AQLPlayerState::SetAmmoStat(float RemainingAmmoCnt)
 {
+    QL_LOG(QLNetLog, Warning, TEXT("this?"));
     if (HasAuthority() && RemainingAmmoCnt !=0.0f)
     {
         //현재 있는 개수 + RemainigAmmoCnt 

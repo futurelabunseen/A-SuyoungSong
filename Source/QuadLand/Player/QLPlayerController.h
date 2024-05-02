@@ -27,6 +27,9 @@ public:
 
 	void CreateHUD();
 
+	void AddNearbyItemEntry(UObject* Item); //아이템이 생김 - Stat을 넘기자
+
+
 	void AddItemEntry(UObject* Item); //아이템이 생김 - Stat을 넘기자
 	void UpdateItemEntry(UObject* Item, int32 CurrentItemCnt);
 	void RemoveItemEntry(EItemType ItemIdx,int32 ItemCnt); //선택된 arr값 - id를 넘겨서 제거하자

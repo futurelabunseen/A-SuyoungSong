@@ -27,7 +27,6 @@ void AQLItemSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
-	QL_LOG(QLNetLog, Log, TEXT("Current ownership"));
 	if (HasAuthority()) //World 위치하기 때문에 Role로 체크
 	{
 		for (const auto& ItemBox : ItemBoxClass)

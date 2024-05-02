@@ -301,4 +301,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetInventory();
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	float SearchRange;
+
 };
