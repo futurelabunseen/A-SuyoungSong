@@ -14,6 +14,8 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Abilities/GameplayAbility.h"
+#include "Components/SphereComponent.h"
+
 
 #include "GameplayTag/GamplayTags.h"
 #include "Item/QLItemBox.h"
@@ -44,18 +46,19 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	CameraSpringArm->TargetArmLength = MaxArmLength;
 	CameraSpringArm->SetupAttachment(RootComponent);
 	CameraSpringArm->bUsePawnControlRotation = true; //Pawn이동에 따라서 회전 예정
-	
+
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraSpringArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false; //spring Arm에 따라서 조절될 예정
 
-	CameraSpringArm->TargetArmLength =300.f;
-	CameraSpringArm->SetRelativeLocation(FVector(0.0f,30.0f,0.0f));
+	CameraSpringArm->TargetArmLength = 300.f;
+	CameraSpringArm->SetRelativeLocation(FVector(0.0f, 30.0f, 0.0f));
 	CameraSpringArm->SocketOffset = FVector(0.0f, 15.0f, 48.0f);
-	
+
 	// Weapon Component
 	Weapon = CreateDefaultSubobject<UQLWeaponComponent>(TEXT("Weapon"));
 	Weapon->Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
+
 	//EnhancedInput 연결
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Move.IA_Move'"));
 
@@ -75,7 +78,7 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 
 	if (AttackActionRef.Object)
 	{
-		AttackAction= AttackActionRef.Object;
+		AttackAction = AttackActionRef.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> RunActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Run.IA_Run'"));
@@ -142,7 +145,7 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 
 	bIsSetVisibleInventory = false;
 
-	
+
 	//InputContext Mapping
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextMappingRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/QuadLand/Inputs/IMC_Shoulder.IMC_Shoulder'"));
 
@@ -152,7 +155,7 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	}
 
 
-	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this,&AQLCharacterPlayer::EquipWeapon)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::EquipWeapon)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::HasLifeStone)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetAmmo)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetItem)));
@@ -268,7 +271,7 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::JumpPressed);
 
-	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, & AQLCharacterPlayer::PressedCrouch);
+	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::PressedCrouch);
 
 	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Aim);
 	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::StopAiming);
@@ -285,14 +288,14 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 
 void AQLCharacterPlayer::SetupGASInputComponent()
 {
-	if (IsValid(ASC)&&IsValid(InputComponent))
+	if (IsValid(ASC) && IsValid(InputComponent))
 	{
 		UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
 
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed, (int32)CurrentAttackType);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased, (int32)CurrentAttackType);
-		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed,2);
-		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased,2);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed, 2);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased, 2);
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed, 3);
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased, 3);
 	}
@@ -301,7 +304,7 @@ void AQLCharacterPlayer::SetCharacterControl()
 {
 
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	
+
 	if (PlayerController)
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* SubSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -372,12 +375,11 @@ void AQLCharacterPlayer::FarmingItem()
 			TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item);
 		}
 	}
-	QL_LOG(QLNetLog, Warning, TEXT("Item is not founded %d"), bPressedFarmingKey);
 	//파밍키 타이머로 3초 뒤 해제 
 }
 
 void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
-{ 
+{
 
 	if (InItem == nullptr) return;
 	QL_LOG(QLLog, Warning, TEXT("Equip Weapon"));
@@ -386,7 +388,7 @@ void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 	//Weapon 위치는 소켓 
 	UQLWeaponStat* WeaponStat = CastChecked<UQLWeaponStat>(InItemInfo); //부착
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	
+
 	if (ASC->HasMatchingGameplayTag(CHARACTER_EQUIP_GUNTYPEA))
 	{
 		return; //있으면 리턴
@@ -437,7 +439,7 @@ void AQLCharacterPlayer::GetAmmo(AQLItem* ItemInfo)
 void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 {
 	UQLItemData* ItemData = Cast<UQLItemData>(ItemInfo->Stat);
-	
+
 	int32 ItemCnt = 1;
 	if (!InventoryItem.Find(ItemData->ItemType))
 	{
@@ -449,7 +451,7 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 	}
 
 	QL_LOG(QLNetLog, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, ItemCnt);
-	ClientRPCAddItem(ItemData,ItemCnt);
+	ClientRPCAddItem(ItemData, ItemCnt);
 }
 //Client Section
 void AQLCharacterPlayer::ClientRPCAddItem_Implementation(UQLItemData* ItemData, int32 ItemCnt)
@@ -546,7 +548,7 @@ void AQLCharacterPlayer::ServerRPCFarming_Implementation()
 
 	bPressedFarmingKey = true;
 	FarmingItem();
-	
+
 	QL_LOG(QLNetLog, Warning, TEXT("Pickup Item"));
 }
 
@@ -584,7 +586,7 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 	////이동 벡터
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 
-	const FRotator Rotation = Controller->GetControlRotation(); 
+	const FRotator Rotation = Controller->GetControlRotation();
 	const FRotator YawRotation(0, Rotation.Yaw, 0); //회전 방향인 Yaw만 냅둔다
 	//앞 방향 - x축
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
@@ -593,7 +595,7 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 
 	AddMovementInput(ForwardDirection, MovementVector.X);
 	AddMovementInput(RightDirection, MovementVector.Y);
-	
+
 }
 
 void AQLCharacterPlayer::GASInputPressed(int32 id)
@@ -646,7 +648,7 @@ int8 AQLCharacterPlayer::GetInputNumber(int32 id)
 	{
 		return static_cast<uint8>(CurrentAttackType);
 	}
-	
+
 	return id;
 }
 
@@ -654,7 +656,7 @@ void AQLCharacterPlayer::FarmingItemPressed()
 {
 	//ServerRPC 호출
 	ServerRPCFarming();
-	
+
 }
 
 float AQLCharacterPlayer::CalculateSpeed()
@@ -688,7 +690,7 @@ void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
 	{
 		PreviousRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
 		CurrentYaw = 0.f;
-		TurningInPlace =ETurningPlaceType::ETIP_NotTurning;
+		TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
 	}
 }
 
@@ -700,7 +702,7 @@ void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Right;
 	}
-	else if(CurrentYaw < -45.0f)
+	else if (CurrentYaw < -45.0f)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Left;
 	}
@@ -842,7 +844,7 @@ void AQLCharacterPlayer::StopAiming()
 
 void AQLCharacterPlayer::TimelineFloatReturn(float Alpha)
 {
-	float Length=FMath::Lerp(MaxArmLength, MinArmLength, Alpha);
+	float Length = FMath::Lerp(MaxArmLength, MinArmLength, Alpha);
 	CameraSpringArm->TargetArmLength = Length;
 }
 void AQLCharacterPlayer::InitializeAttributes()
@@ -860,7 +862,7 @@ void AQLCharacterPlayer::InitializeAttributes()
 	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 	EffectContext.AddSourceObject(this);
 
-	FGameplayEffectSpecHandle NewHandle = ASC->MakeOutgoingSpec(DefaultAttributes,1, EffectContext);
+	FGameplayEffectSpecHandle NewHandle = ASC->MakeOutgoingSpec(DefaultAttributes, 1, EffectContext);
 
 	if (NewHandle.IsValid())
 	{
@@ -888,17 +890,62 @@ void AQLCharacterPlayer::PutWeapon()
 	}
 	ServerRPCPuttingWeapon();
 }
-
+//대박... 멍청한생각...이거... 서버로 안가구나...
 void AQLCharacterPlayer::SetInventory()
 {
+	QL_LOG(QLNetLog, Warning, TEXT("????"));
+	/*주변 아이템을 탐색하는 트레이스 적용*/
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
-	if (PlayerController)
+
+	if (PlayerController == nullptr)
 	{
-		FInputModeUIOnly UIOnlyInputMode;
-		PlayerController->SetVisibilityHUD(EHUDType::Inventory);
-		PlayerController->bShowMouseCursor = true;
-		PlayerController->SetInputMode(UIOnlyInputMode);
+		return;
 	}
+	bool bResult = false;
+	FVector SearchLocation = GetMesh()->GetSocketLocation(FName("ItemDetectionSocket"));
+	//서버에서만 적용
+	FCollisionQueryParams Params(TEXT("DetectionItem"), false, this);
+
+	TArray<FHitResult> NearbyItems;
+	//ItemDetectionSocket
+	bResult = GetWorld()->SweepMultiByChannel(
+		NearbyItems,
+		SearchLocation,
+		SearchLocation,
+		FQuat::Identity,
+		CCHANNEL_QLITEMACTION,
+		FCollisionShape::MakeSphere(SearchRange),
+		Params
+	);
+
+	if (bResult)
+	{
+		for (const auto& NearbyItem : NearbyItems)
+		{
+			AQLItemBox* HitItem = Cast<AQLItemBox>(NearbyItem.GetActor());
+			if (HitItem)
+			{
+				QL_LOG(QLNetLog, Log, TEXT("Item Name %s"), *HitItem->GetName());
+				//인벤토리에 Item 정보를 전송
+				PlayerController->AddNearbyItemEntry(HitItem->Stat);
+
+				//실제로 인벤토리에서 아이템을 옮기려고 할 때
+				//1. 서버에도 주변 아이템으로 있는가? RPC 확인
+				//2. 인벤토리로 드랍할 때 아이템 추가 - 클라이언트, 서버 모두 동시에 진행
+			}
+		}
+	}
+	
+#if ENABLE_DRAW_DEBUG
+	FColor Color = bResult ? FColor::Green : FColor::Red;
+	DrawDebugSphere(GetWorld(), SearchLocation, SearchRange, 10.0f, Color, false, 5.0f);
+#endif
+	/*인벤토리가 켜지는 부분*/
+
+	FInputModeUIOnly UIOnlyInputMode;
+	PlayerController->SetVisibilityHUD(EHUDType::Inventory);
+	PlayerController->bShowMouseCursor = true;
+	PlayerController->SetInputMode(UIOnlyInputMode);
 }
 
 bool AQLCharacterPlayer::ServerRPCPuttingWeapon_Validate()
@@ -911,7 +958,7 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 	// Multicast 위치 or Server 위치하고 Replicated할지.. 
 	FVector Location = GetActorLocation();
 	FActorSpawnParameters Params;
-	AQLItemBox *GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GetStat()->GroundWeapon, Location, FRotator::ZeroRotator, Params);
+	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GetStat()->GroundWeapon, Location, FRotator::ZeroRotator, Params);
 
 	GroundItem->SetReplicates(true);
 	MulticastRPCPuttingWeapon();
@@ -921,13 +968,13 @@ void AQLCharacterPlayer::MulticastRPCPuttingWeapon_Implementation()
 {
 	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
 	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON); //이것도 변경되어야할사항...
-	
+
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 	//Reset
 	QL_LOG(QLLog, Log, TEXT("Put Weapon"));
 	Weapon->Weapon->SetSkeletalMesh(nullptr);
 	PS->ResetWeaponStat(Weapon->GetStat());
-	
+
 	//Spawn 한다.
 	Weapon->Stat = nullptr; //정리
 	bHasGun = false;

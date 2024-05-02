@@ -48,6 +48,17 @@ void UQLInventory::UpdateItemEntry(UObject* InItem,int32 InItemCnt)
 	}
 }
 
+void UQLInventory::AddNearbyItemEntry(UObject* Item)
+{
+	GroundItem->AddItem(Item);
+}
+
+void UQLInventory::RemoveNearbyItemEntry()
+{
+	GroundItem->ClearListItems();
+}
+
+
 void UQLInventory::OnClickedItem()
 {
 	UQLItemData* ItemEntry = Cast<UQLItemData>(ItemList->GetSelectedItem());
