@@ -38,4 +38,3 @@ void UQLListItemEntry::SetItemCntTxt(int32 ItemCnt)
 	FString ItemCntTxt = FString::Printf(TEXT("%d"), ItemCnt);
 	TxtItemCnt->SetText(FText::FromString(ItemCntTxt));
 }
-

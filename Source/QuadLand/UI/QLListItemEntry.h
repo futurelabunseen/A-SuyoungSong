@@ -23,7 +23,6 @@ protected:
 	/** Follows the same pattern as the NativeOn[X] methods in UUserWidget - super calls are expected in order to route the event to BP. */
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 	//아이템 UI 설정 시 호출하는 함수
-
 protected:
 
 	UPROPERTY()

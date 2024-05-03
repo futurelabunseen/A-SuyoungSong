@@ -87,10 +87,10 @@ void UQLInventory::RemoveAllNearbyItemEntries()
 	GroundItem->ClearListItems();
 }
 
-
 void UQLInventory::OnClickedItem()
 {
 	UQLItemData* ItemEntry = Cast<UQLItemData>(ItemList->GetSelectedItem());
+
 
 	if (ItemEntry)
 	{

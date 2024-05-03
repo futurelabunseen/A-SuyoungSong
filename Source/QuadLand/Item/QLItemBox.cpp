@@ -49,8 +49,6 @@ void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector N
 {
 	if(HasAuthority())
 	{
-		UE_LOG(LogTemp, Log, TEXT("하;; 제발 좀 ..."));
-
 		Trigger->SetSimulatePhysics(false);
 		Mesh->SetSimulatePhysics(false);
 		Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
