@@ -9,7 +9,7 @@
 #include "QuadLand.h"
 
 // Sets default values
-AQLItemBox::AQLItemBox() : Power(100.0f), Radius(100.0f), bIsInitialized(true)
+AQLItemBox::AQLItemBox() : Power(100.0f), Radius(100.0f)
 {
 	Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
@@ -29,8 +29,7 @@ AQLItemBox::AQLItemBox() : Power(100.0f), Radius(100.0f), bIsInitialized(true)
 
 void AQLItemBox::InitPosition()
 {
-
-	if (bIsInitialized)
+	if (HasAuthority())
 	{
 		FVector StartLoc = Mesh->GetRelativeLocation();
 
@@ -47,11 +46,8 @@ void AQLItemBox::InitPosition()
 
 void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if(HasAuthority())
-	{
-		Trigger->SetSimulatePhysics(false);
-		Mesh->SetSimulatePhysics(false);
-		Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
-	}
+	Trigger->SetSimulatePhysics(false);
+	Mesh->SetSimulatePhysics(false);
+	Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
 
 }

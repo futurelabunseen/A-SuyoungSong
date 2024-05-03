@@ -91,7 +91,7 @@ void UQLInventory::OnClickedItem()
 {
 	UQLItemData* ItemEntry = Cast<UQLItemData>(ItemList->GetSelectedItem());
 
-
+	UE_LOG(LogTemp, Warning, TEXT("%d"),ItemEntry);
 	if (ItemEntry)
 	{
 		//해당 플레이어 컨트롤러에게 id-cnt값 전달

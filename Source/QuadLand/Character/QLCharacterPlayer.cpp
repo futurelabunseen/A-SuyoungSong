@@ -946,9 +946,11 @@ void AQLCharacterPlayer::SetInventory()
 	/*인벤토리가 켜지는 부분*/
 
 	FInputModeUIOnly UIOnlyInputMode;
+
 	PlayerController->SetVisibilityHUD(EHUDType::Inventory);
 	PlayerController->bShowMouseCursor = true;
 	PlayerController->SetInputMode(UIOnlyInputMode);
+	
 }
 
 bool AQLCharacterPlayer::ServerRPCPuttingWeapon_Validate()
@@ -962,7 +964,6 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 	FVector Location = GetActorLocation();
 	FActorSpawnParameters Params;
 	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GetStat()->GroundWeapon, Location, FRotator::ZeroRotator, Params);
-	GroundItem->bIsInitialized = false;
 
 	MulticastRPCPuttingWeapon();
 }

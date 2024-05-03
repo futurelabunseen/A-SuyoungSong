@@ -6,7 +6,7 @@
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayTag/GamplayTags.h"
-
+#include "QuadLand.h"
 UQLGA_TakenDamage::UQLGA_TakenDamage()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -16,13 +16,23 @@ UQLGA_TakenDamage::UQLGA_TakenDamage()
 void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	CommitAbility(Handle, ActorInfo, ActivationInfo); //CommitAbility
+	//CommitAbility(Handle, ActorInfo, ActivationInfo); //CommitAbility
 
-	UE_LOG(LogTemp, Log, TEXT("Current Class TakenDamage Class"));
+	QL_GASLOG(QLNetLog, Log, TEXT("Current Punch Section"));
+
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	
+	if (SourceASC->HasMatchingGameplayTag(CHARACTER_EQUIP_NON))
+	{
+		Tag = CHARACTER_EQUIP_NON;
+	}
+	else
+	{
+		Tag = CHARACTER_EQUIP_GUNTYPEA;
+	}
+
 	float AnimSpeedRate = 1.0f;
-	float CurrentTypeIdx = TriggerEventData->EventMagnitude;
-	UAbilityTask_PlayMontageAndWait* AttackUsingPunchMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("TakenDamageActor"), DamageMontage[CurrentTypeIdx], AnimSpeedRate);
+	UAbilityTask_PlayMontageAndWait* AttackUsingPunchMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("TakenDamageActor"), DamageMontage[Tag], AnimSpeedRate);
 	AttackUsingPunchMontage->OnCompleted.AddDynamic(this, &UQLGA_TakenDamage::OnCompletedCallback);
 	AttackUsingPunchMontage->OnInterrupted.AddDynamic(this, &UQLGA_TakenDamage::OnInterruptedCallback);
 	AttackUsingPunchMontage->ReadyForActivation();

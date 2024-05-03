@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "GameData/WeaponType.h"
 #include "QLGA_AttackHitCheck.generated.h"
 
 /**
@@ -32,5 +31,4 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class USkeletalMeshSocket> ResultSocket;
 
-	ECharacterAttackType Type;
 };

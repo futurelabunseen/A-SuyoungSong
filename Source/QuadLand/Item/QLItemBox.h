@@ -18,7 +18,6 @@ public:
 	class USkeletalMeshComponent* GetMesh() const { return Mesh; }
 
 	void InitPosition();
-	uint8 bIsInitialized : 1;
 protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Collision)

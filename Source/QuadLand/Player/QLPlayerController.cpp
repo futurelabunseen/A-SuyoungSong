@@ -12,6 +12,7 @@
 #include "QuadLand.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
 {
@@ -26,6 +27,11 @@ void AQLPlayerController::SetVisibilityHUD(EHUDType UItype)
 	if (IsLocalController())
 	{
 		HUDs[UItype]->SetVisibility(ESlateVisibility::Visible);
+
+		if (UItype == EHUDType::Inventory)
+		{
+			UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this, HUDs[UItype]);
+		}
 	}
 }
 
