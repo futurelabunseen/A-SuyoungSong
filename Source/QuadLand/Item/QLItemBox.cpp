@@ -9,7 +9,7 @@
 #include "QuadLand.h"
 
 // Sets default values
-AQLItemBox::AQLItemBox() : Power(100.0f), Radius(100.0f)
+AQLItemBox::AQLItemBox() : Power(100.0f), Radius(100.0f), bIsInitialized(true)
 {
 	Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
@@ -27,36 +27,30 @@ AQLItemBox::AQLItemBox() : Power(100.0f), Radius(100.0f)
 	SetReplicateMovement(true);
 }
 
-void AQLItemBox::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (HasAuthority())
-	{
-		InitPosition();
-	}
-}
-
-
 void AQLItemBox::InitPosition()
 {
-	FVector StartLoc = Mesh->GetRelativeLocation();
 
-	float Theta = FMath::FRandRange(-360.0f, 360.0f);
+	if (bIsInitialized)
+	{
+		FVector StartLoc = Mesh->GetRelativeLocation();
 
-	float XValue = Radius * FMath::Cos(Theta);
-	float YValue= Radius* FMath::Sin(Theta);
+		float Theta = FMath::FRandRange(-360.0f, 360.0f);
 
-	FVector TargetLoc(XValue, YValue, 0.0f); //방향
-	
-	Mesh->AddImpulse(TargetLoc * Power); //방향 * 힘
+		float XValue = Radius * FMath::Cos(Theta);
+		float YValue = Radius * FMath::Sin(Theta);
 
+		FVector TargetLoc(XValue, YValue, 0.0f); //방향
+
+		Mesh->AddImpulse(TargetLoc * Power); //방향 * 힘
+	}
 }
 
 void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if(HasAuthority())
 	{
+		UE_LOG(LogTemp, Log, TEXT("하;; 제발 좀 ..."));
+
 		Trigger->SetSimulatePhysics(false);
 		Mesh->SetSimulatePhysics(false);
 		Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());

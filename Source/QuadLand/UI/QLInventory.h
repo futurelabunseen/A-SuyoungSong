@@ -16,22 +16,28 @@ class QUADLAND_API UQLInventory : public UUserWidget
 
 public:
 	UQLInventory(const FObjectInitializer& ObjectInitializer);
-
-	UPROPERTY(meta = (BindWidget)) //자동으로 연결되나봄..!
-	TObjectPtr<class UListView> ItemList; //현재 내가 가지고 있는 아이템을 보여주는 UI
-	
-	UPROPERTY(meta = (BindWidget)) 
-	TObjectPtr<class UListView> GroundItem; //주변 아이템 UI
-
 	void AddItem(UObject* Item);
 	void UpdateItemEntry(UObject* Item, int32 InItemCnt);
 
-	void AddNearbyItemEntry(UObject* Item);
-	void RemoveNearbyItemEntry();
+	UFUNCTION(BlueprintCallable)
+	void UpdateNearbyItemEntry(UObject* InItem);
+
+	UFUNCTION(BlueprintCallable)
+	void RemoveNearbyItemEntry(UObject *InItem);
+
+	UFUNCTION(BlueprintCallable)
+	void RemoveAllNearbyItemEntries();
 	
 	UFUNCTION(BlueprintCallable)
 	void OnClickedItem();
 	
 	void DeleteItem(UObject* Item);
+
+protected:
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, meta = (BindWidget)) //자동으로 연결되나봄..!
+	TObjectPtr<class UListView> ItemList; //현재 내가 가지고 있는 아이템을 보여주는 UI
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UListView> GroundItem; //주변 아이템 UI
 
 };

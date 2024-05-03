@@ -32,7 +32,7 @@ void AQLPlayerController::SetVisibilityHUD(EHUDType UItype)
 void AQLPlayerController::CloseInventory()
 {
 	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
-	InventoryUI->RemoveNearbyItemEntry(); //전부 제거
+	InventoryUI->RemoveAllNearbyItemEntries(); //전부 제거
 	FInputModeGameOnly GameOnlyInputMode;
 	SetHiddenHUD(EHUDType::Inventory);
 	bShowMouseCursor = false;
@@ -74,27 +74,14 @@ void AQLPlayerController::CreateHUD()
 	//HUD 초기화
 }
 
-void AQLPlayerController::AddNearbyItemEntry(UObject* Item)
+void AQLPlayerController::UpdateNearbyItemEntry(UObject* Item)
 {
 	if (IsLocalController())
 	{
 		UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
 		if (InventoryUI)
 		{
-			InventoryUI->AddNearbyItemEntry(Item);
-		}
-	}
-}
-
-void AQLPlayerController::AddItemEntry(UObject* Item)
-{
-
-	if (IsLocalController())
-	{
-		UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
-		if (InventoryUI)
-		{
-			InventoryUI->AddItem(Item);
+			InventoryUI->UpdateNearbyItemEntry(Item);
 		}
 	}
 }

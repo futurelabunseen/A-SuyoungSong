@@ -4,8 +4,9 @@
 #include "UI/QLInventory.h"
 #include "Player/QLPlayerController.h"
 #include "Components/ListView.h"
+#include "UI/QLListItemEntry.h"
 #include "GameData/QLItemData.h"
-
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 UQLInventory::UQLInventory(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -18,7 +19,7 @@ void UQLInventory::AddItem(UObject* Item)
 	ItemList->AddItem(Item);
 }
 
-void UQLInventory::UpdateItemEntry(UObject* InItem,int32 InItemCnt)
+void UQLInventory::UpdateItemEntry(UObject* InItem, int32 InItemCnt)
 {
 	const TArray<UObject*> Items = ItemList->GetListItems();
 	UQLItemData* InItemInfo = Cast<UQLItemData>(InItem);
@@ -27,6 +28,7 @@ void UQLInventory::UpdateItemEntry(UObject* InItem,int32 InItemCnt)
 	{
 		UQLItemData* Entry = Cast<UQLItemData>(Item);
 
+		UE_LOG(LogTemp, Warning, TEXT("?"));
 		if (Entry && Entry->ItemType == InItemInfo->ItemType)
 		{
 			IsNotFound = false;
@@ -36,7 +38,6 @@ void UQLInventory::UpdateItemEntry(UObject* InItem,int32 InItemCnt)
 				break;
 			}
 			Entry->CurrentItemCnt = InItemCnt; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
-			ItemList->RegenerateAllEntries(); //그 카운트에 대해서 다시 업데이트 해라
 			break;
 		}
 	}
@@ -46,14 +47,42 @@ void UQLInventory::UpdateItemEntry(UObject* InItem,int32 InItemCnt)
 		//생성
 		AddItem(InItem);
 	}
+	
+	ItemList->RegenerateAllEntries();
 }
 
-void UQLInventory::AddNearbyItemEntry(UObject* Item)
+
+void UQLInventory::UpdateNearbyItemEntry(UObject* InItem)
 {
-	GroundItem->AddItem(Item);
+	/**/
+	const TArray<UObject*> Items = GroundItem->GetListItems();
+	UQLItemData* InItemInfo = Cast<UQLItemData>(InItem);
+	bool IsNotFound = true;
+	for (const auto& Item : Items)
+	{
+		UQLItemData* Entry = Cast<UQLItemData>(Item);
+
+		if (Entry && Entry->ItemType == InItemInfo->ItemType)
+		{
+			IsNotFound = false;
+			Entry->CurrentItemCnt++; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
+			break;
+		}
+	}
+
+	if (IsNotFound == true)
+	{
+		//생성
+		GroundItem->AddItem(InItem);
+	}
 }
 
-void UQLInventory::RemoveNearbyItemEntry()
+void UQLInventory::RemoveNearbyItemEntry(UObject* InItem)
+{
+	GroundItem->RemoveItem(InItem);
+}
+
+void UQLInventory::RemoveAllNearbyItemEntries()
 {
 	GroundItem->ClearListItems();
 }

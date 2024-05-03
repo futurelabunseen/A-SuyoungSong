@@ -16,6 +16,9 @@ public:
 	AQLItemBox();
 
 	class USkeletalMeshComponent* GetMesh() const { return Mesh; }
+
+	void InitPosition();
+	uint8 bIsInitialized : 1;
 protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Collision)
@@ -31,12 +34,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Power)
 	float Power; //ÁÂÇ¥°ªÀº cos, sin
 
-
-
-	/** Overridable native event for when play begins for this actor. */
-	virtual void BeginPlay();
-
-	void InitPosition();
 	UFUNCTION()
 	void OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
 };

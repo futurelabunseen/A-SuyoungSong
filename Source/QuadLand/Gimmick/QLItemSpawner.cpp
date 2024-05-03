@@ -40,6 +40,7 @@ void AQLItemSpawner::BeginPlay()
 				FActorSpawnParameters Params;
 				Params.Owner = this;
 				AQLItemBox* Item = GetWorld()->SpawnActor<AQLItemBox>(ItemBox.Key, Location, FRotator::ZeroRotator, Params);
+				Item->InitPosition();
 			}
 		}
 	}
