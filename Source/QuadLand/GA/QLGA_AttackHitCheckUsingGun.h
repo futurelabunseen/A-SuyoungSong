@@ -31,5 +31,4 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "AttackDist")
 	float HeadDistThreshold; //루트를 적용하면 계산값이 증가하기 때문에, 제곱근을 사용해서 계산을 줄임. 
 
-	ECharacterAttackType Type;
 };

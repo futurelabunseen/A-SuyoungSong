@@ -12,6 +12,7 @@
 #include "QuadLand.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
 {
@@ -26,13 +27,19 @@ void AQLPlayerController::SetVisibilityHUD(EHUDType UItype)
 	if (IsLocalController())
 	{
 		HUDs[UItype]->SetVisibility(ESlateVisibility::Visible);
+
+		if (UItype == EHUDType::Inventory)
+		{
+			UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this, HUDs[UItype]);
+		}
 	}
 }
 
 void AQLPlayerController::CloseInventory()
 {
 	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
-	InventoryUI->RemoveNearbyItemEntry(); //전부 제거
+	InventoryUI->RemoveAllNearbyItemEntries(); //전부 제거
+
 	FInputModeGameOnly GameOnlyInputMode;
 	SetHiddenHUD(EHUDType::Inventory);
 	bShowMouseCursor = false;
@@ -74,27 +81,14 @@ void AQLPlayerController::CreateHUD()
 	//HUD 초기화
 }
 
-void AQLPlayerController::AddNearbyItemEntry(UObject* Item)
+void AQLPlayerController::UpdateNearbyItemEntry(UObject* Item)
 {
 	if (IsLocalController())
 	{
 		UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
 		if (InventoryUI)
 		{
-			InventoryUI->AddNearbyItemEntry(Item);
-		}
-	}
-}
-
-void AQLPlayerController::AddItemEntry(UObject* Item)
-{
-
-	if (IsLocalController())
-	{
-		UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
-		if (InventoryUI)
-		{
-			InventoryUI->AddItem(Item);
+			InventoryUI->UpdateNearbyItemEntry(Item);
 		}
 	}
 }
@@ -111,7 +105,18 @@ void AQLPlayerController::UpdateItemEntry(UObject* Item, int32 CurrentItemCnt)
 	}
 }
 
-void AQLPlayerController::RemoveItemEntry(EItemType ItemIdx, int32 ItemCnt)
+void AQLPlayerController::AddInventoryByDraggedItem(EItemType ItemIdx, int32 CurrentItemCnt)
+{
+	//Player전달
+	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+
+	if (QLCharacter)
+	{
+		QLCharacter->AddInventoryByDraggedItem(ItemIdx, CurrentItemCnt);
+	}
+}
+
+void AQLPlayerController::RemoveItemEntry(EItemType ItemIdx)
 {
 	//Player전달
 	AQLCharacterPlayer* QLCharacter =Cast<AQLCharacterPlayer>(GetPawn());
@@ -119,7 +124,7 @@ void AQLPlayerController::RemoveItemEntry(EItemType ItemIdx, int32 ItemCnt)
 	QL_LOG(QLNetLog, Warning, TEXT("this?QL"));
 	if (QLCharacter)
 	{
-		QLCharacter->ServerRPCRemoveItem(ItemIdx,ItemCnt);
+		QLCharacter->UseItem(ItemIdx);
 	}
 
 }

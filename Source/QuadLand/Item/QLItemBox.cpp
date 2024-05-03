@@ -27,39 +27,27 @@ AQLItemBox::AQLItemBox() : Power(100.0f), Radius(100.0f)
 	SetReplicateMovement(true);
 }
 
-void AQLItemBox::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (HasAuthority())
-	{
-		InitPosition();
-	}
-}
-
-
 void AQLItemBox::InitPosition()
 {
-	FVector StartLoc = Mesh->GetRelativeLocation();
+	if (HasAuthority())
+	{
+		FVector StartLoc = Mesh->GetRelativeLocation();
 
-	float Theta = FMath::FRandRange(-360.0f, 360.0f);
+		float Theta = FMath::FRandRange(-360.0f, 360.0f);
 
-	float XValue = Radius * FMath::Cos(Theta);
-	float YValue= Radius* FMath::Sin(Theta);
+		float XValue = Radius * FMath::Cos(Theta);
+		float YValue = Radius * FMath::Sin(Theta);
 
-	FVector TargetLoc(XValue, YValue, 0.0f); //规氢
-	
-	Mesh->AddImpulse(TargetLoc * Power); //规氢 * 塞
+		FVector TargetLoc(XValue, YValue, 0.0f); //规氢
 
+		Mesh->AddImpulse(TargetLoc * Power); //规氢 * 塞
+	}
 }
 
 void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if(HasAuthority())
-	{
-		Trigger->SetSimulatePhysics(false);
-		Mesh->SetSimulatePhysics(false);
-		Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
-	}
+	Trigger->SetSimulatePhysics(false);
+	Mesh->SetSimulatePhysics(false);
+	Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
 
 }

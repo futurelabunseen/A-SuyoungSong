@@ -399,8 +399,47 @@ void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 		PS->SetWeaponStat(WeaponStat);
 	}
 	MulticastRPCFarming(WeaponStat);
+
+	InItem->SetLifeSpan(0.5f);
 }
 
+void AQLCharacterPlayer::ServerRPCFarming_Implementation()
+{
+	if (bPressedFarmingKey) return;
+
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	FTimerHandle ItemMotionTimer;
+	GetWorld()->GetTimerManager().SetTimer(ItemMotionTimer, FTimerDelegate::CreateLambda([&]()
+		{
+			bPressedFarmingKey = false;
+			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		}
+	), 1.5f, false);
+
+	bPressedFarmingKey = true;
+	FarmingItem();
+
+	QL_LOG(QLNetLog, Warning, TEXT("Pickup Item"));
+}
+
+void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* WeaponStat)
+{
+	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
+	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA); //이것도 변경되어야할사항...
+
+	if (Weapon && WeaponStat->WeaponMesh)
+	{
+		QL_LOG(QLNetLog, Log, TEXT("current farming?"));
+		if (WeaponStat->WeaponMesh.IsPending())
+		{
+			WeaponStat->WeaponMesh.LoadSynchronous();
+		}
+		Weapon->GroundWeapon = WeaponStat->GroundWeapon;
+		Weapon->Stat = WeaponStat;
+		Weapon->Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh.Get());
+		bHasGun = true;
+	}
+}
 void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 {
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
@@ -452,6 +491,8 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 
 	QL_LOG(QLNetLog, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, ItemCnt);
 	ClientRPCAddItem(ItemData, ItemCnt);
+
+	ItemInfo->SetLifeSpan(0.5f);
 }
 //Client Section
 void AQLCharacterPlayer::ClientRPCAddItem_Implementation(UQLItemData* ItemData, int32 ItemCnt)
@@ -487,7 +528,7 @@ bool AQLCharacterPlayer::ServerRPCRemoveItem_Validate(EItemType ItemId, int32 It
 	return true;
 }
 /* 버그 수정해라 */
-void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType ItemId, int32 ItemCnt)
+void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType InItemId, int32 InItemCnt)
 {
 	QL_LOG(QLNetLog, Warning, TEXT("found a matching item"));
 
@@ -495,7 +536,7 @@ void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType ItemId, in
 	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
 	//아이템을 보관하고 있는 Manager 가져온다.
 
-	UQLItemData* ItemData = DataManager->GetItem(ItemId);
+	UQLItemData* ItemData = DataManager->GetItem(InItemId);
 	IQLGetItemStat* ItemStat = Cast<IQLGetItemStat>(ItemData);
 
 	if (ItemStat == nullptr)
@@ -505,8 +546,7 @@ void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType ItemId, in
 	}
 	if (DataManager)
 	{
-		//QL_LOG(QLNetLog, Warning, TEXT("Current Selected Item %d"), ItemInfo->ItemType);
-		switch (ItemId)
+		switch (InItemId)
 		{
 		case EItemType::StaminaRecoveryItem:
 			PS->AddStaminaStat(ItemStat->GetStat());
@@ -517,9 +557,9 @@ void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType ItemId, in
 		case EItemType::DiscoveryItem:
 			break;
 		}
-		InventoryItem[ItemId]--; //하나 사용
+		int32 ItemCnt = --InventoryItem[InItemId]; //하나 사용
 
-		ClientRPCRemoveItem(ItemData, InventoryItem[ItemId]); //클라랑 서버랑 개수 일치
+		ClientRPCRemoveItem(ItemData, InventoryItem[InItemId]); //클라랑 서버랑 개수 일치
 	}
 }
 
@@ -531,44 +571,6 @@ void AQLCharacterPlayer::ClientRPCRemoveItem_Implementation(UQLItemData* Item, i
 	Item->CurrentItemCnt = ItemCnt;
 	PC->UpdateItemEntry(Item, ItemCnt);
 	QL_LOG(QLNetLog, Warning, TEXT("update? %s"), *Item->ItemName);
-}
-
-void AQLCharacterPlayer::ServerRPCFarming_Implementation()
-{
-	if (bPressedFarmingKey) return;
-
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-	FTimerHandle ItemMotionTimer;
-	GetWorld()->GetTimerManager().SetTimer(ItemMotionTimer, FTimerDelegate::CreateLambda([&]()
-		{
-			bPressedFarmingKey = false;
-			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-		}
-	), 1.5f, false);
-
-	bPressedFarmingKey = true;
-	FarmingItem();
-
-	QL_LOG(QLNetLog, Warning, TEXT("Pickup Item"));
-}
-
-void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* WeaponStat)
-{
-	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
-	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA); //이것도 변경되어야할사항...
-
-	if (Weapon && WeaponStat->WeaponMesh)
-	{
-		QL_LOG(QLNetLog, Log, TEXT("current farming?"));
-		if (WeaponStat->WeaponMesh.IsPending())
-		{
-			WeaponStat->WeaponMesh.LoadSynchronous();
-		}
-		Weapon->GroundWeapon = WeaponStat->GroundWeapon;
-		Weapon->Stat = WeaponStat;
-		Weapon->Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh.Get());
-		bHasGun = true;
-	}
 }
 
 FVector AQLCharacterPlayer::CalPlayerLocalCameraStartPos()
@@ -893,7 +895,6 @@ void AQLCharacterPlayer::PutWeapon()
 //대박... 멍청한생각...이거... 서버로 안가구나...
 void AQLCharacterPlayer::SetInventory()
 {
-	QL_LOG(QLNetLog, Warning, TEXT("????"));
 	/*주변 아이템을 탐색하는 트레이스 적용*/
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
 
@@ -927,7 +928,9 @@ void AQLCharacterPlayer::SetInventory()
 			{
 				QL_LOG(QLNetLog, Log, TEXT("Item Name %s"), *HitItem->GetName());
 				//인벤토리에 Item 정보를 전송
-				PlayerController->AddNearbyItemEntry(HitItem->Stat);
+				UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
+				ItemData->CurrentItemCnt = 1;
+				PlayerController->UpdateNearbyItemEntry(ItemData);
 
 				//실제로 인벤토리에서 아이템을 옮기려고 할 때
 				//1. 서버에도 주변 아이템으로 있는가? RPC 확인
@@ -943,9 +946,25 @@ void AQLCharacterPlayer::SetInventory()
 	/*인벤토리가 켜지는 부분*/
 
 	FInputModeUIOnly UIOnlyInputMode;
+
 	PlayerController->SetVisibilityHUD(EHUDType::Inventory);
 	PlayerController->bShowMouseCursor = true;
 	PlayerController->SetInputMode(UIOnlyInputMode);
+	
+}
+
+void AQLCharacterPlayer::UseItem(EItemType ItemId)
+{
+	if (InventoryItem.Find(ItemId))
+	{
+		ServerRPCRemoveItem(ItemId, InventoryItem[ItemId]);
+	}
+}
+
+void AQLCharacterPlayer::AddInventoryByDraggedItem(EItemType InItemId,int32 InItemCnt)
+{
+	//실제로 아이템이 있는지 검사하기 위해서 서버에게 요청해야함;
+	QL_LOG(QLNetLog, Warning, TEXT("AddItem %d"), InItemCnt);
 }
 
 bool AQLCharacterPlayer::ServerRPCPuttingWeapon_Validate()
@@ -960,7 +979,6 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 	FActorSpawnParameters Params;
 	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GetStat()->GroundWeapon, Location, FRotator::ZeroRotator, Params);
 
-	GroundItem->SetReplicates(true);
 	MulticastRPCPuttingWeapon();
 }
 

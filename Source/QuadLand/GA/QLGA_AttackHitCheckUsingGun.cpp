@@ -18,7 +18,6 @@
 UQLGA_AttackHitCheckUsingGun::UQLGA_AttackHitCheckUsingGun()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	Type = ECharacterAttackType::GunAttack;
 	HeadDistThreshold = 30.0f;
 }
 
@@ -61,12 +60,8 @@ void UQLGA_AttackHitCheckUsingGun::OnCompletedCallback(const FGameplayAbilityTar
 			if (ReceivedCharacter)
 			{
 
-				FGameplayEventData Payload;
-				Payload.EventMagnitude = static_cast<float>(Type); //Type으로 변경예정
-				Payload.Target = GetActorInfo().OwnerActor.Get();
-
-				//TargetASC->AddLooseGameplayTag(CHARACTER_ATTACK_TAKENDAMAGE);
-				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(HitResult.GetActor(), CHARACTER_ATTACK_TAKENDAMAGE, Payload);
+				FGameplayTagContainer TargetTag(CHARACTER_ATTACK_TAKENDAMAGE);
+				TargetASC->TryActivateAbilitiesByTag(TargetTag);
 				QL_GASLOG(QLNetLog, Log, TEXT("Current Gun Section"));
 
 				//Hit 위치 판정 헤드샷일 때 +10 더해준다.

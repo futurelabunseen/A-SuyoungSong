@@ -24,7 +24,8 @@ public:
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
-	TArray<TObjectPtr<class UAnimMontage>> DamageMontage;
+	TMap<FGameplayTag,TObjectPtr<class UAnimMontage>> DamageMontage;
+	FGameplayTag Tag;
 
 	UFUNCTION()
 	void OnCompletedCallback();

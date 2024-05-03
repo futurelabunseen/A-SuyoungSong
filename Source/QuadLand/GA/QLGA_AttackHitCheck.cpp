@@ -15,8 +15,6 @@
 UQLGA_AttackHitCheck::UQLGA_AttackHitCheck()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-
-	Type = ECharacterAttackType::HookAttack;
 }
 
 void UQLGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -53,10 +51,10 @@ void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataH
 		const UQLAS_WeaponStat* SourceAttributeSet = SourceASC->GetSet<UQLAS_WeaponStat>();
 		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(AttackDamageEffect);
 
-		FGameplayEventData Payload;
-
-		Payload.EventMagnitude = static_cast<float>(Type);
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(HitResult.GetActor(), CHARACTER_ATTACK_TAKENDAMAGE, Payload);
+		//FGameplayEventData Payload;
+		FGameplayTagContainer TargetTag(CHARACTER_ATTACK_TAKENDAMAGE);
+		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitResult.GetActor());
+		TargetASC->TryActivateAbilitiesByTag(TargetTag);
 
 		if (EffectSpecHandle.IsValid())
 		{

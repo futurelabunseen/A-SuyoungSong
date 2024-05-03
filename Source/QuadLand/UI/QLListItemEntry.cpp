@@ -20,7 +20,6 @@ void UQLListItemEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 	IUserObjectListEntry::NativeOnListItemObjectSet(ListItemObject);
 	
 	const UQLItemData* Data = Cast<UQLItemData>(ListItemObject);
-
 	if (Data == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Data is not valid"));
@@ -33,9 +32,13 @@ void UQLListItemEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 	TxtItemTitle->SetText(FText::FromString(Data->ItemName));
 }
 
+void UQLListItemEntry::SetItemNameTxt(FString ItemName)
+{
+	TxtItemTitle->SetText(FText::FromString(ItemName));
+}
+
 void UQLListItemEntry::SetItemCntTxt(int32 ItemCnt)
 {
 	FString ItemCntTxt = FString::Printf(TEXT("%d"), ItemCnt);
 	TxtItemCnt->SetText(FText::FromString(ItemCntTxt));
 }
-

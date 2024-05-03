@@ -6,7 +6,7 @@
 
 UQLAmmoData::UQLAmmoData()
 {
-	ItemType = EItemType::Ammo;
+	UQLItemData::ItemType = EItemType::Ammo;
 }
 
 float UQLAmmoData::GetStat()

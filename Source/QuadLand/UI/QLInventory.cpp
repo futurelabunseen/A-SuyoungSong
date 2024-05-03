@@ -4,8 +4,9 @@
 #include "UI/QLInventory.h"
 #include "Player/QLPlayerController.h"
 #include "Components/ListView.h"
+#include "UI/QLListItemEntry.h"
 #include "GameData/QLItemData.h"
-
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 UQLInventory::UQLInventory(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -18,8 +19,43 @@ void UQLInventory::AddItem(UObject* Item)
 	ItemList->AddItem(Item);
 }
 
-void UQLInventory::UpdateItemEntry(UObject* InItem,int32 InItemCnt)
+void UQLInventory::UpdateItemEntry(UObject* InItem, int32 InItemCnt)
 {
+	const TArray<UObject*> Items = ItemList->GetListItems();
+	UQLItemData* InItemInfo = Cast<UQLItemData>(InItem);
+	bool IsNotFound = true;
+	for (const auto& Item : Items)
+	{
+		UQLItemData* Entry = Cast<UQLItemData>(Item);
+
+		UE_LOG(LogTemp, Warning, TEXT("?"));
+		if (Entry && Entry->ItemType == InItemInfo->ItemType)
+		{
+			IsNotFound = false;
+			if (InItemCnt <= 0)
+			{
+				DeleteItem(Entry);
+				break;
+			}
+			Entry->CurrentItemCnt = InItemCnt; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
+			break;
+		}
+	}
+
+	if (IsNotFound == true)
+	{
+		//생성
+		AddItem(InItem);
+	}
+	
+	ItemList->RegenerateAllEntries();
+}
+
+void UQLInventory::UpdateInventoryByDraggedItem(UObject* InItem)
+{
+	
+	AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetOwningPlayer());
+
 	const TArray<UObject*> Items = ItemList->GetListItems();
 	UQLItemData* InItemInfo = Cast<UQLItemData>(InItem);
 	bool IsNotFound = true;
@@ -30,13 +66,7 @@ void UQLInventory::UpdateItemEntry(UObject* InItem,int32 InItemCnt)
 		if (Entry && Entry->ItemType == InItemInfo->ItemType)
 		{
 			IsNotFound = false;
-			if (InItemCnt <= 0)
-			{
-				DeleteItem(Entry);
-				break;
-			}
-			Entry->CurrentItemCnt = InItemCnt; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
-			ItemList->RegenerateAllEntries(); //그 카운트에 대해서 다시 업데이트 해라
+			Entry->CurrentItemCnt++; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
 			break;
 		}
 	}
@@ -44,25 +74,55 @@ void UQLInventory::UpdateItemEntry(UObject* InItem,int32 InItemCnt)
 	if (IsNotFound == true)
 	{
 		//생성
-		AddItem(InItem);
+		ItemList->AddItem(InItem);
+	}
+	ItemList->RegenerateAllEntries();
+	PC->AddInventoryByDraggedItem(InItemInfo->ItemType,InItemInfo->CurrentItemCnt);
+
+}
+
+
+void UQLInventory::UpdateNearbyItemEntry(UObject* InItem)
+{
+	/**/
+	const TArray<UObject*> Items = GroundItem->GetListItems();
+	UQLItemData* InItemInfo = Cast<UQLItemData>(InItem);
+	bool IsNotFound = true;
+	for (const auto& Item : Items)
+	{
+		UQLItemData* Entry = Cast<UQLItemData>(Item);
+
+		if (Entry && Entry->ItemType == InItemInfo->ItemType)
+		{
+			IsNotFound = false;
+			Entry->CurrentItemCnt++; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
+			break;
+		}
+	}
+
+	if (IsNotFound == true)
+	{
+		//생성
+		GroundItem->AddItem(InItem);
 	}
 }
 
-void UQLInventory::AddNearbyItemEntry(UObject* Item)
+void UQLInventory::RemoveNearbyItemEntry(UObject* InItem)
 {
-	GroundItem->AddItem(Item);
+	GroundItem->RemoveItem(InItem);
 }
 
-void UQLInventory::RemoveNearbyItemEntry()
+void UQLInventory::RemoveAllNearbyItemEntries()
 {
 	GroundItem->ClearListItems();
+	GroundItem->RegenerateAllEntries();
 }
-
 
 void UQLInventory::OnClickedItem()
 {
 	UQLItemData* ItemEntry = Cast<UQLItemData>(ItemList->GetSelectedItem());
 
+	UE_LOG(LogTemp, Warning, TEXT("%d"),ItemEntry);
 	if (ItemEntry)
 	{
 		//해당 플레이어 컨트롤러에게 id-cnt값 전달
@@ -73,7 +133,7 @@ void UQLInventory::OnClickedItem()
 		//해당 id - cnt 개수 하나 차감 -> ClientRPC 전송
 		//Inventory Update
 		AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetOwningPlayer());
-		PC->RemoveItemEntry(ItemEntry->ItemType, ItemEntry->CurrentItemCnt);
+		PC->RemoveItemEntry(ItemEntry->ItemType);
 		UE_LOG(LogTemp, Warning, TEXT("Current Selected"));
 	}
 }
