@@ -528,7 +528,7 @@ bool AQLCharacterPlayer::ServerRPCRemoveItem_Validate(EItemType ItemId, int32 It
 	return true;
 }
 /* 버그 수정해라 */
-void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType ItemId, int32 ItemCnt)
+void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType InItemId, int32 InItemCnt)
 {
 	QL_LOG(QLNetLog, Warning, TEXT("found a matching item"));
 
@@ -536,7 +536,7 @@ void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType ItemId, in
 	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
 	//아이템을 보관하고 있는 Manager 가져온다.
 
-	UQLItemData* ItemData = DataManager->GetItem(ItemId);
+	UQLItemData* ItemData = DataManager->GetItem(InItemId);
 	IQLGetItemStat* ItemStat = Cast<IQLGetItemStat>(ItemData);
 
 	if (ItemStat == nullptr)
@@ -546,7 +546,7 @@ void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType ItemId, in
 	}
 	if (DataManager)
 	{
-		switch (ItemId)
+		switch (InItemId)
 		{
 		case EItemType::StaminaRecoveryItem:
 			PS->AddStaminaStat(ItemStat->GetStat());
@@ -557,9 +557,9 @@ void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType ItemId, in
 		case EItemType::DiscoveryItem:
 			break;
 		}
-		int32 ItemCnt = --InventoryItem[ItemId]; //하나 사용
+		int32 ItemCnt = --InventoryItem[InItemId]; //하나 사용
 
-		ClientRPCRemoveItem(ItemData, InventoryItem[ItemId]); //클라랑 서버랑 개수 일치
+		ClientRPCRemoveItem(ItemData, InventoryItem[InItemId]); //클라랑 서버랑 개수 일치
 	}
 }
 
@@ -951,6 +951,20 @@ void AQLCharacterPlayer::SetInventory()
 	PlayerController->bShowMouseCursor = true;
 	PlayerController->SetInputMode(UIOnlyInputMode);
 	
+}
+
+void AQLCharacterPlayer::UseItem(EItemType ItemId)
+{
+	if (InventoryItem.Find(ItemId))
+	{
+		ServerRPCRemoveItem(ItemId, InventoryItem[ItemId]);
+	}
+}
+
+void AQLCharacterPlayer::AddInventoryByDraggedItem(EItemType InItemId,int32 InItemCnt)
+{
+	//실제로 아이템이 있는지 검사하기 위해서 서버에게 요청해야함;
+	QL_LOG(QLNetLog, Warning, TEXT("AddItem %d"), InItemCnt);
 }
 
 bool AQLCharacterPlayer::ServerRPCPuttingWeapon_Validate()

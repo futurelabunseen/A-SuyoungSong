@@ -60,7 +60,7 @@ void AQLPlayerState::SetWeaponStat(const UQLWeaponStat* Stat)
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDamageAttribute(), Stat->Damage);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDistanceAttribute(), Stat->AttackDist);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), Stat->AmmoCnt);
-    }
+    }//0->
 
 }
 void AQLPlayerState::AddHPStat(float HP)
@@ -143,14 +143,14 @@ void AQLPlayerState::OnChangedHp(const FOnAttributeChangeData& Data)
     float CurrentHP = Data.NewValue;
 
     AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
-
+    QL_LOG(QLNetLog, Log, TEXT("%lf %lf"), CurrentHP, GetMaxHealth());
     if (PC && PC->IsLocalController())
     {
         //Player의 QLPlayerHpBarWidget 가져옴
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
         Widget->ChangedHPPercentage(CurrentHP, GetMaxHealth());
         
-        QL_LOG(QLNetLog, Log, TEXT("%lf %lf"), CurrentHP, GetMaxHealth());
+ 
     }
 }
 

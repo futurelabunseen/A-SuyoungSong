@@ -51,6 +51,36 @@ void UQLInventory::UpdateItemEntry(UObject* InItem, int32 InItemCnt)
 	ItemList->RegenerateAllEntries();
 }
 
+void UQLInventory::UpdateInventoryByDraggedItem(UObject* InItem)
+{
+	
+	AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetOwningPlayer());
+
+	const TArray<UObject*> Items = ItemList->GetListItems();
+	UQLItemData* InItemInfo = Cast<UQLItemData>(InItem);
+	bool IsNotFound = true;
+	for (const auto& Item : Items)
+	{
+		UQLItemData* Entry = Cast<UQLItemData>(Item);
+
+		if (Entry && Entry->ItemType == InItemInfo->ItemType)
+		{
+			IsNotFound = false;
+			Entry->CurrentItemCnt++; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
+			break;
+		}
+	}
+
+	if (IsNotFound == true)
+	{
+		//생성
+		ItemList->AddItem(InItem);
+	}
+	ItemList->RegenerateAllEntries();
+	PC->AddInventoryByDraggedItem(InItemInfo->ItemType,InItemInfo->CurrentItemCnt);
+
+}
+
 
 void UQLInventory::UpdateNearbyItemEntry(UObject* InItem)
 {
@@ -85,6 +115,7 @@ void UQLInventory::RemoveNearbyItemEntry(UObject* InItem)
 void UQLInventory::RemoveAllNearbyItemEntries()
 {
 	GroundItem->ClearListItems();
+	GroundItem->RegenerateAllEntries();
 }
 
 void UQLInventory::OnClickedItem()
@@ -102,7 +133,7 @@ void UQLInventory::OnClickedItem()
 		//해당 id - cnt 개수 하나 차감 -> ClientRPC 전송
 		//Inventory Update
 		AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetOwningPlayer());
-		PC->RemoveItemEntry(ItemEntry->ItemType, ItemEntry->CurrentItemCnt);
+		PC->RemoveItemEntry(ItemEntry->ItemType);
 		UE_LOG(LogTemp, Warning, TEXT("Current Selected"));
 	}
 }

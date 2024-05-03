@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "GameData/QLItemType.h"
 #include "Blueprint/IUserObjectListEntry.h"
 #include "QLListItemEntry.generated.h"
 
@@ -16,7 +17,10 @@ class QUADLAND_API UQLListItemEntry : public UUserWidget , public IUserObjectLis
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintCallable)
+	virtual void SetItemNameTxt(FString ItemName);
 
+	UFUNCTION(BlueprintCallable)
 	virtual void SetItemCntTxt(int32 ItemCnt);
 protected:
 	virtual void NativeConstruct() override;
@@ -25,12 +29,12 @@ protected:
 	//아이템 UI 설정 시 호출하는 함수
 protected:
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
 	TObjectPtr<class UImage> ItemImg;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
 	TObjectPtr<class UTextBlock> TxtItemTitle;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
 	TObjectPtr<class UTextBlock> TxtItemCnt;
 };

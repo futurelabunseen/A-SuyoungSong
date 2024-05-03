@@ -39,6 +39,7 @@ void AQLPlayerController::CloseInventory()
 {
 	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
 	InventoryUI->RemoveAllNearbyItemEntries(); //전부 제거
+
 	FInputModeGameOnly GameOnlyInputMode;
 	SetHiddenHUD(EHUDType::Inventory);
 	bShowMouseCursor = false;
@@ -104,7 +105,18 @@ void AQLPlayerController::UpdateItemEntry(UObject* Item, int32 CurrentItemCnt)
 	}
 }
 
-void AQLPlayerController::RemoveItemEntry(EItemType ItemIdx, int32 ItemCnt)
+void AQLPlayerController::AddInventoryByDraggedItem(EItemType ItemIdx, int32 CurrentItemCnt)
+{
+	//Player전달
+	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+
+	if (QLCharacter)
+	{
+		QLCharacter->AddInventoryByDraggedItem(ItemIdx, CurrentItemCnt);
+	}
+}
+
+void AQLPlayerController::RemoveItemEntry(EItemType ItemIdx)
 {
 	//Player전달
 	AQLCharacterPlayer* QLCharacter =Cast<AQLCharacterPlayer>(GetPawn());
@@ -112,7 +124,7 @@ void AQLPlayerController::RemoveItemEntry(EItemType ItemIdx, int32 ItemCnt)
 	QL_LOG(QLNetLog, Warning, TEXT("this?QL"));
 	if (QLCharacter)
 	{
-		QLCharacter->ServerRPCRemoveItem(ItemIdx,ItemCnt);
+		QLCharacter->UseItem(ItemIdx);
 	}
 
 }

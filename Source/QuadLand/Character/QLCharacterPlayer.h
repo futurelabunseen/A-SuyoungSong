@@ -304,4 +304,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	float SearchRange;
 
+	void UseItem(EItemType ItemId); //아이템을 사용
+	void AddInventoryByDraggedItem(EItemType ItemId, int32 ItemCnt);
 };
