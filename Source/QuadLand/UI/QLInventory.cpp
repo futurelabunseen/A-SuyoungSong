@@ -66,19 +66,30 @@ void UQLInventory::UpdateInventoryByDraggedItem(UObject* InItem)
 		if (Entry && Entry->ItemType == InItemInfo->ItemType)
 		{
 			IsNotFound = false;
-			Entry->CurrentItemCnt++; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
+			Entry->CurrentItemCnt += InItemInfo->CurrentItemCnt; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
+			
 			break;
 		}
 	}
+
+	//더하기 이면서
 
 	if (IsNotFound == true)
 	{
 		//생성
 		ItemList->AddItem(InItem);
 	}
+	PC->AddInventoryByDraggedItem(InItemInfo->ItemType, InItemInfo->CurrentItemCnt);
 	ItemList->RegenerateAllEntries();
-	PC->AddInventoryByDraggedItem(InItemInfo->ItemType,InItemInfo->CurrentItemCnt);
+}
 
+void UQLInventory::UpdateNearbyItemEntryByDraggedItem(UObject* InItem)
+{
+	GroundItem->AddItem(InItem);
+	UQLItemData* InItemInfo = Cast<UQLItemData>(InItem);
+	//PC호출
+	AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetOwningPlayer());
+	PC->AddGroundByDraggedItem(InItemInfo->ItemType, InItemInfo->CurrentItemCnt);
 }
 
 

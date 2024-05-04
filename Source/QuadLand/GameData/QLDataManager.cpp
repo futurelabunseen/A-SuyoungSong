@@ -20,6 +20,11 @@ UQLItemData* UQLDataManager::GetItem(EItemType ItemId)
 	return ItemDataManager->GetItem(ItemId);
 }
 
+TSubclassOf<class AQLItemBox> UQLDataManager::GetItemBoxClass(EItemType ItemId)
+{
+	return ItemDataManager->GetItemBoxClass(ItemId);
+}
+
 void UQLDataManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);

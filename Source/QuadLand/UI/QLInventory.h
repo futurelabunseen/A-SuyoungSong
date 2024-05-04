@@ -24,6 +24,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UpdateInventoryByDraggedItem(UObject* InItem);
 
+	UFUNCTION(BlueprintCallable)
+	void UpdateNearbyItemEntryByDraggedItem(UObject* InItem);
+
 	void UpdateNearbyItemEntry(UObject* InItem);
 
 	UFUNCTION(BlueprintCallable)

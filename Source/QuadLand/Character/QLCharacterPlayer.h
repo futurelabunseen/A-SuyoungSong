@@ -306,4 +306,15 @@ public:
 
 	void UseItem(EItemType ItemId); //아이템을 사용
 	void AddInventoryByDraggedItem(EItemType ItemId, int32 ItemCnt);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCAddInventoryByDraggedItem(EItemType ItemId, int32 ItemCnt);
+	UFUNCTION(Client, Reliable)
+	void ClientRPCRollbackInventory(EItemType ItemId, int32 ItemCnt);
+
+	void AddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCAddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt);
+
 };

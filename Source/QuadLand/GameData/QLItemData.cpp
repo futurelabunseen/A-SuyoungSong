@@ -3,3 +3,6 @@
 
 #include "GameData/QLItemData.h"
 
+UQLItemData::UQLItemData() : bIsGround(true)
+{
+}
