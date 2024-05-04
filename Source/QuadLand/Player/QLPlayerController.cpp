@@ -112,6 +112,8 @@ void AQLPlayerController::AddInventoryByDraggedItem(EItemType ItemIdx, int32 Cur
 
 	if (QLCharacter)
 	{
+		QL_LOG(QLNetLog, Warning, TEXT("Add item %d"), CurrentItemCnt);
+
 		QLCharacter->AddInventoryByDraggedItem(ItemIdx, CurrentItemCnt);
 	}
 }
@@ -121,10 +123,21 @@ void AQLPlayerController::RemoveItemEntry(EItemType ItemIdx)
 	//Player전달
 	AQLCharacterPlayer* QLCharacter =Cast<AQLCharacterPlayer>(GetPawn());
 
-	QL_LOG(QLNetLog, Warning, TEXT("this?QL"));
 	if (QLCharacter)
 	{
 		QLCharacter->UseItem(ItemIdx);
 	}
 
+}
+
+void AQLPlayerController::AddGroundByDraggedItem(EItemType ItemIdx, int32 CurrentItemCnt)
+{
+	//Player전달
+	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+
+	if (QLCharacter)
+	{
+		QL_LOG(QLNetLog, Warning, TEXT("Drop item %d"),CurrentItemCnt);
+		QLCharacter->AddGroundByDraggedItem(ItemIdx, CurrentItemCnt);
+	}
 }

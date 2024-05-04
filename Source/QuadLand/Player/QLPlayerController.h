@@ -27,11 +27,14 @@ public:
 
 	void CreateHUD();
 
+	/* 인벤토리 */
 	void UpdateNearbyItemEntry(UObject* Item); //아이템이 생김 - Stat을 넘기자
 	void UpdateItemEntry(UObject* Item, int32 CurrentItemCnt);
 
 	void AddInventoryByDraggedItem(EItemType ItemIdx,int32 CurrentItemCnt);
 	void RemoveItemEntry(EItemType ItemIdx); //선택된 arr값 - id를 넘겨서 제거하자
+	void AddGroundByDraggedItem(EItemType ItemIdx, int32 CurrentItemCnt);
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)

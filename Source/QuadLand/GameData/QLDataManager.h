@@ -19,6 +19,7 @@ public:
 	UQLDataManager();
 
 	class UQLItemData* GetItem(EItemType ItemId);
+	TSubclassOf<class AQLItemBox> GetItemBoxClass(EItemType ItemId);
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 

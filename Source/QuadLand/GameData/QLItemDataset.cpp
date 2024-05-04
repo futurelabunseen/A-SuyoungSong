@@ -7,3 +7,8 @@ UQLItemData* UQLItemDataset::GetItem(EItemType ItemId)
 {
 	return ItemList[ItemId];
 }
+
+TSubclassOf<class AQLItemBox> UQLItemDataset::GetItemBoxClass(EItemType ItemId)
+{
+	return GroundItemBox[ItemId];
+}
