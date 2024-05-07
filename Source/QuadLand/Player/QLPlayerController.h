@@ -35,6 +35,8 @@ public:
 	void RemoveItemEntry(EItemType ItemIdx); //선택된 arr값 - id를 넘겨서 제거하자
 	void AddGroundByDraggedItem(EItemType ItemIdx, int32 CurrentItemCnt);
 
+	UFUNCTION(BlueprintCallable)
+	void CloseHUD(EHUDType UItype);
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
@@ -43,6 +45,4 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
 	TMap<EHUDType, TObjectPtr<class UUserWidget>> HUDs;
 
-	UFUNCTION(BlueprintCallable)
-	void CloseInventory();
 };

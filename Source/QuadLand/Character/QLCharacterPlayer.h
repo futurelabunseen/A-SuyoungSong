@@ -10,6 +10,7 @@
 #include "GameData/QLItemType.h"
 #include "GameplayEffectTypes.h"
 #include "Components/TimelineComponent.h"
+#include "Interface/QLLifestoneContainerInterface.h"
 #include "QLCharacterPlayer.generated.h"
 
 /**
@@ -27,7 +28,7 @@ struct FTakeItemDelegateWrapper
 };
 
 UCLASS()
-class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase, public IAbilitySystemInterface
+class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase,public IQLLifestoneContainerInterface, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
@@ -111,6 +112,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> VisibilityInventoryAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> MapAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<class UInputMappingContext> InputMappingContext;
@@ -280,6 +284,20 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRPCPuttingWeapon();
 
+	uint8 bIsNearbyBox : 1; //오버랩 될 때 변경할 부울 변수
+
+public:
+	virtual void CheckBoxOverlap() override; 
+	// 현재 Overlap 되었음을 알려줄 함수
+
+	// Overlap이 끝났음을 알려주는 함수
+
+	//Ctrl 을 눌렀을 때 Overlap이 되어있으면, 숨긴다.
+	//Ctrl 을 눌렀을 때 Overlap이 안되어있으면, 바닥에 떨군다.
+
+	//PlayerState -> bHasLifeStone
+
+
 	//Inventory Section
 
 protected:
@@ -316,5 +334,10 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCAddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt);
+
+protected:
+	//Map Section
+	void SetMap();
+	uint8 bIsVisibleMap : 1;
 
 };

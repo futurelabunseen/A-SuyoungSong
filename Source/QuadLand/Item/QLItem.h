@@ -18,4 +18,5 @@ public:
 	UPROPERTY(EditAnywhere, Category = Stat)
 	TObjectPtr<class UQLItemData> Stat;
 
+
 };

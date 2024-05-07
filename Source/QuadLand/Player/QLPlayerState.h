@@ -38,12 +38,17 @@ public:
 	float GetMaxHealth();
 	float GetCurrentAmmoCnt();
 	float GetMaxAmmoCnt();
+
+	FORCEINLINE void SetHasLifeStone(bool InHasLifeStone) { bHasLifeStone = InHasLifeStone; }
+	FORCEINLINE bool GetHasLifeStone() { return bHasLifeStone; }
+
 	UFUNCTION()
 	virtual void Win(const FGameplayTag CallbackTag, int32 NewCount);
 
 	UFUNCTION()
 	virtual void Dead(const FGameplayTag CallbackTag, int32 NewCount);
 
+	void SetDead();
 	virtual void BeginPlay() override;
 protected:
 
@@ -65,7 +70,7 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bIsDead : 1;
 
-	void SetHasLifeStone(bool InGetStone) { bHasLifeStone = true; }
+	//void SetHasLifeStone(bool InGetStone) { bHasLifeStone = true; }
 	//HUD Update Section
 protected:
 
@@ -94,8 +99,11 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerRPCPutLifeStone(); //서버에게 눌렀음을 전달
 
+	UFUNCTION(Server, Reliable)
+	void ServerRPCConcealLifeStone();
+
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
-	uint8 bHasLifeStone;
+	uint8 bHasLifeStone : 1;
 
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	TObjectPtr<class AQLPlayerLifeStone> LifeStone;

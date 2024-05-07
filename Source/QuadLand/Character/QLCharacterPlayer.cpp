@@ -143,6 +143,13 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 		VisibilityInventoryAction = VisibilityInventoryActionRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> MapActionRep(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Map.IA_Map'"));
+
+	if (MapActionRep.Object)
+	{
+		MapAction = MapActionRep.Object;
+	}
+
 	bIsSetVisibleInventory = false;
 
 
@@ -153,7 +160,7 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	{
 		InputMappingContext = InputContextMappingRef.Object;
 	}
-
+	
 
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::EquipWeapon)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::HasLifeStone)));
@@ -282,6 +289,7 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 
 	EnhancedInputComponent->BindAction(VisibilityInventoryAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::SetInventory);
 
+	EnhancedInputComponent->BindAction(MapAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::SetMap);
 	//PutLifeStone 
 	SetupGASInputComponent();
 }
@@ -879,11 +887,17 @@ void AQLCharacterPlayer::InitializeAttributes()
 void AQLCharacterPlayer::PutLifeStone() //Ctrl -> 
 {
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-
-	//서버와 클라 모두 해당 위치에서 Spawn
-	//플레이어의 위치를 가져온다
-	if (PS->bHasLifeStone)
+	if (bIsNearbyBox)
 	{
+		QL_LOG(QLNetLog, Log, TEXT("Conceal Lifestone"));
+		PS->ServerRPCConcealLifeStone();
+	}
+	else
+	{
+
+		QL_LOG(QLNetLog, Log, TEXT("Put Lifestone"));
+		//서버와 클라 모두 해당 위치에서 Spawn
+		//플레이어의 위치를 가져온다
 		PS->ServerRPCPutLifeStone();
 	}
 }
@@ -895,6 +909,33 @@ void AQLCharacterPlayer::PutWeapon()
 		CurrentAttackType = ECharacterAttackType::HookAttack;
 	}
 	ServerRPCPuttingWeapon();
+}
+
+void AQLCharacterPlayer::CheckBoxOverlap()
+{
+	if (bIsNearbyBox)
+	{
+		bIsNearbyBox = false;
+	}
+	else
+	{
+		bIsNearbyBox = true;
+	}
+}
+
+void AQLCharacterPlayer::SetMap()
+{
+	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
+	if (bIsVisibleMap == false)
+	{
+		PlayerController->SetVisibilityHUD(EHUDType::Map);
+		bIsVisibleMap = true;
+	}
+	else
+	{
+		PlayerController->SetHiddenHUD(EHUDType::Map);
+		bIsVisibleMap = false;
+	}
 }
 //대박... 멍청한생각...이거... 서버로 안가구나...
 void AQLCharacterPlayer::SetInventory()
