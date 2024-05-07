@@ -27,21 +27,19 @@ void AQLPlayerController::SetVisibilityHUD(EHUDType UItype)
 	if (IsLocalController())
 	{
 		HUDs[UItype]->SetVisibility(ESlateVisibility::Visible);
-
-		if (UItype == EHUDType::Inventory)
-		{
-			UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(this, HUDs[UItype]);
-		}
 	}
 }
 
-void AQLPlayerController::CloseInventory()
+void AQLPlayerController::CloseHUD(EHUDType UItype)
 {
-	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
-	InventoryUI->RemoveAllNearbyItemEntries(); //전부 제거
-
+	if (UItype == EHUDType::Inventory)
+	{
+		UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[UItype]);
+		InventoryUI->RemoveAllNearbyItemEntries(); //전부 제거
+	}
+	
 	FInputModeGameOnly GameOnlyInputMode;
-	SetHiddenHUD(EHUDType::Inventory);
+	SetHiddenHUD(UItype);
 	bShowMouseCursor = false;
 	SetInputMode(GameOnlyInputMode);
 }
@@ -78,6 +76,7 @@ void AQLPlayerController::CreateHUD()
 	Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
 	
 	SetHiddenHUD(EHUDType::Inventory);
+	SetHiddenHUD(EHUDType::Map);
 	//HUD 초기화
 }
 

@@ -13,6 +13,9 @@
 #include "Net/UnrealNetwork.h"
 #include "Player/QLPlayerLifeStone.h"
 #include "UI/QLUserWidget.h"
+#include "Physics/QLCollision.h"
+#include "Gimmick/QLLifestoneStorageBox.h"
+
 AQLPlayerState::AQLPlayerState()
 {
     ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
@@ -94,6 +97,7 @@ void AQLPlayerState::ResetWeaponStat(const UQLWeaponStat* Stat)
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), WeaponStatInfo->GetAmmoCnt() - Stat->AmmoCnt); //현재 가지고있는 총알은 변하지 않음 (대신 조건 부착, 총이 없다!!!!)
     }
 }
+
 void AQLPlayerState::BeginPlay()
 {
     Super::BeginPlay();
@@ -197,11 +201,63 @@ void AQLPlayerState::OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data)
     }
 }
 
+void AQLPlayerState::ServerRPCConcealLifeStone_Implementation()
+{
+   
+    //라인트레이스를 쏘아서 가장 가까이 있는 오브젝트를 체크한다.
+    //그리고 그 오브젝트에게 현재 라이프 스톤을 저장한 플레이어 컨트롤러가 누구인지를 전달함.
+    //현재 숨겨진 오브젝트를 저장한다.
+    //서버에서만 적용
+    FCollisionQueryParams Params(TEXT("DetectionItem"), false, this);
+    FVector SearchLocation = GetPawn()->GetActorLocation();
+    FHitResult NearbyItem;
+
+    float SearchRange = 100.0f;
+    //ItemDetectionSocket
+    bool bResult = GetWorld()->SweepSingleByChannel(
+        NearbyItem,
+        SearchLocation,
+        SearchLocation,
+        FQuat::Identity,
+        CCHANNEL_QLITEMACTION,
+        FCollisionShape::MakeSphere(SearchRange),
+        Params
+    );
+
+#if ENABLE_DRAW_DEBUG
+    FColor Color = bResult ? FColor::Green : FColor::Red;
+    DrawDebugSphere(GetWorld(), SearchLocation, SearchRange, 10.0f, Color, false, 5.0f);
+#endif
+
+    if (bResult)
+    {
+        AQLLifestoneStorageBox* StorageBox = Cast<AQLLifestoneStorageBox>(NearbyItem.GetActor());
+
+        if (StorageBox)
+        {
+            if (bHasLifeStone)
+            {
+                QL_LOG(QLNetLog, Log, TEXT("HasLifeStone"));
+
+                //이름을 전달해야하거든? 이것 또한, 같은 인터페이스를 사용
+
+                if (StorageBox->GetAlreadyHidden() == false)  //이미 숨겨져 있지 않다면, 연결
+                {
+                    StorageBox->OnLifespanDelegate.BindUObject(this, &AQLPlayerState::SetDead);
+                    StorageBox->OnLifestoneChangedDelegate.BindUObject(this, &AQLPlayerState::SetHasLifeStone);
+                }
+            }
+            StorageBox->ConcealLifeStone(FName(GetName()));
+        }
+    }
+
+}
+
 void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
 {
-    QL_LOG(QLNetLog, Log, TEXT("HasLifeStone"));
     if (bHasLifeStone)
     {
+        QL_LOG(QLNetLog, Log, TEXT("HasLifeStone"));
         FVector Location = GetPawn()->GetActorLocation(); //Possessed Pawn Position
         FActorSpawnParameters Params;
         Params.Owner = this;
@@ -255,14 +311,21 @@ void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
 
 void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 {
+    SetDead();
+    
+    QL_LOG(QLNetLog, Log, TEXT("Current Dead %d"),bIsDead);
+}
+
+void AQLPlayerState::SetDead()
+{
     if (bIsDead == false)
     {
         FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
         ASC->TryActivateAbilitiesByTag(TargetTag);
     }
     bIsDead = !bIsDead;
-    
-    QL_LOG(QLNetLog, Log, TEXT("Current Dead %d"),bIsDead);
+
+    QL_LOG(QLNetLog, Log, TEXT("Current Dead %d %s"), bIsDead, *GetName());
 }
 
 void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

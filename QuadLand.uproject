@@ -34,10 +34,6 @@
 		{
 			"Name": "RemoteControl",
 			"Enabled": true
-		},
-		{
-			"Name": "Water",
-			"Enabled": true
 		}
 	]
 }
