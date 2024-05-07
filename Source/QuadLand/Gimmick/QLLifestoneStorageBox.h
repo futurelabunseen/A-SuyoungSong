@@ -7,7 +7,7 @@
 #include "Interface/QLLifestoneContainerInterface.h"
 #include "QLLifestoneStorageBox.generated.h"
 
-
+DECLARE_DELEGATE_TwoParams(FOnUpdateAlertPanel, FName, AQLLifestoneStorageBox*);
 DECLARE_DELEGATE_OneParam(FOnLifestoneChangedDelegate, bool);
 DECLARE_DELEGATE(FOnLifespanDelegate);
 UCLASS()
@@ -20,6 +20,7 @@ public:
 	AQLLifestoneStorageBox();
 
 	bool GetAlreadyHidden() { return bIsAlreadyHidden; }
+	void UpdateAlertPanel(FName InPlayerStateName);
 protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Mesh)
@@ -36,11 +37,18 @@ protected:
 	
 
 	uint8 bIsAlreadyHidden : 1;
+	
 	FName PlayerStateName;
-
 public:
 	FOnLifespanDelegate OnLifespanDelegate;
 	FOnLifestoneChangedDelegate OnLifestoneChangedDelegate;
+	FOnUpdateAlertPanel OnUpdateAlertPanel;
+
 	void ConcealLifeStone(FName InPlayerStateName) ;
 
+
+protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Alert, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UWidgetComponent> AlertComponent;
 };

@@ -201,6 +201,18 @@ void AQLPlayerState::OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data)
     }
 }
 
+//Multicast 호출
+void AQLPlayerState::UpdateStorageWidget(FName Nickname, AQLLifestoneStorageBox* StorageBox)
+{
+    //MulticastRPC 호출
+    MulticastRPCUpdateStorageWidget(Nickname, StorageBox);
+}
+
+void AQLPlayerState::MulticastRPCUpdateStorageWidget_Implementation(FName Nickname, AQLLifestoneStorageBox* StorageBox)
+{
+    StorageBox->UpdateAlertPanel(Nickname);
+}
+
 void AQLPlayerState::ServerRPCConcealLifeStone_Implementation()
 {
    
@@ -245,6 +257,7 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation()
                 {
                     StorageBox->OnLifespanDelegate.BindUObject(this, &AQLPlayerState::SetDead);
                     StorageBox->OnLifestoneChangedDelegate.BindUObject(this, &AQLPlayerState::SetHasLifeStone);
+                    StorageBox->OnUpdateAlertPanel.BindUObject(this, &AQLPlayerState::UpdateStorageWidget);
                 }
             }
             StorageBox->ConcealLifeStone(FName(GetName()));
