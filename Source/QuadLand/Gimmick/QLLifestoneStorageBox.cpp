@@ -5,6 +5,8 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Physics/QLCollision.h"
+#include "Components/WidgetComponent.h"
+#include "UI/QLAlertPanel.h"
 #include "Interface/QLLifestoneContainerInterface.h"
 #include "QuadLand.h"
 
@@ -32,11 +34,25 @@ AQLLifestoneStorageBox::AQLLifestoneStorageBox()
 
 	PlayerStateName = TEXT("");
 	bIsAlreadyHidden = false;
+
+	AlertComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("AlertPanel"));
+	AlertComponent->SetupAttachment(Mesh);
+	AlertComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 150.0f));
+	static ConstructorHelpers::FClassFinder<UQLAlertPanel> AlertPanelClassRef(TEXT("/Game/QuadLand/UI/WBQL_AlertPanel.WBQL_AlertPanel_C"));
+
+	if (AlertPanelClassRef.Class)
+	{
+		AlertComponent->SetWidgetSpace(EWidgetSpace::Screen); //2D변경
+		AlertComponent->SetDrawSize(FVector2D(250.0f, 60.0f));
+		AlertComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		AlertComponent->SetWidgetClass(AlertPanelClassRef.Class);
+	}
+	AlertComponent->SetHiddenInGame(true);
 }
 
 void AQLLifestoneStorageBox::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-
+	AlertComponent->SetHiddenInGame(false);
 	IQLLifestoneContainerInterface* LifeStoneInterface = Cast<IQLLifestoneContainerInterface>(OtherActor);
 	QL_LOG(QLNetLog, Log, TEXT("Begin"));
 
@@ -48,11 +64,36 @@ void AQLLifestoneStorageBox::OnComponentBeginOverlap(UPrimitiveComponent* Overla
 
 void AQLLifestoneStorageBox::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	AlertComponent->SetHiddenInGame(true);
+
 	QL_LOG(QLNetLog, Log, TEXT("End"));
 	IQLLifestoneContainerInterface* LifeStoneInterface = Cast<IQLLifestoneContainerInterface>(OtherActor);
 	if (LifeStoneInterface)
 	{
 		LifeStoneInterface->CheckBoxOverlap();
+	}
+}
+
+void AQLLifestoneStorageBox::UpdateAlertPanel(FName InPlayerStateName)
+{
+	UQLAlertPanel* Panel = Cast<UQLAlertPanel>(AlertComponent->GetWidget());
+	PlayerStateName = InPlayerStateName;
+
+	if (Panel)
+	{
+		FString Nickname = PlayerStateName.ToString();
+		Panel->SetNickNameTxt(Nickname);
+
+		if (Nickname == TEXT("None"))
+		{
+			bIsAlreadyHidden = false;
+			Panel->SetStatusTxt(TEXT("Empty"));
+		}
+		else
+		{
+			bIsAlreadyHidden = true;
+			Panel->SetStatusTxt(TEXT("Full"));
+		}
 	}
 }
 
@@ -69,7 +110,6 @@ void AQLLifestoneStorageBox::ConcealLifeStone(FName InPlayerStateName)
 			{
 				OnLifespanDelegate.Execute();
 			}
-
 		}
 		else {
 			
@@ -80,14 +120,13 @@ void AQLLifestoneStorageBox::ConcealLifeStone(FName InPlayerStateName)
 				QL_LOG(QLNetLog, Log, TEXT("come on lifestone"));
 			}
 		}
-		bIsAlreadyHidden = false;
+		
 		OnLifespanDelegate = nullptr;
 		OnLifestoneChangedDelegate = nullptr; //Lifestone을 가져갔음, 즉 역할이 사라짐.
 		PlayerStateName = TEXT("");
 	}
 	else
 	{
-		bIsAlreadyHidden = true;
 		PlayerStateName = InPlayerStateName;
 
 		//숨길 때 델리게이트를 사용해서 가져갔음을 전달. -> PlayerState 
@@ -95,6 +134,9 @@ void AQLLifestoneStorageBox::ConcealLifeStone(FName InPlayerStateName)
 		{
 			OnLifestoneChangedDelegate.Execute(false);
 		}
-		QL_LOG(QLLog, Warning, TEXT("Hidden %s"), *PlayerStateName.ToString());
+	}
+	if (OnUpdateAlertPanel.IsBound())
+	{
+		OnUpdateAlertPanel.Execute(PlayerStateName,this);
 	}
 }

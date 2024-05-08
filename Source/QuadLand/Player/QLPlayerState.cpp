@@ -98,6 +98,14 @@ void AQLPlayerState::ResetWeaponStat(const UQLWeaponStat* Stat)
     }
 }
 
+void AQLPlayerState::UseGlassesItem(float Time) //이친구는 클라이언트에서 사용되어야함.
+{
+    QL_LOG(QLNetLog, Warning, TEXT("this? %f"),Time);
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+
+    PC->ClientRPCShowLifestoneWidget(Time);
+}
+
 void AQLPlayerState::BeginPlay()
 {
     Super::BeginPlay();
@@ -153,8 +161,6 @@ void AQLPlayerState::OnChangedHp(const FOnAttributeChangeData& Data)
         //Player의 QLPlayerHpBarWidget 가져옴
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
         Widget->ChangedHPPercentage(CurrentHP, GetMaxHealth());
-        
- 
     }
 }
 
@@ -201,6 +207,18 @@ void AQLPlayerState::OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data)
     }
 }
 
+//Multicast 호출
+void AQLPlayerState::UpdateStorageWidget(FName Nickname, AQLLifestoneStorageBox* StorageBox)
+{
+    //MulticastRPC 호출
+    MulticastRPCUpdateStorageWidget(Nickname, StorageBox);
+}
+
+void AQLPlayerState::MulticastRPCUpdateStorageWidget_Implementation(FName Nickname, AQLLifestoneStorageBox* StorageBox)
+{
+    StorageBox->UpdateAlertPanel(Nickname);
+}
+
 void AQLPlayerState::ServerRPCConcealLifeStone_Implementation()
 {
    
@@ -245,6 +263,7 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation()
                 {
                     StorageBox->OnLifespanDelegate.BindUObject(this, &AQLPlayerState::SetDead);
                     StorageBox->OnLifestoneChangedDelegate.BindUObject(this, &AQLPlayerState::SetHasLifeStone);
+                    StorageBox->OnUpdateAlertPanel.BindUObject(this, &AQLPlayerState::UpdateStorageWidget);
                 }
             }
             StorageBox->ConcealLifeStone(FName(GetName()));
@@ -266,8 +285,6 @@ void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
         FRepMovement Movement;
         Movement.Location = LifeStone->GetActorLocation();
         LifeStone->SetReplicatedMovement(Movement);
-
-
         bHasLifeStone = false;
     }
 }

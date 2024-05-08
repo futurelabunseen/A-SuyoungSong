@@ -26,6 +26,8 @@ public:
 	void AddHPStat(float HP);
 	void AddStaminaStat(float Stamina);
 	void ResetWeaponStat(const class UQLWeaponStat* Stat);
+	void UseGlassesItem(float Time);
+
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetbIsWin() { return bIsWin; }
 
@@ -95,6 +97,11 @@ protected:
 	virtual void OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data);
 //LifeStone Section
 protected:
+
+	void UpdateStorageWidget(FName Nickname, class AQLLifestoneStorageBox* StorageBox);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastRPCUpdateStorageWidget(FName Nickname, class AQLLifestoneStorageBox* StorageBox);
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCPutLifeStone(); //서버에게 눌렀음을 전달

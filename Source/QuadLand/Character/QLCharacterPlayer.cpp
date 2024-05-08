@@ -565,6 +565,7 @@ void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType InItemId, 
 			PS->AddHPStat(ItemStat->GetStat());
 			break;
 		case EItemType::DiscoveryItem:
+			PS->UseGlassesItem(ItemStat->GetStat());
 			break;
 		}
 		int32 ItemCnt = --InventoryItem[InItemId]; //하나 사용

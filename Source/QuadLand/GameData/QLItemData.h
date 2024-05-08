@@ -34,11 +34,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
 	FString ItemName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Transient, EditAnywhere, BlueprintReadOnly, Category = Item, Meta = (AllowPrivateAccess = "true"))
 	int32 CurrentItemCnt; //변화하는 값, 플레이어마다 다른 값을 가짐
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item, Meta = (AllowPrivateAccess = "true"))
 	uint8 bIsGround : 1; //변화하는 값, 플레이어마다 다른 값을 가짐
-
-
 };
