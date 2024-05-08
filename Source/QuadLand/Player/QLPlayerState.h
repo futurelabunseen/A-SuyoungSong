@@ -26,6 +26,8 @@ public:
 	void AddHPStat(float HP);
 	void AddStaminaStat(float Stamina);
 	void ResetWeaponStat(const class UQLWeaponStat* Stat);
+	void UseGlassesItem(float Time);
+
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetbIsWin() { return bIsWin; }
 

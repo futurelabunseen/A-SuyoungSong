@@ -7,5 +7,6 @@ enum class EHUDType : uint8
 	CrossHair,
 	HUD,
 	Inventory,
-	Map
+	Map,
+	DeathTimer
 };

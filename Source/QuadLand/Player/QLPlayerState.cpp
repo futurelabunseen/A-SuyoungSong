@@ -98,6 +98,14 @@ void AQLPlayerState::ResetWeaponStat(const UQLWeaponStat* Stat)
     }
 }
 
+void AQLPlayerState::UseGlassesItem(float Time) //이친구는 클라이언트에서 사용되어야함.
+{
+    QL_LOG(QLNetLog, Warning, TEXT("this? %f"),Time);
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+
+    PC->ClientRPCShowLifestoneWidget(Time);
+}
+
 void AQLPlayerState::BeginPlay()
 {
     Super::BeginPlay();
@@ -153,8 +161,6 @@ void AQLPlayerState::OnChangedHp(const FOnAttributeChangeData& Data)
         //Player의 QLPlayerHpBarWidget 가져옴
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
         Widget->ChangedHPPercentage(CurrentHP, GetMaxHealth());
-        
- 
     }
 }
 
@@ -279,8 +285,6 @@ void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
         FRepMovement Movement;
         Movement.Location = LifeStone->GetActorLocation();
         LifeStone->SetReplicatedMovement(Movement);
-
-
         bHasLifeStone = false;
     }
 }

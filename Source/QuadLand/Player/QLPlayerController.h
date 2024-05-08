@@ -37,6 +37,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void CloseHUD(EHUDType UItype);
+
+	UFUNCTION(Client,Unreliable)
+	void ClientRPCShowLifestoneWidget(float Timer);
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)

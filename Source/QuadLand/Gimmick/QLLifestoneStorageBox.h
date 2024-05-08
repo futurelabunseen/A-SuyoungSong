@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Interface/QLLifestoneContainerInterface.h"
 #include "QLLifestoneStorageBox.generated.h"
 
 DECLARE_DELEGATE_TwoParams(FOnUpdateAlertPanel, FName, AQLLifestoneStorageBox*);
@@ -21,6 +20,10 @@ public:
 
 	bool GetAlreadyHidden() { return bIsAlreadyHidden; }
 	void UpdateAlertPanel(FName InPlayerStateName);
+
+	FORCEINLINE const FVector2D& GetStorageWidgetLocation() {
+		return StorageWidgetLocation; 
+	}
 protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Mesh)
@@ -46,8 +49,10 @@ public:
 
 	void ConcealLifeStone(FName InPlayerStateName) ;
 
-
 protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = UI)
+	FVector2D StorageWidgetLocation;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Alert, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UWidgetComponent> AlertComponent;

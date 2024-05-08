@@ -9,6 +9,7 @@
 #include "UI/QLPlayerHUDWidget.h"
 #include "UI/QLUserWidget.h"
 #include "UI/QLInventory.h"
+#include "UI/QLMap.h"
 #include "QuadLand.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
@@ -42,6 +43,17 @@ void AQLPlayerController::CloseHUD(EHUDType UItype)
 	SetHiddenHUD(UItype);
 	bShowMouseCursor = false;
 	SetInputMode(GameOnlyInputMode);
+}
+
+void AQLPlayerController::ClientRPCShowLifestoneWidget_Implementation(float Timer)
+{
+	UQLMap *Map = Cast<UQLMap>(HUDs[EHUDType::Map]);
+
+	if (Map)
+	{
+		QL_LOG(QLNetLog, Warning, TEXT("this?"));
+		Map->ShowLifestoneBox(Timer);
+	}
 }
 
 void AQLPlayerController::CreateHUD()

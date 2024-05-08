@@ -86,10 +86,12 @@ void AQLLifestoneStorageBox::UpdateAlertPanel(FName InPlayerStateName)
 
 		if (Nickname == TEXT("None"))
 		{
+			bIsAlreadyHidden = false;
 			Panel->SetStatusTxt(TEXT("Empty"));
 		}
 		else
 		{
+			bIsAlreadyHidden = true;
 			Panel->SetStatusTxt(TEXT("Full"));
 		}
 	}
@@ -118,14 +120,13 @@ void AQLLifestoneStorageBox::ConcealLifeStone(FName InPlayerStateName)
 				QL_LOG(QLNetLog, Log, TEXT("come on lifestone"));
 			}
 		}
-		bIsAlreadyHidden = false;
+		
 		OnLifespanDelegate = nullptr;
 		OnLifestoneChangedDelegate = nullptr; //Lifestone을 가져갔음, 즉 역할이 사라짐.
 		PlayerStateName = TEXT("");
 	}
 	else
 	{
-		bIsAlreadyHidden = true;
 		PlayerStateName = InPlayerStateName;
 
 		//숨길 때 델리게이트를 사용해서 가져갔음을 전달. -> PlayerState 
