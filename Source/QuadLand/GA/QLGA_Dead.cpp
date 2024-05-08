@@ -4,10 +4,13 @@
 #include "GA/QLGA_Dead.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "AbilitySystemComponent.h"
 
 #include "QuadLand.h"
-#include "Player/QLPlayerState.h"
-UQLGA_Dead::UQLGA_Dead()
+#include "Player/QLPlayerController.h"
+#include "GameplayTag/GamplayTags.h"
+
+UQLGA_Dead::UQLGA_Dead() : Time(10.0f)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
@@ -25,13 +28,15 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	*/
 
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
-	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-	Character->SetActorEnableCollision(false);
-	Character->bUseControllerRotationYaw = false;
-	Character->SetLifeSpan(3.0f);
-	//플레이어 스테이트도 제거해야할듯! (하지만 나중에 해보자)
 
-	OnCompleted();
+	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
+
+	if (PC)
+	{
+		PC->OnDeathCheckDelegate.BindUObject(this, &UQLGA_Dead::OnCompleted);
+		PC->ActivateDeathTimer(Time);
+	}
+	//플레이어 스테이트도 제거해야할듯! (하지만 나중에 해보자)
 }
 
 void UQLGA_Dead::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -43,5 +48,30 @@ void UQLGA_Dead::OnCompleted()
 {
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = true;
+
+	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
+
+	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	Character->SetActorEnableCollision(false);
+	Character->bUseControllerRotationYaw = false;
+	Character->SetLifeSpan(3.0f);
+
+	UAbilitySystemComponent *ASC = GetAbilitySystemComponentFromActorInfo();
+	
+	if (ASC)
+	{
+		ASC->AddLooseGameplayTag(CHARACTER_STATE_DEAD);
+	}
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
+
+/*
+Dead -> DELEGATE 를 사용해서 QLPlayerController 연결
+QLPlayerController -> Widget 연결
+Widget 끝나면, 해당 Widget Owning -> Bind
+
+QLDeathTimerWidget 연결 
+
+
+
+*/

@@ -328,20 +328,22 @@ void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
 
 void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 {
-    SetDead();
-    
-    QL_LOG(QLNetLog, Log, TEXT("Current Dead %d"),bIsDead);
-}
-
-void AQLPlayerState::SetDead()
-{
     if (bIsDead == false)
     {
         FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
         ASC->TryActivateAbilitiesByTag(TargetTag);
     }
     bIsDead = !bIsDead;
+}
 
+void AQLPlayerState::SetDead()
+{
+    if (bIsDead == false)
+    {
+        FGameplayTagContainer TargetTag(CHARACTER_STATE_DANGER);
+        ASC->TryActivateAbilitiesByTag(TargetTag);
+    }
+    
     QL_LOG(QLNetLog, Log, TEXT("Current Dead %d %s"), bIsDead, *GetName());
 }
 

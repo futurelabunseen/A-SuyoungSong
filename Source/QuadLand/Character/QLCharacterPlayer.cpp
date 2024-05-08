@@ -469,7 +469,9 @@ void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 
 	if (ItemASC)
 	{
-		ItemASC->AddLooseGameplayTag(CHARACTER_STATE_DEAD);
+		FGameplayTagContainer Tag(CHARACTER_STATE_DANGER);
+		//ItemASC->AddLooseGameplayTag(CHARACTER_STATE_DANGER);
+		ItemASC->TryActivateAbilitiesByTag(Tag);
 		QL_LOG(QLLog, Warning, TEXT("TargetASC is Dead"));
 	}
 }
