@@ -20,7 +20,8 @@ public:
 	uint8 bHasGun : 1;
 
 	/*AI와 같이 사용, InputAction*/
-	
+
+	bool bIsUsingGun();
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> JumpAction;
@@ -32,6 +33,7 @@ protected:
 	UPROPERTY(Replicated)
 	ECharacterAttackType CurrentAttackType; //Server로부터 복제되어야함.
 	virtual FGameplayTag GetCurrentAttackTag() const override;
+
 	//Attack
 protected:
 

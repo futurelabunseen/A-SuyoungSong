@@ -10,6 +10,7 @@
 #include "UI/QLUserWidget.h"
 #include "UI/QLInventory.h"
 #include "UI/QLMap.h"
+#include "UI/QLDeathTimerWidget.h"
 #include "QuadLand.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
@@ -43,6 +44,43 @@ void AQLPlayerController::CloseHUD(EHUDType UItype)
 	SetHiddenHUD(UItype);
 	bShowMouseCursor = false;
 	SetInputMode(GameOnlyInputMode);
+}
+
+void AQLPlayerController::ActivateDeathTimer(float Time)
+{
+	if (IsLocalController())
+	{
+		SetVisibilityHUD(EHUDType::DeathTimer);
+		if (DeathTimerHandle.IsValid() == false)
+		{
+			CurrentDeathSec = Time;
+			QL_LOG(QLNetLog, Warning, TEXT("this? %d"), CurrentDeathSec);
+
+			GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &AQLPlayerController::ReduceDeathSec, 1.0f, true, 0.0f);
+		}
+	}
+	FTimerHandle StopTimer;
+	GetWorld()->GetTimerManager().SetTimer(StopTimer, this, &AQLPlayerController::StopDeathSec, Time, true, -1.0f);
+}
+
+void AQLPlayerController::ReduceDeathSec()
+{
+
+	UQLDeathTimerWidget* DeathTimerWidget = Cast<UQLDeathTimerWidget>(HUDs[EHUDType::DeathTimer]);
+	DeathTimerWidget->UpdateTimer(CurrentDeathSec);
+	CurrentDeathSec--;
+	QL_LOG(QLNetLog, Warning, TEXT("this? %d"), CurrentDeathSec);
+}
+
+void AQLPlayerController::StopDeathSec()
+{
+	if (IsLocalController())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(DeathTimerHandle);
+		DeathTimerHandle.Invalidate();
+	}
+	//Delegate호출
+	OnDeathCheckDelegate.ExecuteIfBound(); 
 }
 
 void AQLPlayerController::ClientRPCShowLifestoneWidget_Implementation(float Timer)
@@ -89,6 +127,7 @@ void AQLPlayerController::CreateHUD()
 	
 	SetHiddenHUD(EHUDType::Inventory);
 	SetHiddenHUD(EHUDType::Map);
+	SetHiddenHUD(EHUDType::DeathTimer);
 	//HUD 초기화
 }
 

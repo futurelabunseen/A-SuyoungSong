@@ -28,10 +28,12 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo_Checked();
 	if (Source)
 	{
+		QL_GASLOG(QLNetLog, Log, TEXT("1"));
 		const UQLAS_WeaponStat* WeaponStat=Source->GetSet<UQLAS_WeaponStat>();
 		if (!WeaponStat || WeaponStat->GetMaxAmmoCnt() <= 0.0f)
 		{
 			OnCompletedCallback();
+			QL_GASLOG(QLNetLog, Log, TEXT("2"));
 			return;
 		}
 	//Reload 하는 애니메이션 동작 - Player

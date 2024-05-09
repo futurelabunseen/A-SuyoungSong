@@ -58,7 +58,7 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	// Weapon Component
 	Weapon = CreateDefaultSubobject<UQLWeaponComponent>(TEXT("Weapon"));
 	Weapon->Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
-
+	
 	//EnhancedInput 연결
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Move.IA_Move'"));
 
@@ -211,7 +211,7 @@ void AQLCharacterPlayer::BeginPlay()
 	{
 		CameraDownTimeline->AddInterpFloat(CameraUpDownCurve, DownInterpFunction, FName{ TEXT("CameraDownAlpha") });
 	}
-
+	Weapon->Weapon->SetHiddenInGame(true); //Weapon 게임에서 안보이도록 해놓음
 }
 
 /// <summary>
@@ -290,6 +290,10 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(VisibilityInventoryAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::SetInventory);
 
 	EnhancedInputComponent->BindAction(MapAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::SetMap);
+
+	EnhancedInputComponent->BindAction(WeaponSwitcherAction[ECharacterAttackType::HookAttack], ETriggerEvent::Completed, this, &AQLCharacterPlayer::SelectDefaultAttackType);
+	EnhancedInputComponent->BindAction(WeaponSwitcherAction[ECharacterAttackType::GunAttack], ETriggerEvent::Completed, this, &AQLCharacterPlayer::SelectGunAttackType);
+	EnhancedInputComponent->BindAction(WeaponSwitcherAction[ECharacterAttackType::BombAttack], ETriggerEvent::Completed, this, &AQLCharacterPlayer::SelectBombAttackType);
 	//PutLifeStone 
 	SetupGASInputComponent();
 }
@@ -302,10 +306,10 @@ void AQLCharacterPlayer::SetupGASInputComponent()
 
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed, (int32)CurrentAttackType);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased, (int32)CurrentAttackType);
-		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed, 2);
-		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased, 2);
-		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed, 3);
-		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased, 3);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed, 3);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased,3);
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed, 4);
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased, 4);
 	}
 }
 void AQLCharacterPlayer::SetCharacterControl()
@@ -426,8 +430,6 @@ void AQLCharacterPlayer::ServerRPCFarming_Implementation()
 
 	bPressedFarmingKey = true;
 	FarmingItem();
-
-	QL_LOG(QLNetLog, Warning, TEXT("Pickup Item"));
 }
 
 void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* WeaponStat)
@@ -437,11 +439,11 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 
 	if (Weapon && WeaponStat->WeaponMesh)
 	{
-		QL_LOG(QLNetLog, Log, TEXT("current farming?"));
 		if (WeaponStat->WeaponMesh.IsPending())
 		{
 			WeaponStat->WeaponMesh.LoadSynchronous();
 		}
+		Weapon->Weapon->SetHiddenInGame(false);
 		Weapon->GroundWeapon = WeaponStat->GroundWeapon;
 		Weapon->Stat = WeaponStat;
 		Weapon->Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh.Get());
@@ -469,7 +471,9 @@ void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 
 	if (ItemASC)
 	{
-		ItemASC->AddLooseGameplayTag(CHARACTER_STATE_DEAD);
+		FGameplayTagContainer Tag(CHARACTER_STATE_DANGER);
+		//ItemASC->AddLooseGameplayTag(CHARACTER_STATE_DANGER);
+		ItemASC->TryActivateAbilitiesByTag(Tag);
 		QL_LOG(QLLog, Warning, TEXT("TargetASC is Dead"));
 	}
 }
@@ -596,6 +600,71 @@ FVector AQLCharacterPlayer::GetCameraForward()
 	return  Camera->GetForwardVector();
 }
 
+void AQLCharacterPlayer::SelectDefaultAttackType()
+{
+
+	//총이 없어서 아무일도 하지않아도 Default임.
+	if (Weapon->Weapon->bHiddenInGame || bHasGun == false) //숨겨져 아무것도 안들고 있다는 소리임.
+	{
+		return;
+	}
+	QL_LOG(QLLog, Warning, TEXT("Select Default Attack Type %d"));
+	ServerRPCSwitchAttackType(1);
+
+}
+
+//총을 아예 먹지 않았을 수도 있음
+void AQLCharacterPlayer::SelectGunAttackType()
+{
+	//총을 가지고 있지않으면, 총을 가질 수 없음.
+	if (Weapon->Weapon->bHiddenInGame == false || bHasGun == false) //총쏘는 것이 일반적
+	{
+		return;
+	}
+
+	QL_LOG(QLLog, Warning, TEXT("Select Gun Attack Type"));
+	ServerRPCSwitchAttackType(2);
+
+}
+
+void AQLCharacterPlayer::SelectBombAttackType()
+{
+	QL_LOG(QLLog, Warning, TEXT("Select Bomb Attack Type"));
+}
+
+void AQLCharacterPlayer::MulticastRPCHiddenInGame_Implementation(bool bIsHiddenInGame)
+{
+	Weapon->Weapon->SetHiddenInGame(bIsHiddenInGame);
+}
+
+void AQLCharacterPlayer::ServerRPCSwitchAttackType_Implementation(int8 InputKey)
+{
+	//1번 Key
+	switch (InputKey)
+	{
+	case 1:
+		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
+		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON); //이것도 변경되어야할사항...
+		MulticastRPCHiddenInGame(true); //총 숨김 (애니메이션도 풀어야함) => 이친구는,,,멀티캐스트 RPC 필요
+		CurrentAttackType = ECharacterAttackType::HookAttack;
+		break;
+
+	case 2:
+		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
+		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA); //이것도 변경되어야할사항...
+		MulticastRPCHiddenInGame(false); //총 보여줌
+		CurrentAttackType = ECharacterAttackType::GunAttack;
+		break;
+
+	case 3:
+		//ASC->AddLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
+		break;
+	}
+	//2번 Key
+
+	//3번 Key
+}
+
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 {
 	////이동 벡터
@@ -616,13 +685,14 @@ void AQLCharacterPlayer::Move(const FInputActionValue& Value)
 void AQLCharacterPlayer::GASInputPressed(int32 id)
 {
 
-	QL_LOG(QLNetLog, Log, TEXT("begin"));
 	uint8 InputAttackSpecNumber = GetInputNumber(id);
 
-	if (CurrentAttackType == ECharacterAttackType::HookAttack && InputAttackSpecNumber == 2)
+	if (CurrentAttackType == ECharacterAttackType::HookAttack && InputAttackSpecNumber == 3)
 	{
 		return;
 	}
+
+	QL_LOG(QLNetLog, Log, TEXT("begin %d"), CurrentAttackType);
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
 	if (Spec)
 	{
@@ -816,13 +886,11 @@ void AQLCharacterPlayer::PressedCrouch()
 	//클라이언트에서만 크런치를 동작시킨다.
 	if (bIsCrouched)
 	{
-		QL_LOG(QLNetLog, Log, TEXT("UnCrouch begin"));
 		CameraDownTimeline->ReverseFromEnd();
 		UnCrouch();
 	}
 	else
 	{
-		QL_LOG(QLNetLog, Log, TEXT("Crouch begin"));
 		CameraDownTimeline->Play();
 		Crouch();
 	}
@@ -890,13 +958,10 @@ void AQLCharacterPlayer::PutLifeStone() //Ctrl ->
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 	if (bIsNearbyBox)
 	{
-		QL_LOG(QLNetLog, Log, TEXT("Conceal Lifestone"));
 		PS->ServerRPCConcealLifeStone();
 	}
 	else
 	{
-
-		QL_LOG(QLNetLog, Log, TEXT("Put Lifestone"));
 		//서버와 클라 모두 해당 위치에서 Spawn
 		//플레이어의 위치를 가져온다
 		PS->ServerRPCPutLifeStone();

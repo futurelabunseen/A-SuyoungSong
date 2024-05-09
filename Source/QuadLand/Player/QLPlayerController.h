@@ -13,6 +13,7 @@
  * 
  */
 
+DECLARE_DELEGATE(FOnDeathCheckDelegate)
 UCLASS()
 class QUADLAND_API AQLPlayerController : public APlayerController
 {
@@ -40,6 +41,10 @@ public:
 
 	UFUNCTION(Client,Unreliable)
 	void ClientRPCShowLifestoneWidget(float Timer);
+	
+	void ActivateDeathTimer(float Time);
+
+	FOnDeathCheckDelegate OnDeathCheckDelegate;
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
@@ -48,4 +53,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
 	TMap<EHUDType, TObjectPtr<class UUserWidget>> HUDs;
 
+	FTimerHandle DeathTimerHandle;
+	
+	int CurrentDeathSec;
+	void ReduceDeathSec();
+	void StopDeathSec();
 };
