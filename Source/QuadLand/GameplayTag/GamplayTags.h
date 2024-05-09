@@ -4,6 +4,7 @@
 
 #define CHARACTER_EQUIP_NON FGameplayTag::RequestGameplayTag(FName("Character.Equip.NonEquip"))
 #define CHARACTER_EQUIP_GUNTYPEA FGameplayTag::RequestGameplayTag(FName("Character.Equip.GunTypeA"))
+#define CHARACTER_EQUIP_BOMB FGameplayTag::RequestGameplayTag(FName("Character.Equip.Bomb"))
 
 #define CHARACTER_ATTACK_HITCHECK FGameplayTag::RequestGameplayTag(FName("Character.Attack.HitCheck")) //Punch - Gun 태그에 따라서 실행 
 #define CHARACTER_ATTACK_TAKENDAMAGE FGameplayTag::RequestGameplayTag(FName("Character.Attack.TakenDamage")) //Damage를 받았을때

@@ -4,23 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameData/QLItemData.h"
+#include "GameData/WeaponType.h"
 #include "Engine/DataAsset.h"
 #include "QLWeaponStat.generated.h"
 
 /**
  * 얘네 나중에 Attribute Set으로도 설정해놔야함. 그리고 주웠을 때 해당 값으로 Reset 되도록 구현 !
  */
-UENUM(BlueprintType)
-enum class EWeaponType : uint8
-{
-	TypeA,
-	TypeB,
-	TypeC,
-	SpecialTypeA,
-	SpecialTypeB,
-	None, //None은 Punch를 의미함.
-};
-
 
 UCLASS()
 class QUADLAND_API UQLWeaponStat : public UQLItemData

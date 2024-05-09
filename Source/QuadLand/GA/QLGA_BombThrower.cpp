@@ -2,7 +2,11 @@
 
 
 #include "GA/QLGA_BombThrower.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayTag/GamplayTags.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+
+#include "QuadLand.h"
 
 UQLGA_BombThrower::UQLGA_BombThrower()
 {
@@ -18,6 +22,8 @@ void UQLGA_BombThrower::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	QL_GASLOG(QLNetLog, Log, TEXT("Current?"));
+	
 	UAbilityTask_PlayMontageAndWait* BombMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("BombMontage"), ThrowAnimMontage, 1.0f);
 	BombMontage->OnCompleted.AddDynamic(this, &UQLGA_BombThrower::OnCompletedCallback);
 	BombMontage->OnInterrupted.AddDynamic(this, &UQLGA_BombThrower::OnInterruptedCallback);
@@ -27,12 +33,23 @@ void UQLGA_BombThrower::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 void UQLGA_BombThrower::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_BOMB);
 }
 
 void UQLGA_BombThrower::OnCompletedCallback()
 {
+	bool bReplicateEndAbility = true;
+	bool bWasCancelled = true;
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+
 }
 
 void UQLGA_BombThrower::OnInterruptedCallback()
 {
+	bool bReplicateEndAbility = true;
+	bool bWasCancelled = false;
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+
 }

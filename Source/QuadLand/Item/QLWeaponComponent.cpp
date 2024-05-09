@@ -16,13 +16,12 @@ UQLWeaponComponent::UQLWeaponComponent()
 	{
 		Weapon->SetAnimClass(AnimInstanceRef.Class);
 	}
-	
-	//static ConstructorHelpers::FObjectFinder<UQLWeaponStat> WeaponStat(TEXT("/Script/QuadLand.QLWeaponStat'/Game/QuadLand/GameData/Weapon/QLDA_WeaponTypeA.QLDA_WeaponTypeA'"));
+}
 
-	//if (WeaponStat.Object)
-	//{
-	//	Stat = WeaponStat.Object;
-	//}
-
+const UQLWeaponStat* UQLWeaponComponent::GetStat(EWeaponType Type)
+{
+	if(Weapons.Contains(Type))
+		return Weapons[Type];
+	return nullptr;
 }
 

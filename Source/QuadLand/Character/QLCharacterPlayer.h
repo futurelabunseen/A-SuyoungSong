@@ -56,7 +56,6 @@ public:
 	 virtual void OnRep_PlayerState() override;
 
 	 virtual void Tick(float DeltaSeconds) override;
-
 	//Attack을 위한 카메라 위치 가져오기
 	FVector CalPlayerLocalCameraStartPos();
 	
@@ -125,10 +124,16 @@ protected:
 	void SelectBombAttackType();
 
 	UFUNCTION(Server, Unreliable)
-	void ServerRPCSwitchAttackType(int8 InputKey);
+	void ServerRPCSwitchAttackType(ECharacterAttackType InputKey);
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastRPCHiddenInGame(bool bIsHiddenInGame);
+	void MulticastRPCSwitchAttackType(ECharacterAttackType InputKey);
+
+	//*GAS Event Callback 함수*/
+
+	void ResetNotEquip(const FGameplayTag CallbackTag, int32 NewCount);
+	void ResetEquipTypeA(const FGameplayTag CallbackTag, int32 NewCount);
+	void ResetBomb(const FGameplayTag CallbackTag, int32 NewCount);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<class UInputMappingContext> InputMappingContext;
