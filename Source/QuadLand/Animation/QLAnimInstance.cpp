@@ -31,7 +31,7 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (Player)
 	{
-		bHasGun = Player->GetHasGun();
+		bHasGun = Player->bIsUsingGun();
 	}
 
 	if (Movement)

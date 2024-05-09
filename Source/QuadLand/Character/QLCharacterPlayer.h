@@ -116,6 +116,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> MapAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	//누르면 태그 수정... 
+	TMap<ECharacterAttackType,TObjectPtr<class UInputAction>> WeaponSwitcherAction;
+
+	void SelectDefaultAttackType();
+	void SelectGunAttackType();
+	void SelectBombAttackType();
+
+	UFUNCTION(Server, Unreliable)
+	void ServerRPCSwitchAttackType(int8 InputKey);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastRPCHiddenInGame(bool bIsHiddenInGame);
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<class UInputMappingContext> InputMappingContext;
 
@@ -288,16 +302,6 @@ protected:
 
 public:
 	virtual void CheckBoxOverlap() override; 
-	// 현재 Overlap 되었음을 알려줄 함수
-
-	// Overlap이 끝났음을 알려주는 함수
-
-	//Ctrl 을 눌렀을 때 Overlap이 되어있으면, 숨긴다.
-	//Ctrl 을 눌렀을 때 Overlap이 안되어있으면, 바닥에 떨군다.
-
-	//PlayerState -> bHasLifeStone
-
-
 	//Inventory Section
 
 protected:
@@ -339,5 +343,9 @@ protected:
 	//Map Section
 	void SetMap();
 	uint8 bIsVisibleMap : 1;
+
+protected:
+	//Weapon Change Secion
+
 
 };

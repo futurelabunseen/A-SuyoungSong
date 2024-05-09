@@ -51,6 +51,11 @@ AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) 
 	}
 }
 
+bool AQLCharacterBase::bIsUsingGun()
+{
+	return CurrentAttackType == ECharacterAttackType::GunAttack;
+}
+
 FGameplayTag AQLCharacterBase::GetCurrentAttackTag() const
 {
 	if (CurrentAttackType == ECharacterAttackType::GunAttack)
