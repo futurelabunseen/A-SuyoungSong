@@ -26,6 +26,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
 	TObjectPtr<class UAnimMontage> ThrowAnimMontage;
 
+	UFUNCTION()
 	void OnCompletedCallback();
+	
+	UFUNCTION()
 	void OnInterruptedCallback();
 };

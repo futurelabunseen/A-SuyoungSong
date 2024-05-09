@@ -32,6 +32,7 @@
 #include "Item/QLWeaponComponent.h"
 #include "QLCharacterMovementComponent.h"
 
+
 #include "QuadLand.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer) :
@@ -194,26 +195,6 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	PreviousRotation = FRotator::ZeroRotator;
 }
 
-void AQLCharacterPlayer::BeginPlay()
-{
-	Super::BeginPlay();
-
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController)
-	{
-		EnableInput(PlayerController);
-	}
-
-	SetCharacterControl();
-
-	ZoomInTimeline->AddInterpFloat(AimAlphaCurve, AimInterpFunction, FName{ TEXT("AimAlpha") });
-	if (CameraDownTimeline && CameraUpDownCurve)
-	{
-		CameraDownTimeline->AddInterpFloat(CameraUpDownCurve, DownInterpFunction, FName{ TEXT("CameraDownAlpha") });
-	}
-	Weapon->Weapon->SetHiddenInGame(true); //Weapon 게임에서 안보이도록 해놓음
-}
-
 /// <summary>
 /// PossessedBy 자체가 서버에서만 호출되기 때문에, 아래 Ability System 등록은 서버에서만 수행
 /// </summary>
@@ -238,6 +219,10 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 		}
 	}
 	InitializeAttributes();
+	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
+	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
+	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
+
 }
 
 //Client Only 
@@ -263,6 +248,31 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 		PC->ConsoleCommand(TEXT("showdebug abilitysystem"));
 		PC->CreateHUD();
 	}
+	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
+	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
+	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
+
+}
+
+void AQLCharacterPlayer::BeginPlay()
+{
+	Super::BeginPlay();
+
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
+	{
+		EnableInput(PlayerController);
+	}
+
+	SetCharacterControl();
+
+	ZoomInTimeline->AddInterpFloat(AimAlphaCurve, AimInterpFunction, FName{ TEXT("AimAlpha") });
+	if (CameraDownTimeline && CameraUpDownCurve)
+	{
+		CameraDownTimeline->AddInterpFloat(CameraUpDownCurve, DownInterpFunction, FName{ TEXT("CameraDownAlpha") });
+	}
+	Weapon->Weapon->SetHiddenInGame(true); //Weapon 게임에서 안보이도록 해놓음
+
 }
 
 void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -445,7 +455,7 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 		}
 		Weapon->Weapon->SetHiddenInGame(false);
 		Weapon->GroundWeapon = WeaponStat->GroundWeapon;
-		Weapon->Stat = WeaponStat;
+		Weapon->Weapons.Add(WeaponStat->Type, WeaponStat); //제거하는 부분에서 제거해줘야함.
 		Weapon->Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh.Get());
 		bHasGun = true;
 	}
@@ -609,7 +619,7 @@ void AQLCharacterPlayer::SelectDefaultAttackType()
 		return;
 	}
 	QL_LOG(QLLog, Warning, TEXT("Select Default Attack Type %d"));
-	ServerRPCSwitchAttackType(1);
+	ServerRPCSwitchAttackType(ECharacterAttackType::HookAttack);
 
 }
 
@@ -623,46 +633,75 @@ void AQLCharacterPlayer::SelectGunAttackType()
 	}
 
 	QL_LOG(QLLog, Warning, TEXT("Select Gun Attack Type"));
-	ServerRPCSwitchAttackType(2);
+	ServerRPCSwitchAttackType(ECharacterAttackType::GunAttack);
 
 }
 
 void AQLCharacterPlayer::SelectBombAttackType()
 {
 	QL_LOG(QLLog, Warning, TEXT("Select Bomb Attack Type"));
+	ServerRPCSwitchAttackType(ECharacterAttackType::BombAttack);
 }
 
-void AQLCharacterPlayer::MulticastRPCHiddenInGame_Implementation(bool bIsHiddenInGame)
+void AQLCharacterPlayer::MulticastRPCSwitchAttackType_Implementation(ECharacterAttackType InputKey)
 {
-	Weapon->Weapon->SetHiddenInGame(bIsHiddenInGame);
-}
-
-void AQLCharacterPlayer::ServerRPCSwitchAttackType_Implementation(int8 InputKey)
-{
-	//1번 Key
 	switch (InputKey)
 	{
-	case 1:
-		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
-		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON); //이것도 변경되어야할사항...
-		MulticastRPCHiddenInGame(true); //총 숨김 (애니메이션도 풀어야함) => 이친구는,,,멀티캐스트 RPC 필요
-		CurrentAttackType = ECharacterAttackType::HookAttack;
+	case ECharacterAttackType::HookAttack:
+		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
+		Weapon->Weapon->SetHiddenInGame(true); //총 숨김 (애니메이션도 풀어야함) => 이친구는,,,멀티캐스트 RPC 필요
 		break;
 
-	case 2:
-		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
+	case ECharacterAttackType::GunAttack:
 		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA); //이것도 변경되어야할사항...
-		MulticastRPCHiddenInGame(false); //총 보여줌
-		CurrentAttackType = ECharacterAttackType::GunAttack;
+		Weapon->Weapon->SetHiddenInGame(false); //총 보여줌
 		break;
 
-	case 3:
-		//ASC->AddLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
+	case ECharacterAttackType::BombAttack:
+		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_BOMB); //이것도 변경되어야할사항...
+		//총대신 교체,WeaponMesh 교체
 		break;
 	}
-	//2번 Key
+	//CurrentAttackType = InputKey;
+}
 
-	//3번 Key
+void AQLCharacterPlayer::ServerRPCSwitchAttackType_Implementation(ECharacterAttackType InputKey)
+{
+	MulticastRPCSwitchAttackType(InputKey);
+}
+
+void AQLCharacterPlayer::ResetNotEquip(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (ASC&& NewCount == 1)
+	{
+		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
+		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_BOMB);
+		CurrentAttackType = ECharacterAttackType::HookAttack;
+	}
+}
+
+void AQLCharacterPlayer::ResetEquipTypeA(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (ASC&& NewCount == 1)
+	{
+		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
+		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_BOMB);
+		CurrentAttackType = ECharacterAttackType::GunAttack;
+	}
+}
+
+void AQLCharacterPlayer::ResetBomb(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (ASC&& NewCount == 0)
+	{
+		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
+		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
+		CurrentAttackType = ECharacterAttackType::HookAttack;
+		return;
+	}
+	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
+	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
+	CurrentAttackType = ECharacterAttackType::BombAttack;
 }
 
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)
@@ -907,7 +946,7 @@ void AQLCharacterPlayer::Aim()
 {
 	if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_RUN)) return;
 
-	if (bHasGun)
+	if (bIsUsingGun())
 	{
 		QL_LOG(QLLog, Log, TEXT("Aim on"));
 		bIsAiming = true;
@@ -1234,7 +1273,7 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 	// Multicast 위치 or Server 위치하고 Replicated할지.. 
 	FVector Location = GetActorLocation();
 	FActorSpawnParameters Params;
-	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GetStat()->GroundWeapon, Location, FRotator::ZeroRotator, Params);
+	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GetStat(EWeaponType::TypeA)->GroundWeapon, Location, FRotator::ZeroRotator, Params);
 
 	MulticastRPCPuttingWeapon();
 }
@@ -1248,10 +1287,10 @@ void AQLCharacterPlayer::MulticastRPCPuttingWeapon_Implementation()
 	//Reset
 	QL_LOG(QLLog, Log, TEXT("Put Weapon"));
 	Weapon->Weapon->SetSkeletalMesh(nullptr);
-	PS->ResetWeaponStat(Weapon->GetStat());
+	PS->ResetWeaponStat(Weapon->GetStat(EWeaponType::TypeA));
 
 	//Spawn 한다.
-	Weapon->Stat = nullptr; //정리
+	Weapon->Weapons.Remove(EWeaponType::TypeA); //정리
 	bHasGun = false;
 }
 
