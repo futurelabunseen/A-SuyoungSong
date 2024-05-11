@@ -36,7 +36,7 @@ void UQLAS_WeaponStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		float RemainingCnt = GetMaxAmmoCnt() - GetAmmoCnt();
 		//Ammo 개수가 음수 이면 리셋
 		UE_LOG(LogTemp, Log, TEXT("Current Ammo %lf"), GetAmmoCnt());
-		SetCurrentAmmo(FMath::Clamp(GetCurrentAmmo(), Minimum, GetAmmoCnt()));
+		SetCurrentAmmo(FMath::Clamp(GetCurrentAmmo(), Minimum, Maximum));
 
 		//현재 태그가 Reload가 아니면 아래는 적용이 안되도록.
 		if (Data.Target.HasMatchingGameplayTag(CHARACTER_STATE_RELOAD))

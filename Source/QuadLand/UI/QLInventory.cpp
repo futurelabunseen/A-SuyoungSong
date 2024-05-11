@@ -57,8 +57,10 @@ void UQLInventory::UpdateInventoryByDraggedItem(UObject* InItem)
 	AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetOwningPlayer());
 
 	const TArray<UObject*> Items = ItemList->GetListItems();
-	UQLItemData* InItemInfo = Cast<UQLItemData>(InItem);
+	UQLItemData* InItemInfo = Cast<UQLItemData>(InItem); //Entry - InItemInfo 연결되어있어서, 2배로 증가하는 현상이 발생했음. (포인터 주소가 같아서 그런것)
 	bool IsNotFound = true;
+
+	int AddedItemCnt = InItemInfo->CurrentItemCnt;
 	for (const auto& Item : Items)
 	{
 		UQLItemData* Entry = Cast<UQLItemData>(Item);
@@ -66,7 +68,7 @@ void UQLInventory::UpdateInventoryByDraggedItem(UObject* InItem)
 		if (Entry && Entry->ItemType == InItemInfo->ItemType)
 		{
 			IsNotFound = false;
-			Entry->CurrentItemCnt += InItemInfo->CurrentItemCnt; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
+			Entry->CurrentItemCnt += AddedItemCnt; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
 			
 			break;
 		}
@@ -79,7 +81,10 @@ void UQLInventory::UpdateInventoryByDraggedItem(UObject* InItem)
 		//생성
 		ItemList->AddItem(InItem);
 	}
-	PC->AddInventoryByDraggedItem(InItemInfo->ItemType, InItemInfo->CurrentItemCnt);
+	
+	UE_LOG(LogTemp, Warning, TEXT("InItemInfo->CurrentItemCnt %d"), AddedItemCnt);
+	//현재 증가된 개수를 전달해야함.
+	PC->AddInventoryByDraggedItem(InItemInfo->ItemType, AddedItemCnt);
 	ItemList->RegenerateAllEntries();
 }
 

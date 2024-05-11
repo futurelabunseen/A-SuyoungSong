@@ -22,6 +22,7 @@ public:
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	
 	void SetAmmoStat(float AmmoCnt);
+	void BulletWaste(float DiscardedCount);
 	void SetWeaponStat(const class UQLWeaponStat* Stat);
 	void AddHPStat(float HP);
 	void AddStaminaStat(float Stamina);

@@ -33,7 +33,7 @@ void AQLItemBox::InitPosition()
 	{
 		FVector StartLoc = Mesh->GetRelativeLocation();
 
-		float Theta = FMath::FRandRange(-360.0f, 360.0f);
+		float Theta = FMath::FRandRange(-180.f, 180.0f);
 
 		float XValue = Radius * FMath::Cos(Theta);
 		float YValue = Radius * FMath::Sin(Theta);

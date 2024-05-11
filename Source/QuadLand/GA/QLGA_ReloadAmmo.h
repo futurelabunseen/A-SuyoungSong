@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameData/QLItemData.h"
 #include "Abilities/GameplayAbility.h"
 #include "QLGA_ReloadAmmo.generated.h"
 
@@ -36,4 +37,6 @@ protected:
 
 	UFUNCTION()
 	void OnInterruptedCallback();
+
+	EItemType ItemType;
 };
