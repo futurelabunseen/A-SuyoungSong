@@ -404,6 +404,7 @@ void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 {
 
 	if (InItem == nullptr) return;
+	if (bHasGun) return; 
 	QL_LOG(QLLog, Warning, TEXT("Equip Weapon"));
 	AQLItemBox* Item = Cast<AQLItemBox>(InItem);
 	UQLItemData* InItemInfo = Item->Stat;
@@ -482,7 +483,6 @@ void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 	if (ItemASC)
 	{
 		FGameplayTagContainer Tag(CHARACTER_STATE_DANGER);
-		//ItemASC->AddLooseGameplayTag(CHARACTER_STATE_DANGER);
 		ItemASC->TryActivateAbilitiesByTag(Tag);
 		QL_LOG(QLLog, Warning, TEXT("TargetASC is Dead"));
 	}
@@ -608,6 +608,11 @@ FVector AQLCharacterPlayer::CalPlayerLocalCameraStartPos()
 FVector AQLCharacterPlayer::GetCameraForward()
 {
 	return  Camera->GetForwardVector();
+}
+
+int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
+{
+	return InventoryItem[ItemType];
 }
 
 void AQLCharacterPlayer::SelectDefaultAttackType()
@@ -1045,6 +1050,7 @@ void AQLCharacterPlayer::SetMap()
 //대박... 멍청한생각...이거... 서버로 안가구나...
 void AQLCharacterPlayer::SetInventory()
 {
+
 	/*주변 아이템을 탐색하는 트레이스 적용*/
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
 
@@ -1079,9 +1085,11 @@ void AQLCharacterPlayer::SetInventory()
 				QL_LOG(QLNetLog, Log, TEXT("Item Name %s"), *HitItem->GetName());
 				//인벤토리에 Item 정보를 전송
 				UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
-				ItemData->CurrentItemCnt = 1;
-				PlayerController->UpdateNearbyItemEntry(ItemData);
-
+				if (ItemData->ItemType != EItemType::Weapon)
+				{
+					ItemData->CurrentItemCnt = 1;
+					PlayerController->UpdateNearbyItemEntry(ItemData);
+				}
 				//실제로 인벤토리에서 아이템을 옮기려고 할 때
 				//1. 서버에도 주변 아이템으로 있는가? RPC 확인
 				//2. 인벤토리로 드랍할 때 아이템 추가 - 클라이언트, 서버 모두 동시에 진행
@@ -1105,6 +1113,10 @@ void AQLCharacterPlayer::SetInventory()
 
 void AQLCharacterPlayer::UseItem(EItemType ItemId)
 {
+	if (EItemType::Ammo == ItemId)
+	{
+		return; //얘는 사용할 수 없어;;
+	}
 	if (InventoryItem.Find(ItemId))
 	{
 		ServerRPCRemoveItem(ItemId, InventoryItem[ItemId]);
@@ -1120,7 +1132,7 @@ void AQLCharacterPlayer::AddInventoryByDraggedItem(EItemType InItemId,int32 InIt
 		if (InventoryItem.Find(InItemId))
 		{
 			InventoryItem[InItemId] += InItemCnt;
-			QL_LOG(QLNetLog, Warning, TEXT("Same Item"));
+			QL_LOG(QLNetLog, Warning, TEXT("Same Item %d"),InItemCnt);
 		}
 		else
 		{
@@ -1167,11 +1179,9 @@ void AQLCharacterPlayer::ServerRPCAddInventoryByDraggedItem_Implementation(EItem
 			AQLItemBox* HitItem = Cast<AQLItemBox>(NearbyItem.GetActor());
 			if (HitItem)
 			{
-				QL_LOG(QLNetLog, Log, TEXT("Item Name %s"), *HitItem->GetName());
 				//인벤토리에 Item 정보를 전송
 				UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
-
-				if (ItemData->ItemType == ItemId && ItemData->CurrentItemCnt == ItemCnt)
+				if (ItemData->ItemType == ItemId)
 				{
 					HitItem->SetLifeSpan(0.3f);
 					//같으면 추가한다.
@@ -1179,7 +1189,14 @@ void AQLCharacterPlayer::ServerRPCAddInventoryByDraggedItem_Implementation(EItem
 					{
 						IsNotFound = false;
 						InventoryItem[ItemId] ++;
-						QL_LOG(QLNetLog, Warning, TEXT("Same Item %d"), InventoryItem[ItemId]);
+						QL_LOG(QLNetLog, Log, TEXT("Current Cnt %d"), InventoryItem[ItemId]);
+					}
+
+					if (ItemId == EItemType::Ammo)
+					{
+						AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+						IQLGetItemStat* ItemStat = CastChecked<IQLGetItemStat>(ItemData);
+						PS->SetAmmoStat(ItemStat->GetStat());
 					}
 				}
 			}
@@ -1241,7 +1258,7 @@ void AQLCharacterPlayer::ServerRPCAddGroundByDraggedItem_Implementation(EItemTyp
 	//아이템을 보관하고 있는 Manager 가져온다.
 
 	//이부분 새로 생성해서 전달하도록 변경 했음.
-	
+	//Data매니저가 가지고 있는 초기값 만큼 Stat을 없앰
 	for (int i = 0; i < RemainingItemCnt; i++)
 	{
 		FVector Location = GetActorLocation();
@@ -1250,6 +1267,12 @@ void AQLCharacterPlayer::ServerRPCAddGroundByDraggedItem_Implementation(EItemTyp
 		Params.Owner = this;
 		AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(DataManager->GetItemBoxClass(ItemId), Location, FRotator::ZeroRotator, Params);
 		
+		if (ItemId == EItemType::Ammo)
+		{
+			IQLGetItemStat* AmmoStatData = CastChecked<IQLGetItemStat>(DataManager->GetItem(ItemId));
+			AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+			PS->BulletWaste(AmmoStatData->GetStat()); //땅에 버릴 때 
+		}
 		QL_LOG(QLNetLog, Warning, TEXT("AddGroundByDraggedItem %d"), ItemCnt);
 		//	GroundItem->bReplicate
 	}	

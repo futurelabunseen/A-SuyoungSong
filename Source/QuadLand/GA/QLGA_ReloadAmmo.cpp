@@ -9,9 +9,10 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "QuadLand.h"
 
-UQLGA_ReloadAmmo::UQLGA_ReloadAmmo()
+UQLGA_ReloadAmmo::UQLGA_ReloadAmmo() : ItemType(EItemType::Ammo)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	
 }
 
 void UQLGA_ReloadAmmo::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -50,6 +51,7 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	if (IsLocallyControlled())
 	{
 		Player->ServerRPCReload();
+		Player->ServerRPCRemoveItem(ItemType,Player->GetInventoryCnt(ItemType));
 	}
 }
 

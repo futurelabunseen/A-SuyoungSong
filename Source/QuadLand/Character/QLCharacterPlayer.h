@@ -68,7 +68,8 @@ public:
 	FORCEINLINE bool GetIsReload() const { return bIsReload; }
 	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
 	FORCEINLINE bool GetPickup() const { return bPressedFarmingKey; }
-
+	
+	int GetInventoryCnt(EItemType ItemType);
 	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
 
 	FORCEINLINE ETurningPlaceType GetTurningInPlaceType() const { return TurningInPlace; }

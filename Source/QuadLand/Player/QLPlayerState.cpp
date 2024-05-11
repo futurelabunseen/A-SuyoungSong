@@ -45,11 +45,20 @@ UAbilitySystemComponent* AQLPlayerState::GetAbilitySystemComponent() const
 
 void AQLPlayerState::SetAmmoStat(float RemainingAmmoCnt)
 {
-    QL_LOG(QLNetLog, Warning, TEXT("this?"));
     if (HasAuthority() && RemainingAmmoCnt !=0.0f)
     {
         //현재 있는 개수 + RemainigAmmoCnt 
         float MaxAmmo = WeaponStatInfo->GetMaxAmmoCnt() + RemainingAmmoCnt;
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAmmoCntAttribute(), MaxAmmo); //현재 남아있는 Ammo 업데이트
+    }
+}
+
+void AQLPlayerState::BulletWaste(float DiscardedCount)
+{
+    if (HasAuthority())
+    {
+        //현재 있는 개수 + RemainigAmmoCnt 
+        float MaxAmmo = WeaponStatInfo->GetMaxAmmoCnt() - DiscardedCount;
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAmmoCntAttribute(), MaxAmmo); //현재 남아있는 Ammo 업데이트
     }
 }
