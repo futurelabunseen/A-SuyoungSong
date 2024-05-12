@@ -21,15 +21,9 @@ void UQLAN_AttackHitCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenc
 	Super::Notify(MeshComp,Animation,EventReference);
 
 	IAttackHitCheckInterface* AttackHitCheckActor = Cast<IAttackHitCheckInterface>(MeshComp->GetOwner());
-	UE_LOG(LogTemp, Log, TEXT("Norify is running"));
 	if (AttackHitCheckActor)
 	{
-		//AttackHitCheckActor->AttackHitCheckUsingPunch(); //펀치 충돌 체크 
-		
-		FName SocketName = *FString::Printf(TEXT("hand_%s"), *CurrentSectionName);
-
-		UE_LOG(LogTemp, Log, TEXT("%s"), *SocketName.ToString());
-		const USkeletalMeshSocket* ResultSocket = MeshComp->GetSocketByName(SocketName);
+		const USkeletalMeshSocket* ResultSocket = MeshComp->GetSocketByName(FName(CurrentSectionName));
 		FGameplayEventData Payload;
 
 		Payload.OptionalObject = ResultSocket;

@@ -169,6 +169,7 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetItem)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetItem)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetItem)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetItem)));
 
 	static ConstructorHelpers::FObjectFinder<UCurveFloat> AimCurveRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/AimAlpha.AimAlpha'"));
 
@@ -563,12 +564,11 @@ void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType InItemId, 
 
 	IQLGetItemStat* ItemStat = Cast<IQLGetItemStat>(ItemData);
 
-	if (ItemStat == nullptr)
+	if (DataManager == nullptr)
 	{
-		//총알도 아이템으로 넣어놓자
 		return;
 	}
-	if (DataManager)
+	if (ItemStat)
 	{
 		switch (InItemId)
 		{
@@ -582,12 +582,12 @@ void AQLCharacterPlayer::ServerRPCRemoveItem_Implementation(EItemType InItemId, 
 			PS->UseGlassesItem(ItemStat->GetStat());
 			break;
 		}
-		int32 ItemCnt = --InventoryItem[InItemId]; //하나 사용
-	
-		QL_LOG(QLNetLog, Warning, TEXT("item use %d %d"), InItemId, InventoryItem[InItemId]);
-
-		ClientRPCRemoveItem(ItemData, ItemCnt); //클라랑 서버랑 개수 일치
 	}
+	int32 ItemCnt = --InventoryItem[InItemId]; //하나 사용
+
+	QL_LOG(QLNetLog, Warning, TEXT("item use %d %d"), InItemId, InventoryItem[InItemId]);
+
+	ClientRPCRemoveItem(ItemData, ItemCnt); //클라랑 서버랑 개수 일치
 }
 
 void AQLCharacterPlayer::ClientRPCRemoveItem_Implementation(UQLItemData* Item, int32 ItemCnt)
@@ -644,8 +644,16 @@ void AQLCharacterPlayer::SelectGunAttackType()
 
 void AQLCharacterPlayer::SelectBombAttackType()
 {
-	QL_LOG(QLLog, Warning, TEXT("Select Bomb Attack Type"));
-	ServerRPCSwitchAttackType(ECharacterAttackType::BombAttack);
+	if (InventoryItem.Find(EItemType::Bomb))
+	{
+
+		if (InventoryItem[EItemType::Bomb] <= 0)
+		{
+			return;
+		}
+		QL_LOG(QLLog, Warning, TEXT("Select Bomb Attack Type"));
+		ServerRPCSwitchAttackType(ECharacterAttackType::BombAttack);
+	}
 }
 
 void AQLCharacterPlayer::MulticastRPCSwitchAttackType_Implementation(ECharacterAttackType InputKey)
@@ -1113,7 +1121,7 @@ void AQLCharacterPlayer::SetInventory()
 
 void AQLCharacterPlayer::UseItem(EItemType ItemId)
 {
-	if (EItemType::Ammo == ItemId)
+	if (EItemType::Ammo == ItemId || EItemType::Bomb == ItemId)
 	{
 		return; //얘는 사용할 수 없어;;
 	}

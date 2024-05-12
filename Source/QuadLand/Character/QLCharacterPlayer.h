@@ -62,6 +62,7 @@ public:
 	FVector GetCameraForward();
 
 	//const class UQLWeaponStat* GetWeaponStat() const;
+
 	FORCEINLINE bool GetHasGun() const { return bHasGun; }
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrouched; }
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
@@ -349,9 +350,5 @@ protected:
 	//Map Section
 	void SetMap();
 	uint8 bIsVisibleMap : 1;
-
-protected:
-	//Weapon Change Secion
-
 
 };

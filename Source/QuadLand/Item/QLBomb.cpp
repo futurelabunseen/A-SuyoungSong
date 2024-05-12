@@ -2,26 +2,21 @@
 
 
 #include "Item/QLBomb.h"
-
+#include "Components/SkeletalMeshComponent.h"
 // Sets default values
 AQLBomb::AQLBomb()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
 
+	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
+
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/QuadLand/Item3D/Bomb/Pipe_Bomb/Pipe_Bomb.Pipe_Bomb'"));
+
+	if (MeshRef.Object)
+	{
+		Weapon->SetSkeletalMesh(MeshRef.Object);
+	}
+
+	RootComponent = Weapon;
 }
 
-// Called when the game starts or when spawned
-void AQLBomb::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void AQLBomb::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
 

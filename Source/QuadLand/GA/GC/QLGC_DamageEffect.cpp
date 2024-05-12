@@ -2,7 +2,7 @@
 
 
 #include "QLGC_DamageEffect.h"
-#include "Interface/QLReceivedDamageInterface.h"
+#include "Interface/QLLifestoneContainerInterface.h"
 #include "Components/DecalComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -33,7 +33,7 @@ bool UQLGC_DamageEffect::OnExecute_Implementation(AActor* MyTarget, const FGamep
 	//해당 액터의 TArray<TObjectPtr<UDecalComponent>> 가지고 있는 놈 하나 만들고 부착할 때마다 추가 예정 
 	if (HitResult!=nullptr)
 	{
-		const IQLReceivedDamageInterface* TargetActor = Cast<IQLReceivedDamageInterface>(HitResult->GetActor());
+		const IQLLifestoneContainerInterface* TargetActor = Cast<IQLLifestoneContainerInterface>(HitResult->GetActor());
 		const ACharacter* Character = Cast<ACharacter>(HitResult->GetActor());
 		UDecalComponent* SpawnedDecal = nullptr;
 		if (TargetActor )

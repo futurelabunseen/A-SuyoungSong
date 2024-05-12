@@ -28,6 +28,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	TObjectPtr<class UOverlay> MapOverlay;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TMap<FString,TObjectPtr<class UImage>> RatioCalculatorUI;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UUserWidget> StoageIcon;
 

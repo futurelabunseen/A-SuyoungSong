@@ -5,6 +5,9 @@
 #include "Components/Overlay.h"
 #include "EngineUtils.h"
 #include "Gimmick/QLLifestoneStorageBox.h"
+#include "Gimmick/QLMapBoundary.h"
+#include "Components/Image.h"
+#include "Widgets/SWidget.h"
 
 UQLMap::UQLMap(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -69,6 +72,18 @@ void UQLMap::TwinkleWidget()
 void UQLMap::NativeConstruct()
 {
 	Super::NativeConstruct();
+	
+	for (int i = 1; i <= 4; i++)
+	{
+		FString WidgetName = FString::Printf(TEXT("RatioCalculatorUI_%d"), i);
+		UImage* Widget = Cast<UImage>(GetWidgetFromName(FName(WidgetName)));
+
+		if (Widget)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Widget Name %s"), *WidgetName);
+			RatioCalculatorUI.Add(WidgetName, Widget);
+		}
+	}
 
 	UWorld* CurrentWorld = GetWorld();
 
@@ -90,7 +105,33 @@ void UQLMap::NativeConstruct()
 			ItemStorage.Add(Index, Widget);
 			Index++;
 		}
+
+		AQLMapBoundary* Boundary = Cast<AQLMapBoundary>(Entry);
+		if (Boundary)
+		{
+			if (RatioCalculatorUI.Find(Boundary->RatioCalculatorUI))
+			{
+				UImage* WidgetBoundary = RatioCalculatorUI[Boundary->RatioCalculatorUI];
+
+				FVector2D WidgetLocation = WidgetBoundary->GetRenderTransform().Translation;
+				FVector BoundaryLocation = Boundary->GetLocation();
+
+				float WorldX = BoundaryLocation.Y;
+				float WorldY = BoundaryLocation.X;
+
+				float X = 1000.0f - WidgetLocation.X;
+				float Y = WidgetLocation.Y;
+				//둘다 있으면 비율 체크 
+				UE_LOG(LogTemp, Log, TEXT("%s Map (%s) Widget (X=%f Y=%f)"),*Boundary->GetName(), *Boundary->GetLocation().ToString(), X,Y);
+
+				UE_LOG(LogTemp, Log, TEXT("Cal %f %f"), WorldX/X, WorldY/Y);
+
+			}
+			
+		}
 	}
+
+
 }
 
 
