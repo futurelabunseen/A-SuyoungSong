@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameData/QLItemType.h"
 #include "Abilities/GameplayAbility.h"
 #include "QLGA_BombThrower.generated.h"
 
@@ -20,6 +21,7 @@ public:
 	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
 protected:
 
@@ -31,4 +33,18 @@ protected:
 	
 	UFUNCTION()
 	void OnInterruptedCallback();
+
+	EItemType ItemType;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Bomb)
+	TObjectPtr<class AQLBomb> Bomb;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = Bomb)
+	TSubclassOf<class AQLBomb> BombClass;
+
+	UPROPERTY()
+	TObjectPtr<class UAbilityTask_PlayMontageAndWait> GrapAndThrowMontage;
+
+	float AnimSpeedRate;
+
 };

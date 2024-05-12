@@ -11,7 +11,7 @@
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "GameplayTag/GamplayTags.h"
 #include "GameFramework/Character.h"
-#include "Interface/QLReceivedDamageInterface.h"
+#include "Interface/QLLifestoneContainerInterface.h"
 
 #include "QuadLand.h"
 
@@ -55,7 +55,7 @@ void UQLGA_AttackHitCheckUsingGun::OnCompletedCallback(const FGameplayAbilityTar
 		if (EffectSpecHandle.IsValid()&&HitResult.GetActor())
 		{
 			//발사
-			const IQLReceivedDamageInterface* ReceivedCharacter = Cast<IQLReceivedDamageInterface>(HitResult.GetActor()); //상속받은 캐릭터/몬스터만 데미지를 받을 수 있음 
+			const IQLLifestoneContainerInterface* ReceivedCharacter = Cast<IQLLifestoneContainerInterface>(HitResult.GetActor()); //상속받은 캐릭터/몬스터만 데미지를 받을 수 있음 
 			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitResult.GetActor());
 			if (ReceivedCharacter)
 			{

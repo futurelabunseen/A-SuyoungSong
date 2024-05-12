@@ -9,5 +9,6 @@ enum class EItemType
 	StaminaRecoveryItem,
 	HPRecoveryItem,
 	DiscoveryItem,
+	Bomb,
 	None
 };

@@ -4,12 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Interface/QLReceivedDamageInterface.h"
 #include "Interface/AttackHitCheckInterface.h"
 #include "QLCharacterBase.generated.h"
 
 UCLASS()
-class QUADLAND_API AQLCharacterBase : public ACharacter, public IAttackHitCheckInterface, public IQLReceivedDamageInterface
+class QUADLAND_API AQLCharacterBase : public ACharacter, public IAttackHitCheckInterface
 {
 	GENERATED_BODY()
 

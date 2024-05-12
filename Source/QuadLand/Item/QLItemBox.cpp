@@ -48,6 +48,7 @@ void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector N
 {
 	Trigger->SetSimulatePhysics(false);
 	Mesh->SetSimulatePhysics(false);
-	Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
 
+	QL_LOG(QLLog, Warning, TEXT("current false"));
+	Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
 }
