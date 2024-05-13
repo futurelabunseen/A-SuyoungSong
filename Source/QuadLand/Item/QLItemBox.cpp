@@ -19,7 +19,7 @@ AQLItemBox::AQLItemBox() : Power(100.0f), Radius(100.0f)
 
 	Trigger->SetCollisionProfileName(CPROFILE_QLTRIGGER);
 	Trigger->SetBoxExtent(FVector(50.0f, 5.0f, 5.0f));
-	Mesh->SetRelativeLocationAndRotation(FVector(-20.0f, -10.0f, 0.f), FRotator(90.f, -90.f, 0.f)); //Weapon 기준이기 때문에 아이템에서는 변경 예정
+	Mesh->SetRelativeLocationAndRotation(FVector(-20.0f, -10.0f, 0.f), FRotator(90.f, -90.f, 0.f)); //Mesh 기준이기 때문에 아이템에서는 변경 예정
 	Mesh->SetCollisionProfileName(CPROFILE_QLPHYSICS);
 
 	OnActorHit.AddDynamic(this, &AQLItemBox::OnActorOverlap);

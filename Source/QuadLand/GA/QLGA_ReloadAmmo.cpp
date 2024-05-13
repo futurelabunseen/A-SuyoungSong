@@ -44,7 +44,7 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		ReloadMontage->OnInterrupted.AddDynamic(this, &UQLGA_ReloadAmmo::OnInterruptedCallback);
 		ReloadMontage->ReadyForActivation();
 		QL_GASLOG(QLNetLog, Log, TEXT("1"));
-	//Reload 하는 애니메이션 동작 - Weapon
+	//Reload 하는 애니메이션 동작 - Mesh
 
 	}
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());

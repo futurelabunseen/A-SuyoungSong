@@ -56,7 +56,7 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	CameraSpringArm->SetRelativeLocation(FVector(0.0f, 30.0f, 0.0f));
 	CameraSpringArm->SocketOffset = FVector(0.0f, 15.0f, 48.0f);
 
-	// Weapon Component
+	// Mesh Component
 	Weapon = CreateDefaultSubobject<UQLWeaponComponent>(TEXT("Weapon"));
 	Weapon->Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
 	
@@ -272,7 +272,7 @@ void AQLCharacterPlayer::BeginPlay()
 	{
 		CameraDownTimeline->AddInterpFloat(CameraUpDownCurve, DownInterpFunction, FName{ TEXT("CameraDownAlpha") });
 	}
-	Weapon->Weapon->SetHiddenInGame(true); //Weapon 게임에서 안보이도록 해놓음
+	Weapon->Weapon->SetHiddenInGame(true); //Mesh 게임에서 안보이도록 해놓음
 
 }
 
@@ -409,7 +409,7 @@ void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 	QL_LOG(QLLog, Warning, TEXT("Equip Weapon"));
 	AQLItemBox* Item = Cast<AQLItemBox>(InItem);
 	UQLItemData* InItemInfo = Item->Stat;
-	//Weapon 위치는 소켓 
+	//Mesh 위치는 소켓 
 	UQLWeaponStat* WeaponStat = CastChecked<UQLWeaponStat>(InItemInfo); //부착
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 

@@ -21,15 +21,12 @@ public:
 	UFUNCTION()
 	void OnCompletedCallback();
 protected:
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<class UGameplayEffect> AttackDamageEffect;
 
 	/** Native function, called if an ability ends normally or abnormally. If bReplicate is set to true, try to replicate the ending to the client/server */
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	UPROPERTY()
-	TObjectPtr<class USkeletalMeshSocket> ResultSocket;
-
-	UPROPERTY()
-	TArray<TObjectPtr<class AQLBomb>> Bombs;
-	/*UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Bomb)
-	TObjectPtr<class AQLBomb> Bomb;*/
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Bomb)
+	TObjectPtr<class AQLBomb> Bomb;
 };

@@ -25,9 +25,8 @@ void UQLAT_SweepTrace::Activate()
 	
 	SpawnAndInitTargetActor(); //액터만 생성 - GetWorld() Deferred
 	FinishSpawnning(); //초기화 생성
-
 	SetWaitingOnAvatar(); //지연 함수, 지연을 왜하지?
-	//OnCompletedCallback();
+
 }
 
 void UQLAT_SweepTrace::SpawnAndInitTargetActor()
