@@ -45,6 +45,15 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UAbilityTask_PlayMontageAndWait> GrapAndThrowMontage;
 
+	UPROPERTY()
+	TObjectPtr<class UAbilityTask_WaitInputRelease> TrackDrawer;
 	float AnimSpeedRate;
+
+	UFUNCTION(NetMulticast,Reliable)
+	void MulticastRPCAttackHitCheck();
+
+	UFUNCTION(Server,Reliable)
+	void ServerRPCAttackHitCheck();
+
 
 };

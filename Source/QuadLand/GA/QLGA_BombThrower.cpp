@@ -5,12 +5,16 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 
 #include "Character/QLCharacterPlayer.h"
+#include "GA/AT/QLAT_TrackDrawer.h"
 #include "GameplayTag/GamplayTags.h"
 #include "GameData/QLDataManager.h"
+#include "GameData/QLWeaponStat.h"
 #include "Item/QLBomb.h"
 #include "QuadLand.h"
+
 
 UQLGA_BombThrower::UQLGA_BombThrower():ItemType(EItemType::Bomb), Bomb(nullptr)
 {
@@ -31,14 +35,21 @@ void UQLGA_BombThrower::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 	if (DataManager)
 	{
+		UQLWeaponStat* Stat = Cast<UQLWeaponStat>(DataManager->GetItem(ItemType));
 		FActorSpawnParameters Params;
 		Params.Owner = Character;
 		//Bomb - Actor »ý¼º
-		Bomb = GetWorld()->SpawnActor<AQLBomb>(BombClass, Params);
-		Bomb->SetActorScale3D(FVector(1.5f, 1.5f, 1.5f));
+
+		Bomb = GetWorld()->SpawnActor<AQLBomb>(BombClass,Params);
+		Bomb->SetAttackRange(Stat->AttackDist);
+		Bomb->SetAttackSpeed(Stat->MaxSpeed);
+		Bomb->SetDamage(Stat->Damage);
 		Bomb->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, FName("Bomb"));
 	}
+	TrackDrawer = UQLAT_TrackDrawer::CreateTask(this);
+	TrackDrawer->ReadyForActivation();
 
+	
 	AnimSpeedRate = 1.0f;
 	GrapAndThrowMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PunchAnimMontage"), ThrowAnimMontage, AnimSpeedRate, FName("Grap"));
 	GrapAndThrowMontage->OnCompleted.AddDynamic(this, &UQLGA_BombThrower::OnCompletedCallback);
@@ -49,44 +60,47 @@ void UQLGA_BombThrower::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UQLGA_BombThrower::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-	QL_GASLOG(QLNetLog, Log, TEXT("3"));
 	GrapAndThrowMontage = nullptr;
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_BOMB);
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
 }
 
 void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {	
 	MontageJumpToSection(FName("Throw"));
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+	Player->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType));
+	ServerRPCAttackHitCheck();
 
-	FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
-
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	ASC->TryActivateAbilitiesByTag(TargetTag);
 }
 
 void UQLGA_BombThrower::OnCompletedCallback()
 {
 	bool bReplicateEndAbility = true;
-	bool bWasCancelled = true;
+	bool bWasCancelled = false;
 
-	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
-	if (IsLocallyControlled())
-	{
-		QL_GASLOG(QLNetLog, Log, TEXT("Current? %d %d"), ItemType, Player->GetInventoryCnt(ItemType));
-
-		Player->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType));
-	}
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 
 }
 
 void UQLGA_BombThrower::OnInterruptedCallback()
 {
-	QL_GASLOG(QLNetLog, Log, TEXT("4"));
 	bool bReplicateEndAbility = true;
-	bool bWasCancelled = false;
+	bool bWasCancelled = true;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
 
+void UQLGA_BombThrower::ServerRPCAttackHitCheck_Implementation()
+{
+	MulticastRPCAttackHitCheck();
+}
+
+void UQLGA_BombThrower::MulticastRPCAttackHitCheck_Implementation()
+{
+	QL_GASLOG(QLNetLog, Warning, TEXT("Multicast RPC"));
+	FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	ASC->TryActivateAbilitiesByTag(TargetTag);
 }

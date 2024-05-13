@@ -274,7 +274,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmLength, Meta = (AllowPrivateAccess = "true"))
 	float MinArmLength;
 
-	//Weapon Section
+	//Mesh Section
 
 protected:
 	
