@@ -203,7 +203,7 @@ protected:
 	void ServerRPCFarming();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastRPCFarming(class UQLWeaponStat *Stat);
+	void MulticastRPCFarming(class UQLWeaponStat*Stat);
 
 	UPROPERTY(Replicated) //복제만 수행하면 된다.
 	uint8 bPressedFarmingKey : 1;
@@ -350,5 +350,6 @@ protected:
 	//Map Section
 	void SetMap();
 	uint8 bIsVisibleMap : 1;
+
 
 };

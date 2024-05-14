@@ -17,6 +17,7 @@ public:
 
 	const class USkeletalMeshComponent* GetWeaponMesh() const { return Weapon; }
 	const class UQLWeaponStat* GetStat() const { return Stat; }
+
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))

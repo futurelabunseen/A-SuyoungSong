@@ -17,22 +17,21 @@ public:
 	UQLWeaponComponent();
 
 	const class USkeletalMeshComponent* GetWeaponMesh() const { return Weapon; }
-	
-	const class UQLWeaponStat* GetStat(EWeaponType Type);
+	void SpawnBomb();
+
+	void SetBombHiddenInGame(bool InHiddenInGame);
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USkeletalMeshComponent> Weapon;
 
-	//위를 아래로 교체예정
-	UPROPERTY(EditAnywhere, Category = Stat)
-	TMap<EWeaponType, TObjectPtr<class UQLWeaponStat>> Weapons;
-
-	//UPROPERTY(EditAnywhere, Category = Stat)
-	//TObjectPtr<class UQLWeaponStat> Stat;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AQLItemBox> GroundWeapon;
+
+protected:
+
+	UPROPERTY()
+	TObjectPtr<class AQLBomb> Bomb;
 
 	friend class AQLCharacterPlayer;
 };

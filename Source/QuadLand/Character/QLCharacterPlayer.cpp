@@ -21,10 +21,12 @@
 #include "Item/QLItemBox.h"
 #include "UI/QLUIType.h"
 #include "Item/QLItem.h"
+#include "Item/QLBomb.h"
 #include "Player/QLPlayerState.h"
 #include "Player/QLPlayerController.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "Physics/QLCollision.h"
+#include "GameData/QLGunStat.h"
 #include "GameData/QLWeaponStat.h"
 #include "GameData/QLAmmoData.h"
 #include "Interface/QLGetItemStat.h"
@@ -449,16 +451,17 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
 	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA); //이것도 변경되어야할사항...
 
-	if (Weapon && WeaponStat->WeaponMesh)
+	UQLGunStat* GunStat = Cast<UQLGunStat>(WeaponStat);
+	if (Weapon && GunStat->WeaponMesh)
 	{
-		if (WeaponStat->WeaponMesh.IsPending())
+		if (GunStat->WeaponMesh.IsPending())
 		{
-			WeaponStat->WeaponMesh.LoadSynchronous();
+			GunStat->WeaponMesh.LoadSynchronous();
 		}
 		Weapon->Weapon->SetHiddenInGame(false);
 		Weapon->GroundWeapon = WeaponStat->GroundWeapon;
-		Weapon->Weapons.Add(WeaponStat->Type, WeaponStat); //제거하는 부분에서 제거해줘야함.
-		Weapon->Weapon->SetSkeletalMesh(WeaponStat->WeaponMesh.Get());
+		//Weapon->Weapons.Add(WeaponStat->Type, WeaponStat); //제거하는 부분에서 제거해줘야함.
+		Weapon->Weapon->SetSkeletalMesh(GunStat->WeaponMesh.Get());
 		bHasGun = true;
 	}
 }
@@ -663,23 +666,60 @@ void AQLCharacterPlayer::MulticastRPCSwitchAttackType_Implementation(ECharacterA
 	case ECharacterAttackType::HookAttack:
 		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
 		Weapon->Weapon->SetHiddenInGame(true); //총 숨김 (애니메이션도 풀어야함) => 이친구는,,,멀티캐스트 RPC 필요
+
+		if (Weapon->Bomb != nullptr)
+		{
+			Weapon->SetBombHiddenInGame(true);
+		}
 		break;
 
 	case ECharacterAttackType::GunAttack:
 		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA); //이것도 변경되어야할사항...
 		Weapon->Weapon->SetHiddenInGame(false); //총 보여줌
+		if (Weapon->Bomb != nullptr)
+		{
+			Weapon->SetBombHiddenInGame(true);
+		}
 		break;
 
 	case ECharacterAttackType::BombAttack:
 		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_BOMB); //이것도 변경되어야할사항...
+		Weapon->Weapon->SetHiddenInGame(true);
+		if (Weapon->Bomb == nullptr)
+		{
+			Weapon->SpawnBomb();
+		}
+		else
+		{
+			Weapon->SetBombHiddenInGame(true);
+		}
 		//총대신 교체,WeaponMesh 교체
 		break;
 	}
-	//CurrentAttackType = InputKey;
 }
 
 void AQLCharacterPlayer::ServerRPCSwitchAttackType_Implementation(ECharacterAttackType InputKey)
 {
+
+	AQLPlayerState* PS = Cast<AQLPlayerState>(GetPlayerState());
+
+	if (PS == nullptr)
+	{
+		return;
+	}
+
+
+	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+
+	//ECharacterAttackType::BombAttack
+	const UQLWeaponStat* WeaponStat = DataManager->GetWeaponStat(InputKey);
+
+	if (WeaponStat)
+	{
+		PS->SetWeaponStat(WeaponStat);
+	}
+	//여기서 스탯 조절
+
 	MulticastRPCSwitchAttackType(InputKey);
 }
 
@@ -1304,7 +1344,18 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 	// Multicast 위치 or Server 위치하고 Replicated할지.. 
 	FVector Location = GetActorLocation();
 	FActorSpawnParameters Params;
-	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GetStat(EWeaponType::TypeA)->GroundWeapon, Location, FRotator::ZeroRotator, Params);
+	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GroundWeapon, Location, FRotator::ZeroRotator, Params);
+	CurrentAttackType = ECharacterAttackType::HookAttack;
+
+	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+	//ECharacterAttackType::BombAttack
+	const UQLWeaponStat* WeaponStat = DataManager->GetWeaponStat(CurrentAttackType);
+
+	if (WeaponStat)
+	{
+		PS->SetWeaponStat(WeaponStat);
+	}
 
 	MulticastRPCPuttingWeapon();
 }
@@ -1313,15 +1364,9 @@ void AQLCharacterPlayer::MulticastRPCPuttingWeapon_Implementation()
 {
 	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
 	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON); //이것도 변경되어야할사항...
-
-	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 	//Reset
 	QL_LOG(QLLog, Log, TEXT("Put Weapon"));
 	Weapon->Weapon->SetSkeletalMesh(nullptr);
-	PS->ResetWeaponStat(Weapon->GetStat(EWeaponType::TypeA));
-
-	//Spawn 한다.
-	Weapon->Weapons.Remove(EWeaponType::TypeA); //정리
 	bHasGun = false;
 }
 

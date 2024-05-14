@@ -3,7 +3,7 @@
 UENUM(BlueprintType)
 enum class EItemType
 {
-	Weapon = 0,
+	Weapon,
 	Stone,
 	Ammo,
 	StaminaRecoveryItem,

@@ -28,5 +28,5 @@ protected:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Bomb)
-	TObjectPtr<class AQLBomb> Bomb;
+	TWeakObjectPtr<class AQLBomb> Bomb;
 };

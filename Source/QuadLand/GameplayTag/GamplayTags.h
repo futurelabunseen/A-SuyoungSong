@@ -26,3 +26,4 @@
 
 #define STAT_STAMINA_STATUS_REDUCE FGameplayTag::RequestGameplayTag(FName("Stat.Stamina.Status.Reduce"))
 
+#define GAMEPLAYCUE_EFFECT_FIREWALL FGameplayTag::RequestGameplayTag(FName("GameplayCue.Effect.Firewall"))

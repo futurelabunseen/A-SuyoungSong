@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameData/WeaponType.h"
 #include "GameData/QLItemType.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "QLDataManager.generated.h"
@@ -18,6 +19,7 @@ class QUADLAND_API UQLDataManager : public UWorldSubsystem
 public:
 	UQLDataManager();
 
+	const class UQLWeaponStat* GetWeaponStat(ECharacterAttackType AttackType);
 	class UQLItemData* GetItem(EItemType ItemId);
 	TSubclassOf<class AQLItemBox> GetItemBoxClass(EItemType ItemId);
 protected:
@@ -25,6 +27,9 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class UQLItemDataset> ItemDataManager; //나중엔 TMap을 사용해서 상위클래스 - 하위클래스로 두거나, 인터페이스로 묶어서 관리
+	
+	UPROPERTY()
+	TObjectPtr<class UQLWeaponDataset> WeaponStatManager; //나중엔 TMap을 사용해서 상위클래스 - 하위클래스로 두거나, 인터페이스로 묶어서 관리
 
 };
 
