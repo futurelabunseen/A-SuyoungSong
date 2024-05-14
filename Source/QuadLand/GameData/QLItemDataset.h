@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameData/QLItemType.h"
+#include "GameData/WeaponType.h"
 #include "Engine/DataAsset.h"
 #include "QLItemDataset.generated.h"
 
@@ -21,9 +22,10 @@ public:
 	TSubclassOf<class AQLItemBox> GetItemBoxClass(EItemType ItemId);
 
 protected:
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	TMap<EItemType,TObjectPtr<class UQLItemData>> ItemList;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TMap<EItemType, TObjectPtr<class UQLItemData>> ItemList;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<EItemType, TSubclassOf<class AQLItemBox>> GroundItemBox;
+	
 };

@@ -3,6 +3,7 @@
 
 #include "Item/QLWeapon.h"
 
+
 // Sets default values
 AQLWeapon::AQLWeapon()
 {
@@ -17,5 +18,4 @@ AQLWeapon::AQLWeapon()
 		Weapon->SetAnimClass(AnimInstanceRef.Class);
 	}
 }
-
 

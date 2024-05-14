@@ -33,6 +33,8 @@ public:
 	ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, CurrentAmmo);
 	ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, AmmoCnt);
 	ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, MaxAmmoCnt);
+	ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, AttackSpeed);
+	ATTRIBUTE_ACCESSORS(UQLAS_WeaponStat, MaxAttackSpeed);
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
@@ -60,6 +62,13 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_MaxAmmoCnt, Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxAmmoCnt; //미리 가지고 있을 수 있는 남아있는 총알
 
+	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_AttackSpeed, Meta = (AllowPrivateAccess = true))
+	FGameplayAttributeData AttackSpeed; //총알의 속도
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attack", ReplicatedUsing = OnRep_MaxAttackSpeed, Meta = (AllowPrivateAccess = true))
+	FGameplayAttributeData MaxAttackSpeed; //총알의 속도
+
+
 protected:
 
 	UFUNCTION()
@@ -83,4 +92,9 @@ protected:
 	UFUNCTION()
 	virtual void OnRep_CurrentAmmoCnt(const FGameplayAttributeData& OldMaxAmmoCnt);
 
+	UFUNCTION()
+	virtual void OnRep_AttackSpeed(const FGameplayAttributeData& OldAmmoCnt);
+
+	UFUNCTION()
+	virtual void OnRep_MaxAttackSpeed(const FGameplayAttributeData& OldMaxAmmoCnt);
 };

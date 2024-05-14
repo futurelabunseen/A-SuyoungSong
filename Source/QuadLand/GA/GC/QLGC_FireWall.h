@@ -20,5 +20,12 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GameplayCue)
 	TObjectPtr<class UParticleSystem> ParticleSystem;
-///Script/Engine.ParticleSystem'/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Fire/P_Fire_Wall.P_Fire_Wall'
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GameplayCue)
+	TObjectPtr<class USoundCue> FirewallSound;
+
+	virtual void OnOwnerDestroyed() override;
+
+
+	FTimerHandle DestoryTimerHandle;
 };

@@ -2,13 +2,22 @@
 
 
 #include "GA/GC/QLGC_FireWall.h"
+#include "Particles/ParticleSystem.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 UQLGC_FireWall::UQLGC_FireWall()
 {
-	static ConstructorHelpers::FObjectFinder<UParticleSystem> ExplosionRef(TEXT("/Script/Engine.ParticleSystem'/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Fire/P_Fire_Wall.P_Fire_Wall'"));
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> ExplosionRef(TEXT("/Script/Engine.ParticleSystem'/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Explosion_Smoke.P_Explosion_Smoke'"));
 	if (ExplosionRef.Object)
 	{
 		ParticleSystem = ExplosionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundCue> SoundRef(TEXT("/Script/Engine.SoundCue'/Game/MilitaryWeapSilver/Sound/RocketLauncher/Cues/RocketLauncher_Explosion_Cue.RocketLauncher_Explosion_Cue'"));
+	if (SoundRef.Object)
+	{
+		FirewallSound = SoundRef.Object;
 	}
 
 }
@@ -16,7 +25,19 @@ UQLGC_FireWall::UQLGC_FireWall()
 bool UQLGC_FireWall::OnExecute_Implementation(AActor* Target, const FGameplayCueParameters& Parameters) const
 {
 
-//	UGameplayStatics::SpawnEmitterAtLocation(Target, ParticleSystem, TargetActor.Get()->GetActorLocation(), FRotator::ZeroRotator, true);
+	UGameplayStatics::SpawnEmitterAtLocation(Target, ParticleSystem, Parameters.Location, FRotator::ZeroRotator, true);
+	
+	UGameplayStatics::SpawnSoundAtLocation(Target, FirewallSound, Parameters.Location, FRotator::ZeroRotator);
 
+//	GetWorld()->GetTimerManager().SetTimer(DestoryTimerHandle, this, &UQLGC_FireWall::OnOwnerDestroyed,3.0f, false, -1.0f);
+	
 	return false;
+}
+
+void UQLGC_FireWall::OnOwnerDestroyed()
+{
+	Super::OnOwnerDestroyed();
+
+	GetWorld()->GetTimerManager().ClearTimer(DestoryTimerHandle);
+
 }

@@ -110,3 +110,13 @@ void UQLAS_WeaponStat::OnRep_CurrentAmmoCnt(const FGameplayAttributeData& OldAmm
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UQLAS_WeaponStat, CurrentAmmo, OldAmmoCnt);
 }
+
+void UQLAS_WeaponStat::OnRep_AttackSpeed(const FGameplayAttributeData& OldSpeed)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UQLAS_WeaponStat, AttackSpeed, OldSpeed);
+}
+
+void UQLAS_WeaponStat::OnRep_MaxAttackSpeed(const FGameplayAttributeData& OldMaxSpeed)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UQLAS_WeaponStat, MaxAttackSpeed, OldMaxSpeed);
+}

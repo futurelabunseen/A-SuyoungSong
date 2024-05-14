@@ -3,7 +3,9 @@
 
 #include "Item/QLWeaponComponent.h"
 #include "GameFramework/Character.h"
-#include "GameData/QLWeaponStat.h"
+#include "GameData/QLDataManager.h"
+#include "GameData/QLBombStat.h"
+#include "Item/QLBomb.h"
 UQLWeaponComponent::UQLWeaponComponent()
 {
 	//GetOwner()
@@ -18,10 +20,33 @@ UQLWeaponComponent::UQLWeaponComponent()
 	}
 }
 
-const UQLWeaponStat* UQLWeaponComponent::GetStat(EWeaponType Type)
+void UQLWeaponComponent::SpawnBomb()
 {
-	if(Weapons.Contains(Type))
-		return Weapons[Type];
-	return nullptr;
+	if (Bomb != nullptr)
+	{
+		return;
+	}
+
+	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	UQLBombStat* Stat = Cast<UQLBombStat>(DataManager->GetItem(EItemType::Bomb));
+	ACharacter* Character = Cast<ACharacter>(GetOwner());
+	if (DataManager&& Character)
+	{
+		//나머지 클라이언트 생성
+		FActorSpawnParameters Params;
+		Params.Owner = Character;
+		//Bomb - Actor 생성
+		//클라이언트, 서버 생성 
+		Bomb = GetWorld()->SpawnActor<AQLBomb>(Stat->BombClass, Params);
+
+		Bomb->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, FName("Bomb"));
+	}
 }
 
+void UQLWeaponComponent::SetBombHiddenInGame(bool InHiddenInGame)
+{
+	if (Bomb)
+	{
+		Bomb->SetActorHiddenInGame(InHiddenInGame);
+	}
+}

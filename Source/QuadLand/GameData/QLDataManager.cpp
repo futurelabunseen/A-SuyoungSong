@@ -3,6 +3,7 @@
 
 #include "GameData/QLDataManager.h"
 #include "GameData/QLItemDataset.h"
+#include "GameData/QLWeaponDataset.h"
 #include "GameData/QLItemData.h"
 
 UQLDataManager::UQLDataManager()
@@ -13,6 +14,18 @@ UQLDataManager::UQLDataManager()
 	{
 		ItemDataManager = ItemDataManagerClassRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UQLWeaponDataset> WeaponDataManagerClassRef(TEXT("/Script/QuadLand.QLWeaponDataset'/Game/QuadLand/GameData/ItemList/DAQL_WeaponDataset.DAQL_WeaponDataset'"));
+
+	if (WeaponDataManagerClassRef.Object)
+	{
+		WeaponStatManager = WeaponDataManagerClassRef.Object;
+	}
+}
+
+const UQLWeaponStat* UQLDataManager::GetWeaponStat(ECharacterAttackType AttackType)
+{
+	return WeaponStatManager->GetWeaponStat(AttackType);
 }
 
 UQLItemData* UQLDataManager::GetItem(EItemType ItemId)

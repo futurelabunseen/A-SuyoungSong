@@ -24,7 +24,8 @@ AQLBomb::AQLBomb()
 	Mesh->SetCollisionProfileName(CPROFILE_QLPHYSICS);
 	//초기값은 BombThrower 설정
 	OnActorHit.AddDynamic(this, &AQLBomb::OnActorOverlap);
-
+	bReplicates = true;
+	SetReplicateMovement(true);
 }
 
 
