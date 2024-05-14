@@ -3,11 +3,12 @@
 
 #include "GA/QLGA_AttackHitCheckUsingBomb.h"
 #include "Engine/EngineTypes.h"
-#include "GameFramework/ProjectileMovementComponent.h"
 #include "Character/QLCharacterPlayer.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Item/QLBomb.h"
+#include "GameData/QLDataManager.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "EngineUtils.h"
 #include "Physics/QLCollision.h"
@@ -23,7 +24,6 @@ void UQLGA_AttackHitCheckUsingBomb::ActivateAbility(const FGameplayAbilitySpecHa
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	QL_GASLOG(QLNetLog, Warning, TEXT("1"));
 	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
 
 	TArray<AActor*> ChildActors;
@@ -39,8 +39,7 @@ void UQLGA_AttackHitCheckUsingBomb::ActivateAbility(const FGameplayAbilitySpecHa
 		if (Bomb!=nullptr)
 		{
 			Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-
-			FVector OutVelocity = Character->GetCameraForward() * WeaponStat->GetAttackDistance();
+			FVector OutVelocity = Character->GetCameraForward() * WeaponStat->GetAttackSpeed();
 			Bomb->OnActorOverlapDelegate.BindUObject(this, &UQLGA_AttackHitCheckUsingBomb::OnCompletedCallback);
 			Bomb->ThrowBomb(OutVelocity);
 			break;
@@ -84,13 +83,12 @@ void UQLGA_AttackHitCheckUsingBomb::OnCompletedCallback()
 			{
 				FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(AttackDamageEffect);
 
-				FGameplayEffectContextHandle EffectContextHandle;
-				EffectContextHandle.AddHitResult(Player);
-				EffectContextHandle.AddOrigin(Bomb->GetActorLocation()); //Origin 발생 위치를 저장한다.
-
 				if (EffectSpecHandle.IsValid())
 				{
-					float Damage = Bomb->GetDamage();
+					FGameplayEffectContextHandle EffectContextHandle = UAbilitySystemBlueprintLibrary::GetEffectContext(EffectSpecHandle);;
+					EffectContextHandle.AddOrigin(Bomb->GetActorLocation()); //Origin 발생 위치를 저장한다.
+					EffectContextHandle.AddSourceObject(WeaponStat);
+
 					UAbilitySystemComponent* TargetASC = Character->GetAbilitySystemComponent();
 					EffectSpecHandle.Data->SetContext(EffectContextHandle);
 					TargetASC->BP_ApplyGameplayEffectSpecToSelf(EffectSpecHandle);
@@ -100,21 +98,19 @@ void UQLGA_AttackHitCheckUsingBomb::OnCompletedCallback()
 		}
 	}
 
-	UAbilitySystemComponent *ASC = GetAbilitySystemComponentFromActorInfo();
-
-	if (ASC)
+	if (SourceASC)
 	{
 		FGameplayCueParameters CueParam;
 		CueParam.Location = Bomb->GetActorLocation();
 
 		//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
-		ASC->ExecuteGameplayCue(GAMEPLAYCUE_EFFECT_FIREWALL, CueParam);
+		SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_EFFECT_FIREWALL, CueParam);
 	}
 #if ENABLE_DRAW_DEBUG
 	FColor Color = bResult ? FColor::Green : FColor::Red;
 	DrawDebugSphere(GetWorld(), Bomb->GetActorLocation(), WeaponStat->GetAttackDistance(), 10.0f, Color, false, 5.0f);
 #endif
-	Bomb->SetLifeSpan(1.5f); //없어짐.
+	Bomb->SetLifeSpan(0.5f); //없어짐.
 	
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = false;

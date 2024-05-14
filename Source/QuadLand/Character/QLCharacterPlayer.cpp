@@ -622,10 +622,12 @@ void AQLCharacterPlayer::SelectDefaultAttackType()
 {
 
 	//총이 없어서 아무일도 하지않아도 Default임.
-	if (Weapon->Weapon->bHiddenInGame || bHasGun == false) //숨겨져 아무것도 안들고 있다는 소리임.
+	FGameplayTagContainer Tag(CHARACTER_EQUIP_NON);
+	if (ASC->HasAnyMatchingGameplayTags(Tag))
 	{
-		return;
+		return; //같은 경우만 체크하면된다.
 	}
+
 	QL_LOG(QLLog, Warning, TEXT("Select Default Attack Type %d"));
 	ServerRPCSwitchAttackType(ECharacterAttackType::HookAttack);
 
@@ -635,9 +637,10 @@ void AQLCharacterPlayer::SelectDefaultAttackType()
 void AQLCharacterPlayer::SelectGunAttackType()
 {
 	//총을 가지고 있지않으면, 총을 가질 수 없음.
-	if (Weapon->Weapon->bHiddenInGame == false || bHasGun == false) //총쏘는 것이 일반적
+	FGameplayTagContainer Tag(CHARACTER_EQUIP_GUNTYPEA);
+	if (ASC->HasAnyMatchingGameplayTags(Tag)||bHasGun == false)
 	{
-		return;
+		return; //같은 경우만 체크하면된다.
 	}
 
 	QL_LOG(QLLog, Warning, TEXT("Select Gun Attack Type"));
@@ -647,6 +650,12 @@ void AQLCharacterPlayer::SelectGunAttackType()
 
 void AQLCharacterPlayer::SelectBombAttackType()
 {
+	FGameplayTagContainer Tag(CHARACTER_EQUIP_BOMB);
+	if (ASC->HasAnyMatchingGameplayTags(Tag))
+	{
+		return; //같은 경우만 체크하면된다.
+	}
+
 	if (InventoryItem.Find(EItemType::Bomb))
 	{
 
@@ -664,6 +673,7 @@ void AQLCharacterPlayer::MulticastRPCSwitchAttackType_Implementation(ECharacterA
 	switch (InputKey)
 	{
 	case ECharacterAttackType::HookAttack:
+		
 		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
 		Weapon->Weapon->SetHiddenInGame(true); //총 숨김 (애니메이션도 풀어야함) => 이친구는,,,멀티캐스트 RPC 필요
 
@@ -685,14 +695,7 @@ void AQLCharacterPlayer::MulticastRPCSwitchAttackType_Implementation(ECharacterA
 	case ECharacterAttackType::BombAttack:
 		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_BOMB); //이것도 변경되어야할사항...
 		Weapon->Weapon->SetHiddenInGame(true);
-		if (Weapon->Bomb == nullptr)
-		{
-			Weapon->SpawnBomb();
-		}
-		else
-		{
-			Weapon->SetBombHiddenInGame(true);
-		}
+		Weapon->SetBombHiddenInGame(false);
 		//총대신 교체,WeaponMesh 교체
 		break;
 	}
@@ -717,6 +720,14 @@ void AQLCharacterPlayer::ServerRPCSwitchAttackType_Implementation(ECharacterAtta
 	if (WeaponStat)
 	{
 		PS->SetWeaponStat(WeaponStat);
+	}
+
+	if (InputKey == ECharacterAttackType::BombAttack)
+	{
+		if (Weapon->Bomb == nullptr)
+		{
+			Weapon->SpawnBomb();
+		}
 	}
 	//여기서 스탯 조절
 
@@ -745,16 +756,17 @@ void AQLCharacterPlayer::ResetEquipTypeA(const FGameplayTag CallbackTag, int32 N
 
 void AQLCharacterPlayer::ResetBomb(const FGameplayTag CallbackTag, int32 NewCount)
 {
-	if (ASC&& NewCount == 0)
+	if (ASC&& NewCount == 1)
 	{
+		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
 		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
-		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
-		CurrentAttackType = ECharacterAttackType::HookAttack;
-		return;
+		CurrentAttackType = ECharacterAttackType::BombAttack;
 	}
-	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
-	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
-	CurrentAttackType = ECharacterAttackType::BombAttack;
+
+	if (NewCount == 0)
+	{
+		Weapon->Bomb = nullptr;
+	}
 }
 
 void AQLCharacterPlayer::Move(const FInputActionValue& Value)

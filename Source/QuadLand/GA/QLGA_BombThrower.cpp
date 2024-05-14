@@ -37,7 +37,6 @@ void UQLGA_BombThrower::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	AnimSpeedRate = 1.0f;
 	GrapAndThrowMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PunchAnimMontage"), ThrowAnimMontage, AnimSpeedRate, FName("Grap"));
 	GrapAndThrowMontage->OnCompleted.AddDynamic(this, &UQLGA_BombThrower::OnCompletedCallback);
-	GrapAndThrowMontage->OnCompleted.AddDynamic(this, &UQLGA_BombThrower::OnCompletedCallback);
 	GrapAndThrowMontage->OnInterrupted.AddDynamic(this, &UQLGA_BombThrower::OnInterruptedCallback);
 	GrapAndThrowMontage->ReadyForActivation();
 
@@ -47,8 +46,15 @@ void UQLGA_BombThrower::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 {
 	TrackDrawer = nullptr;
 	GrapAndThrowMontage = nullptr;
+
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+
 	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_BOMB);
+	FGameplayTagContainer Tag(CHARACTER_EQUIP_NON);
+	if (ASC->HasAnyMatchingGameplayTags(Tag) == false)
+	{
+		ASC->AddLooseGameplayTags(Tag);
+	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
@@ -58,6 +64,7 @@ void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, c
 {	
 	MontageJumpToSection(FName("Throw"));
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+	
 	FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	ASC->TryActivateAbilitiesByTag(TargetTag);
@@ -79,14 +86,14 @@ void UQLGA_BombThrower::OnInterruptedCallback()
 {
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = true;
+
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 
 void UQLGA_BombThrower::ServerRPCAttackHitCheck_Implementation()
 {
-	QL_GASLOG(QLNetLog, Warning, TEXT("Multicast RPC"));
-	FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
 	ASC->TryActivateAbilitiesByTag(TargetTag);
 }

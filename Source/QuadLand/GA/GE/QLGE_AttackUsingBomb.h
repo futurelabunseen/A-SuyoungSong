@@ -15,6 +15,14 @@ class QUADLAND_API UQLGE_AttackUsingBomb : public UGameplayEffectExecutionCalcul
 	GENERATED_BODY()
 	
 public:
-
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
+
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Stat)
+	float AddBombDamage;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = Stat)
+	float AddBombRadius;
 };
