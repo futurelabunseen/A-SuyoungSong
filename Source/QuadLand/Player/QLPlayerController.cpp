@@ -13,6 +13,7 @@
 #include "UI/QLDeathTimerWidget.h"
 #include "QuadLand.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
+#include "Character/QLInventoryComponent.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 
@@ -164,7 +165,7 @@ void AQLPlayerController::AddInventoryByDraggedItem(EItemType ItemIdx, int32 Cur
 	{
 		QL_LOG(QLNetLog, Warning, TEXT("Add item %d"), CurrentItemCnt);
 
-		QLCharacter->AddInventoryByDraggedItem(ItemIdx, CurrentItemCnt);
+		QLCharacter->GetInventory()->AddInventoryByDraggedItem(ItemIdx, CurrentItemCnt);
 	}
 }
 
@@ -175,7 +176,7 @@ void AQLPlayerController::RemoveItemEntry(EItemType ItemIdx)
 
 	if (QLCharacter)
 	{
-		QLCharacter->UseItem(ItemIdx);
+		QLCharacter->GetInventory()->UseItem(ItemIdx);
 	}
 
 }
@@ -188,6 +189,6 @@ void AQLPlayerController::AddGroundByDraggedItem(EItemType ItemIdx, int32 Curren
 	if (QLCharacter)
 	{
 		QL_LOG(QLNetLog, Warning, TEXT("Drop item %d"),CurrentItemCnt);
-		QLCharacter->AddGroundByDraggedItem(ItemIdx, CurrentItemCnt);
+		QLCharacter->GetInventory()->AddGroundByDraggedItem(ItemIdx, CurrentItemCnt);
 	}
 }

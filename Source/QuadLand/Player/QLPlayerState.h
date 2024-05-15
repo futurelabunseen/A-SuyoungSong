@@ -53,6 +53,12 @@ public:
 
 	void SetDead();
 	virtual void BeginPlay() override;
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCConcealLifeStone();
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCPutLifeStone(); //서버에게 눌렀음을 전달
 protected:
 
 	UPROPERTY(EditAnywhere, Category = GAS)
@@ -104,11 +110,7 @@ protected:
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastRPCUpdateStorageWidget(FName Nickname, class AQLLifestoneStorageBox* StorageBox);
 
-	UFUNCTION(Server, Reliable)
-	void ServerRPCPutLifeStone(); //서버에게 눌렀음을 전달
 
-	UFUNCTION(Server, Reliable)
-	void ServerRPCConcealLifeStone();
 
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bHasLifeStone : 1;

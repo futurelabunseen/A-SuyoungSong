@@ -3,7 +3,6 @@
 
 #include "GA/AT/QLAT_TrackDrawer.h"
 #include "Character/QLCharacterPlayer.h"
-#include "Item/QLBomb.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStaticsTypes.h"
 #include "Kismet/GameplayStatics.h"
@@ -23,21 +22,17 @@ void UQLAT_TrackDrawer::TickTask(float DeltaTime)
 		FVector CurrentForward = Character->GetActorForwardVector();
 		FVector DeltaForward = PreForward - CurrentForward;
 
-		if (DeltaForward.Length() >= 0.5f)
+		//if (DeltaForward.Length() >= 0.3f)
 		{
 			FVector CameraForward = Character->GetCameraForward();
-			FVector StartLoc = Character->GetMesh()->GetSocketLocation(FName("Bomb"));
-			//FVector TargetLoc = 
+			FVector StartLoc = Character->GetMesh()->GetSocketLocation(FName("Bomb")); 
 			FVector LaunchVelocity = CameraForward *1200.0f; //잠깐 박아놓기
 
 			FPredictProjectilePathParams PredictParams(10.0f, StartLoc, LaunchVelocity, 2.0f);
-			PredictParams.DrawDebugTime = 3.0f;
-			PredictParams.DrawDebugType = EDrawDebugTrace::Type::ForDuration;
 			PredictParams.OverrideGravityZ = GetWorld()->GetGravityZ();
 			FPredictProjectilePathResult Result;
-
 			UGameplayStatics::PredictProjectilePath(this, PredictParams, Result);
-			PreForward = CurrentForward;
+			
 		}
 
 	}
@@ -55,9 +50,10 @@ void UQLAT_TrackDrawer::Activate()
 }
 
 
-UQLAT_TrackDrawer* UQLAT_TrackDrawer::CreateTask(UGameplayAbility* OwningAbility, bool bTestAlreadyReleased)
+UQLAT_TrackDrawer* UQLAT_TrackDrawer::CreateTask(UGameplayAbility* OwningAbility, TSubclassOf<class AActor> InDrawer, bool bTestAlreadyReleased)
 {
 	UQLAT_TrackDrawer* Task = NewAbilityTask<UQLAT_TrackDrawer>(OwningAbility);
+	Task->Drawer = InDrawer;
 	Task->bTestInitialState = bTestAlreadyReleased;
 	return Task;
 }

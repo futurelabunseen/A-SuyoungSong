@@ -8,6 +8,7 @@
 #include "QLWeaponComponent.generated.h"
 
 
+DECLARE_DELEGATE(FOnDestoryBomb);
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class QUADLAND_API UQLWeaponComponent : public UActorComponent
 {
@@ -20,6 +21,7 @@ public:
 	void SpawnBomb();
 
 	void SetBombHiddenInGame(bool InHiddenInGame);
+	FOnDestoryBomb OnDestoryBomb;
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
@@ -28,10 +30,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AQLItemBox> GroundWeapon;
 
+	void ResetBomb();
 protected:
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class AQLBomb> Bomb;
-
+	
 	friend class AQLCharacterPlayer;
 };

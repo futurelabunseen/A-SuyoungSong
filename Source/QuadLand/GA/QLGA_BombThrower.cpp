@@ -9,9 +9,11 @@
 #include "EngineUtils.h"
 
 #include "Character/QLCharacterPlayer.h"
+#include "Item/QLWeaponComponent.h"
 #include "GA/AT/QLAT_TrackDrawer.h"
 #include "GameplayTag/GamplayTags.h"
 #include "GameData/QLDataManager.h"
+#include "Character/QLInventoryComponent.h"
 #include "GameData/QLWeaponStat.h"
 #include "Item/QLBomb.h"
 #include "QuadLand.h"
@@ -31,7 +33,7 @@ void UQLGA_BombThrower::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
-	TrackDrawer = UQLAT_TrackDrawer::CreateTask(this);
+	TrackDrawer = UQLAT_TrackDrawer::CreateTask(this,Drawer);
 	TrackDrawer->ReadyForActivation();
 
 	AnimSpeedRate = 1.0f;
@@ -68,8 +70,9 @@ void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, c
 	FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	ASC->TryActivateAbilitiesByTag(TargetTag);
-
-	Player->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType));
+	
+	QL_GASLOG(QLNetLog, Warning, TEXT("Client Item Type %d"), Player->GetInventoryCnt(ItemType));
+	Player->GetInventory()->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType));
 	ServerRPCAttackHitCheck();
 }
 
@@ -93,6 +96,9 @@ void UQLGA_BombThrower::OnInterruptedCallback()
 
 void UQLGA_BombThrower::ServerRPCAttackHitCheck_Implementation()
 {
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+	Player->GetWeapon()->OnDestoryBomb.ExecuteIfBound();
+
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
 	ASC->TryActivateAbilitiesByTag(TargetTag);

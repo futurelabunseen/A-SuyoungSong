@@ -21,12 +21,6 @@ public:
 	/*AI와 같이 사용, InputAction*/
 
 	bool bIsUsingGun();
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> JumpAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> CrouchAction;
 
 protected:
 	UPROPERTY(Replicated)

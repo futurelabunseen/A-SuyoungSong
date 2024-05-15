@@ -5,6 +5,7 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayTag/GamplayTags.h"
 #include "Character/QLCharacterPlayer.h"
+#include "Character/QLInventoryComponent.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "QuadLand.h"
@@ -51,7 +52,7 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	if (IsLocallyControlled())
 	{
 		Player->ServerRPCReload();
-		Player->ServerRPCRemoveItem(ItemType,Player->GetInventoryCnt(ItemType));
+		Player->GetInventory()->ServerRPCRemoveItem(ItemType,Player->GetInventoryCnt(ItemType));
 	}
 }
 
