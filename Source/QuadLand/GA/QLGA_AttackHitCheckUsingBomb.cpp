@@ -39,6 +39,7 @@ void UQLGA_AttackHitCheckUsingBomb::ActivateAbility(const FGameplayAbilitySpecHa
 		if (Bomb!=nullptr)
 		{
 			Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			
 			FVector OutVelocity = Character->GetCameraForward() * WeaponStat->GetAttackSpeed();
 			Bomb->OnActorOverlapDelegate.BindUObject(this, &UQLGA_AttackHitCheckUsingBomb::OnCompletedCallback);
 			Bomb->ThrowBomb(OutVelocity);

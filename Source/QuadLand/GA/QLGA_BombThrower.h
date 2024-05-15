@@ -41,6 +41,9 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class UAbilityTask_WaitInputRelease> TrackDrawer;
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AActor> Drawer;
 
 	float AnimSpeedRate;
 

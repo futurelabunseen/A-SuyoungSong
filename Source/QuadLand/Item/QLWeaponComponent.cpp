@@ -18,6 +18,7 @@ UQLWeaponComponent::UQLWeaponComponent()
 	{
 		Weapon->SetAnimClass(AnimInstanceRef.Class);
 	}
+
 }
 
 void UQLWeaponComponent::SpawnBomb()
@@ -38,7 +39,10 @@ void UQLWeaponComponent::SpawnBomb()
 		//Bomb - Actor 생성
 		//클라이언트, 서버 생성 
 		Bomb = GetWorld()->SpawnActor<AQLBomb>(Stat->BombClass, Params);
-
+		if (Bomb)
+		{
+			OnDestoryBomb.BindUObject(this, &UQLWeaponComponent::ResetBomb);
+		}
 		Bomb->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, FName("Bomb"));
 	}
 }
@@ -49,4 +53,9 @@ void UQLWeaponComponent::SetBombHiddenInGame(bool InHiddenInGame)
 	{
 		Bomb->SetActorHiddenInGame(InHiddenInGame);
 	}
+}
+
+void UQLWeaponComponent::ResetBomb()
+{
+	Bomb = nullptr;
 }

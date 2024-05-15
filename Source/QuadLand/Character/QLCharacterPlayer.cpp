@@ -676,9 +676,10 @@ void AQLCharacterPlayer::MulticastRPCSwitchAttackType_Implementation(ECharacterA
 		
 		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
 		Weapon->Weapon->SetHiddenInGame(true); //총 숨김 (애니메이션도 풀어야함) => 이친구는,,,멀티캐스트 RPC 필요
-
+		QL_LOG(QLLog, Warning, TEXT("this? 1"));
 		if (Weapon->Bomb != nullptr)
 		{
+			QL_LOG(QLLog, Warning, TEXT("this? 2"));
 			Weapon->SetBombHiddenInGame(true);
 		}
 		break;
@@ -761,11 +762,6 @@ void AQLCharacterPlayer::ResetBomb(const FGameplayTag CallbackTag, int32 NewCoun
 		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
 		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
 		CurrentAttackType = ECharacterAttackType::BombAttack;
-	}
-
-	if (NewCount == 0)
-	{
-		Weapon->Bomb = nullptr;
 	}
 }
 

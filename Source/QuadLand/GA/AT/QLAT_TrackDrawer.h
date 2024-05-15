@@ -24,14 +24,13 @@ public:
 
 	/** Wait until the user releases the input button for this ability's activation. Returns time from hitting this node, till release. Will return 0 if input was already released. */
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
-	static UQLAT_TrackDrawer* CreateTask(UGameplayAbility* OwningAbility, bool bTestAlreadyReleased = false);
+	static UQLAT_TrackDrawer* CreateTask(UGameplayAbility* OwningAbility, TSubclassOf<class AActor> InDrawer, bool bTestAlreadyReleased = false);
 
 protected:
 	UPROPERTY()
 	TObjectPtr<class AQLCharacterPlayer> Character;
 
 	UPROPERTY()
-	TObjectPtr<class AQLBomb> Bomb;
-
+	TSubclassOf<class AActor> Drawer;
 	FVector PreForward;
 };
