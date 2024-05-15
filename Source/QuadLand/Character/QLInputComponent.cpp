@@ -537,17 +537,14 @@ void UQLInputComponent::SelectBombAttackType()
 
 	//총이 없어서 아무일도 하지않아도 Default임.
 	FGameplayTagContainer Tag(CHARACTER_EQUIP_BOMB);
-
 	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
-	if (Character->InventoryItem.Find(EItemType::Bomb))
-	{
 
-		if (Character->InventoryItem[EItemType::Bomb] <= 0)
-		{
-			return;
-		}
-		Character->ServerRPCSwitchAttackType(ECharacterAttackType::BombAttack);
+	if (ASC->HasAnyMatchingGameplayTags(Tag) || Character->GetInventoryCnt(EItemType::Bomb) == 0)
+	{
+		return;
 	}
+	Character->ServerRPCSwitchAttackType(ECharacterAttackType::BombAttack);
+
 }
 
 void UQLInputComponent::GASInputPressed(int32 id)

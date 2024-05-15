@@ -78,6 +78,7 @@ public:
 	void ServerRPCShooting(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
 	UFUNCTION(Server, Reliable)
 	void ServerRPCReload(); //Reload 행위는 Reliable
+	class UQLInventoryComponent* GetInventory() { return QLInventory; }
 
 protected:
 	uint8 bIsAiming : 1;
@@ -98,6 +99,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UQLInputComponent> QLInputComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UQLInventoryComponent> QLInventory;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	float SearchRange;
 
 	UFUNCTION(Server, Unreliable)
 	void ServerRPCSwitchAttackType(ECharacterAttackType InputKey);
@@ -176,7 +183,6 @@ protected:
 
 	void FarmingItem();
 	void EquipWeapon(class AQLItem* ItemInfo);
-	void GetItem(class AQLItem* ItemInfo);
 	void HasLifeStone(class AQLItem* ItemInfo);
 	void GetAmmo(class AQLItem* IItemInfo);
 	//Take
@@ -213,39 +219,9 @@ protected:
 public:
 	virtual void CheckBoxOverlap() override; 
 	//Inventory Section
+	void GetItem(class AQLItem* ItemInfo);
 
-protected:
-	UFUNCTION(Client, Reliable)
-	void ClientRPCAddItem(UQLItemData* Item, int32 ItemCnt);
-
-	uint8 bIsSetVisibleInventory : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item, Meta = (AllowPrivateAccess = "true"))
-	TMap<EItemType, int32> InventoryItem;
-
-public:
-	UFUNCTION(Server, WithValidation, Reliable)
-	void ServerRPCRemoveItem(EItemType ItemId, int32 ItemCnt);
-
-	UFUNCTION(Client,Reliable)
-	void ClientRPCRemoveItem(UQLItemData* Item, int32 ItemCnt);
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	float SearchRange;
-
-	void UseItem(EItemType ItemId); //아이템을 사용
-	void AddInventoryByDraggedItem(EItemType ItemId, int32 ItemCnt);
-
-	UFUNCTION(Server, Reliable)
-	void ServerRPCAddInventoryByDraggedItem(EItemType ItemId, int32 ItemCnt);
-	UFUNCTION(Client, Reliable)
-	void ClientRPCRollbackInventory(EItemType ItemId, int32 ItemCnt);
-
-	void AddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt);
-
-	UFUNCTION(Server, Reliable)
-	void ServerRPCAddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt);
-
+	friend class UQLInventoryComponent;
 
 	friend class UQLInputComponent;
 

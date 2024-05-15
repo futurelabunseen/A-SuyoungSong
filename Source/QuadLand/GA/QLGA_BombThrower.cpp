@@ -13,6 +13,7 @@
 #include "GA/AT/QLAT_TrackDrawer.h"
 #include "GameplayTag/GamplayTags.h"
 #include "GameData/QLDataManager.h"
+#include "Character/QLInventoryComponent.h"
 #include "GameData/QLWeaponStat.h"
 #include "Item/QLBomb.h"
 #include "QuadLand.h"
@@ -71,7 +72,7 @@ void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, c
 	ASC->TryActivateAbilitiesByTag(TargetTag);
 	
 	QL_GASLOG(QLNetLog, Warning, TEXT("Client Item Type %d"), Player->GetInventoryCnt(ItemType));
-	Player->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType));
+	Player->GetInventory()->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType));
 	ServerRPCAttackHitCheck();
 }
 
