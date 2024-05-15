@@ -43,6 +43,7 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 {
 	bHasGun = false;
 	ASC = nullptr;
+	MovingThreshold = 3.0f;
 	CurrentAttackType = ECharacterAttackType::HookAttack; //default
 
 	//springArm에 Camera를 매달을 예정
@@ -157,6 +158,29 @@ void AQLCharacterPlayer::BeginPlay()
 
 	Weapon->Weapon->SetHiddenInGame(true); //Mesh 게임에서 안보이도록 해놓음
 
+}
+
+void AQLCharacterPlayer::InitializeAttributes()
+{
+	if (!ASC)
+	{
+		return;
+	}
+
+	if (!DefaultAttributes) //Gameplay Effect를 통해서 모든 어트리뷰트 기본값으로 초기화
+	{
+		return;
+	}
+
+	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
+
+	FGameplayEffectSpecHandle NewHandle = ASC->MakeOutgoingSpec(DefaultAttributes, 1, EffectContext);
+
+	if (NewHandle.IsValid())
+	{
+		FActiveGameplayEffectHandle ActiveGEHandle = ASC->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), ASC.Get());
+	}
 }
 
 void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -308,6 +332,7 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 		bHasGun = true;
 	}
 }
+
 void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 {
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
@@ -359,6 +384,25 @@ int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 	return QLInventory->GetInventoryCnt(ItemType);
 }
 
+FVector AQLCharacterPlayer::GetVelocity() const
+{
+	FVector Velocity = Super::GetVelocity();
+
+	float GroundSpeed = Velocity.Size2D(); //Z값을 제외한 X/Y에 대한 크기
+	bool bisIdle = GroundSpeed < MovingThreshold;
+
+	if (bisIdle&&ASC&&IsLocallyControlled())
+	{
+		FGameplayTagContainer TagContainer(CHARACTER_STATE_STOP);
+
+		if (ASC->HasAnyMatchingGameplayTags(TagContainer) == false)
+		{
+			ASC->AddLooseGameplayTags(TagContainer);
+		}
+	}
+	return Velocity;
+}
+
 void AQLCharacterPlayer::MulticastRPCSwitchAttackType_Implementation(ECharacterAttackType InputKey)
 {
 	switch (InputKey)
@@ -402,7 +446,6 @@ void AQLCharacterPlayer::ServerRPCSwitchAttackType_Implementation(ECharacterAtta
 	{
 		return;
 	}
-
 
 	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
 
@@ -517,7 +560,6 @@ void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 	}
 }
 
-
 void AQLCharacterPlayer::SetupStartAbilities()
 {
 
@@ -567,7 +609,6 @@ void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
 		Item->Destroy(); //수정해야함.
 	}
 }
-
 
 void AQLCharacterPlayer::CheckBoxOverlap()
 {
@@ -627,8 +668,6 @@ void AQLCharacterPlayer::ServerRPCReload_Implementation()
 
 	bIsReload = !bIsReload;
 }
-
-
 
 //Server Section
 void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)

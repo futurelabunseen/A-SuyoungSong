@@ -8,7 +8,7 @@
 #include "GameplayTag/GamplayTags.h"
 
 #include "QuadLand.h"
-UQLAS_PlayerStat::UQLAS_PlayerStat()
+UQLAS_PlayerStat::UQLAS_PlayerStat() : Stamina(10.0f)
 {
 	InitHealth(GetMaxHealth());
 	InitStamina(GetMaxStamina());
@@ -24,25 +24,7 @@ void UQLAS_PlayerStat::PreAttributeChange(const FGameplayAttribute& Attribute, f
 	if (Attribute == GetStaminaAttribute())
 	{
 		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
-	
-		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
-		if (GetStamina() <= 0.0f)
-		{
-			if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_STOP) == false)
-			{
-				ASC->AddLooseGameplayTag(CHARACTER_STATE_STOP);
-			}
-		}
-		else
-		{
-			if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_STOP))
-			{
-				ASC->RemoveLooseGameplayTag(CHARACTER_STATE_STOP); //Á¦°Å´Â RemoveLooseGameplayTag
-			}
-		}
-
 	}
-	UE_LOG(QLNetLog, Log, TEXT("Current Stamina %lf\n"), GetStamina());
 }
 
 void UQLAS_PlayerStat::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)

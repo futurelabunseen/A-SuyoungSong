@@ -10,6 +10,7 @@
 #include "GameData/QLItemData.h"
 #include "Physics/QLCollision.h"
 #include "Item/QLItemBox.h"
+#include "QuadLand.h"
 
 UQLInventoryComponent::UQLInventoryComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -31,14 +32,20 @@ void UQLInventoryComponent::AddItem(EItemType ItemId, int32 ItemCnt)
 
 void UQLInventoryComponent::UseItem(EItemType ItemId)
 {
+
+	UE_LOG(LogTemp, Warning, TEXT("Use Item 1"));
 	if (EItemType::Ammo == ItemId || EItemType::Bomb == ItemId)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Use Item 2"));
 		return; //얘는 사용할 수 없어;;
 	}
+	UE_LOG(LogTemp, Warning, TEXT("Use Item 3"));
 	if (InventoryItem.Find(ItemId))
 	{
 		ServerRPCRemoveItem(ItemId, InventoryItem[ItemId]);
+		UE_LOG(LogTemp, Warning, TEXT("Use Item 4"));
 	}
+	UE_LOG(LogTemp, Warning, TEXT("Use Item 5"));
 }
 
 int UQLInventoryComponent::GetInventoryCnt(EItemType ItemType)
@@ -127,7 +134,7 @@ void UQLInventoryComponent::AddInventoryByDraggedItem(EItemType InItemId, int32 
 		if (InventoryItem.Find(InItemId))
 		{
 			InventoryItem[InItemId] += InItemCnt;
-			UE_LOG(LogTemp, Warning, TEXT("Same Item %d"), InItemCnt);
+			QL_SUBLOG(QLNetLog, Warning, TEXT("Same Item %d"), InItemCnt);
 		}
 		else
 		{
@@ -137,7 +144,7 @@ void UQLInventoryComponent::AddInventoryByDraggedItem(EItemType InItemId, int32 
 	}
 	//실제로 아이템이 있는지 검사하기 위해서 서버에게 요청해야함;
 	ServerRPCAddInventoryByDraggedItem(InItemId, InItemCnt);
-	UE_LOG(LogTemp, Warning, TEXT("AddItem %d"), InItemCnt);
+	QL_SUBLOG(QLNetLog, Warning, TEXT("AddItem %d"), InItemCnt);
 }
 
 void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EItemType ItemId, int32 ItemCnt)
@@ -145,7 +152,7 @@ void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EI
 	AQLPlayerController* PC = GetController<AQLPlayerController>();
 
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
-	if (PC == nullptr|| Character)
+	if (PC == nullptr|| Character == nullptr)
 	{
 		return;
 	}
@@ -192,7 +199,7 @@ void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EI
 					if (ItemId == EItemType::Ammo)
 					{
 						AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-						if (PS)
+						if (PS == nullptr)
 						{
 							return;
 						}
@@ -279,7 +286,7 @@ void UQLInventoryComponent::ServerRPCAddGroundByDraggedItem_Implementation(EItem
 		{
 			IQLGetItemStat* AmmoStatData = CastChecked<IQLGetItemStat>(DataManager->GetItem(ItemId));
 			AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-			if (PS)
+			if (PS == nullptr)
 			{
 				return;
 			}

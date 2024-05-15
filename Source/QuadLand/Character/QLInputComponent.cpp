@@ -16,6 +16,8 @@
 #include "Physics/QLCollision.h"
 #include "GameData/QLItemData.h"
 #include "Item/QLItemBox.h"
+#include "QuadLand.h"
+
 UQLInputComponent::UQLInputComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	//EnhancedInput 연결
@@ -210,6 +212,13 @@ void UQLInputComponent::Move(const FInputActionValue& Value)
 
 	if (Character && PC)
 	{
+		UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+
+		FGameplayTagContainer TagContainer(CHARACTER_STATE_STOP);
+		if (ASC->HasAnyMatchingGameplayTags(TagContainer))
+		{
+			ASC->RemoveLooseGameplayTags(TagContainer);
+		}
 		const FVector2D MovementVector = Value.Get<FVector2D>();
 
 		const FRotator Rotation = PC->GetControlRotation();
@@ -224,6 +233,7 @@ void UQLInputComponent::Move(const FInputActionValue& Value)
 
 	}
 }
+
 
 void UQLInputComponent::Look(const FInputActionValue& Value)
 {
@@ -312,30 +322,6 @@ void UQLInputComponent::TimelineFloatReturn(float Alpha)
 	float Length = FMath::Lerp(Character->MaxArmLength, Character->MinArmLength, Alpha);
 	Character->CameraSpringArm->TargetArmLength = Length;
 }
-
-void AQLCharacterPlayer::InitializeAttributes()
-{
-	if (!ASC)
-	{
-		return;
-	}
-
-	if (!DefaultAttributes) //Gameplay Effect를 통해서 모든 어트리뷰트 기본값으로 초기화
-	{
-		return;
-	}
-
-	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
-	EffectContext.AddSourceObject(this);
-
-	FGameplayEffectSpecHandle NewHandle = ASC->MakeOutgoingSpec(DefaultAttributes, 1, EffectContext);
-
-	if (NewHandle.IsValid())
-	{
-		FActiveGameplayEffectHandle ActiveGEHandle = ASC->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), ASC.Get());
-	}
-}
-
 
 
 void UQLInputComponent::Aim()
