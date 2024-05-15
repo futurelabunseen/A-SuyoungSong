@@ -33,6 +33,9 @@ AQLPlayerState::AQLPlayerState()
     //TagEvent - Delegates
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Dead);
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_WIN, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Win);
+    ASC->RegisterGameplayTagEvent(CHARACTER_STATE_NOTRUN, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::CoolTimeStamina);
+
+    
     ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
     bHasLifeStone = true; 
 }
@@ -345,6 +348,19 @@ void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
         ASC->TryActivateAbilitiesByTag(TargetTag);
     }
     bIsDead = !bIsDead;
+}
+
+void AQLPlayerState::CoolTimeStamina(const FGameplayTag CallbackTag, int32 NewCount)
+{
+    if (NewCount == 1)
+    {
+        GetWorld()->GetTimerManager().SetTimer(CoolTimer, FTimerDelegate::CreateLambda([&]()
+            {
+                FGameplayTagContainer Tag(CHARACTER_STATE_NOTRUN);
+                ASC->RemoveLooseGameplayTags(Tag);
+            }
+        ), 10.0f, false);
+    }
 }
 
 void AQLPlayerState::SetDead()

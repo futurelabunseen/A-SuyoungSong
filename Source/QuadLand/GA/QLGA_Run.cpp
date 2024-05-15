@@ -48,12 +48,19 @@ void UQLGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 void UQLGA_Run::ReduceStamina()
 {
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
+	const UQLAS_PlayerStat* PlayerStat=SourceASC->GetSet<UQLAS_PlayerStat>();
 
-	FGameplayTagContainer Tag(CHARACTER_STATE_STOP);
-	if (SourceASC->HasAnyMatchingGameplayTags(Tag))
+	if (PlayerStat->GetStamina() <= 5.0f)
 	{
-		StopStamina();
-		return;
+		QL_GASLOG(QLNetLog, Warning, TEXT("Current Percentage %lf"), PlayerStat->GetStamina());
+
+		FGameplayTagContainer Tag(CHARACTER_STATE_NOTRUN);
+		if (SourceASC->HasAnyMatchingGameplayTags(Tag) == false)
+		{
+			SourceASC->AddLooseGameplayTags(Tag);
+			StopStamina();
+			return;
+		}
 	}
 
 	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReduceStaminaEffect);

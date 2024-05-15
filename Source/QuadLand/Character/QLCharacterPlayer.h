@@ -81,6 +81,9 @@ public:
 	class UQLInventoryComponent* GetInventory() { return QLInventory; }
 
 protected:
+	virtual FVector GetVelocity() const override;
+
+	float MovingThreshold;
 	uint8 bIsAiming : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmLength, Meta = (AllowPrivateAccess = "true"))

@@ -19,6 +19,7 @@
 
 #define CHARACTER_STATE_RUN FGameplayTag::RequestGameplayTag(FName("Character.State.Run"))
 #define CHARACTER_STATE_STOP FGameplayTag::RequestGameplayTag(FName("Character.State.Stop"))
+#define CHARACTER_STATE_NOTRUN  FGameplayTag::RequestGameplayTag(FName("Character.State.NotRun"))
 #define CHARACTER_STATE_WIN FGameplayTag::RequestGameplayTag(FName("Character.State.Win"))
 #define CHARACTER_STATE_DEAD FGameplayTag::RequestGameplayTag(FName("Character.State.Dead"))
 #define CHARACTER_STATE_RELOAD FGameplayTag::RequestGameplayTag(FName("Character.State.Reload")) //Damage를 받았을때

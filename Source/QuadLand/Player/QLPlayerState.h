@@ -51,6 +51,12 @@ public:
 	UFUNCTION()
 	virtual void Dead(const FGameplayTag CallbackTag, int32 NewCount);
 
+	UFUNCTION()
+
+	virtual void CoolTimeStamina(const FGameplayTag CallbackTag, int32 NewCount);
+
+	FTimerHandle CoolTimer;
+
 	void SetDead();
 	virtual void BeginPlay() override;
 
