@@ -70,6 +70,7 @@ void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, c
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	ASC->TryActivateAbilitiesByTag(TargetTag);
 	
+	QL_GASLOG(QLNetLog, Warning, TEXT("Client Item Type %d"), Player->GetInventoryCnt(ItemType));
 	Player->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType));
 	ServerRPCAttackHitCheck();
 }

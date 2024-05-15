@@ -33,12 +33,12 @@
 #include "GameData/QLDataManager.h"
 #include "Item/QLWeaponComponent.h"
 #include "QLCharacterMovementComponent.h"
-
+#include "Character/QLInputComponent.h"
 
 #include "QuadLand.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer) :
-	Super(ObjectInitializer.SetDefaultSubobjectClass<UQLCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), FarmingTraceDist(1000.0f), MaxArmLength(300.0f)//, bIsTurning(false)
+	Super(ObjectInitializer.SetDefaultSubobjectClass<UQLCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)), bHasNextPunchAttackCombo(0), CurrentCombo(0), bPressedFarmingKey(0), MaxArmLength(300.0f),FarmingTraceDist(1000.0f)//, bIsTurning(false)
 {
 	bHasGun = false;
 	ASC = nullptr;
@@ -61,100 +61,9 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	// Mesh Component
 	Weapon = CreateDefaultSubobject<UQLWeaponComponent>(TEXT("Weapon"));
 	Weapon->Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
-	
-	//EnhancedInput 연결
-	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Move.IA_Move'"));
-
-	if (MoveActionRef.Object)
-	{
-		MoveAction = MoveActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Look.IA_Look'"));
-
-	if (LookActionRef.Object)
-	{
-		LookAction = LookActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> AttackActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Attack.IA_Attack'"));
-
-	if (AttackActionRef.Object)
-	{
-		AttackAction = AttackActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> RunActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Run.IA_Run'"));
-
-	if (RunActionRef.Object)
-	{
-		RunAction = RunActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> FarmingActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Faming.IA_Faming'"));
-
-	if (FarmingActionRef.Object)
-	{
-		FarmingAction = FarmingActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Jump.IA_Jump'"));
-
-	if (JumpActionRef.Object)
-	{
-		JumpAction = JumpActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> CrouchActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Crunch.IA_Crunch'"));
-
-	if (CrouchActionRef.Object)
-	{
-		CrouchAction = CrouchActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> AimActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Aim.IA_Aim'"));
-
-	if (AimActionRef.Object)
-	{
-		AimAction = AimActionRef.Object;
-	}
-	static ConstructorHelpers::FObjectFinder<UInputAction> ReloadActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Reload.IA_Reload'"));
-
-	if (ReloadActionRef.Object)
-	{
-		ReloadAction = ReloadActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> PutLifeStoneActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_PutLifeStone.IA_PutLifeStone'"));
-
-	if (PutLifeStoneActionRef.Object)
-	{
-		PutLifeStoneAction = PutLifeStoneActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> PutWeaponActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_PutWeapon.IA_PutWeapon'"));
-
-	if (PutWeaponActionRef.Object)
-	{
-		PutWeaponAction = PutWeaponActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> VisibilityInventoryActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Inventory.IA_Inventory'"));
-
-	if (VisibilityInventoryActionRef.Object)
-	{
-		VisibilityInventoryAction = VisibilityInventoryActionRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> MapActionRep(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Map.IA_Map'"));
-
-	if (MapActionRep.Object)
-	{
-		MapAction = MapActionRep.Object;
-	}
+	QLInputComponent = CreateDefaultSubobject<UQLInputComponent>(TEXT("Input"));
 
 	bIsSetVisibleInventory = false;
-
 
 	//InputContext Mapping
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputContextMappingRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/QuadLand/Inputs/IMC_Shoulder.IMC_Shoulder'"));
@@ -164,7 +73,6 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 		InputMappingContext = InputContextMappingRef.Object;
 	}
 	
-
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::EquipWeapon)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::HasLifeStone)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetAmmo)));
@@ -172,27 +80,8 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetItem)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetItem)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetItem)));
-
-	static ConstructorHelpers::FObjectFinder<UCurveFloat> AimCurveRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/AimAlpha.AimAlpha'"));
-
-	if (AimCurveRef.Object)
-	{
-		AimAlphaCurve = AimCurveRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UCurveFloat> CameraCurveRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/CameraDownAlpha.CameraDownAlpha'"));
-
-	if (CameraCurveRef.Object)
-	{
-		CameraUpDownCurve = CameraCurveRef.Object;
-	}
-	ZoomInTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ZoominTimeline"));
-	AimInterpFunction.BindUFunction(this, FName(TEXT("TimelineFloatReturn")));
-
-	CameraDownTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("CameraDownTimeline"));
-	DownInterpFunction.BindUFunction(this, FName(TEXT("TimelineCameraUpDownFloatReturn")));
-
 	TakeItemDestory.BindUObject(this, &AQLCharacterPlayer::DestoryItem);
+
 	TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
 	CurrentYaw = 0.0f;
 	PreviousRotation = FRotator::ZeroRotator;
@@ -211,7 +100,6 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 	if (QLPlayerState)
 	{
 		SetupStartAbilities();
-		//SetupGASInputComponent();
 
 		AQLPlayerController* PC = Cast<AQLPlayerController>(NewController);
 
@@ -222,6 +110,7 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 		}
 	}
 	InitializeAttributes();
+
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
@@ -239,9 +128,6 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 	{
 		ASC = Cast<UAbilitySystemComponent>(QLPlayerState->GetAbilitySystemComponent());
 		ASC->InitAbilityActorInfo(QLPlayerState, this);
-
-		//SetupGASInputComponent();
-		QL_LOG(QLNetLog, Log, TEXT("Current Class is called by Client only"));
 	}
 	InitializeAttributes();
 
@@ -269,11 +155,6 @@ void AQLCharacterPlayer::BeginPlay()
 
 	SetCharacterControl();
 
-	ZoomInTimeline->AddInterpFloat(AimAlphaCurve, AimInterpFunction, FName{ TEXT("AimAlpha") });
-	if (CameraDownTimeline && CameraUpDownCurve)
-	{
-		CameraDownTimeline->AddInterpFloat(CameraUpDownCurve, DownInterpFunction, FName{ TEXT("CameraDownAlpha") });
-	}
 	Weapon->Weapon->SetHiddenInGame(true); //Mesh 게임에서 안보이도록 해놓음
 
 }
@@ -283,48 +164,10 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
-
-	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Move);
-	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Look);
-
-	EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::FarmingItemPressed);
-
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::JumpPressed);
-
-	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::PressedCrouch);
-
-	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AQLCharacterPlayer::Aim);
-	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::StopAiming);
-
-	EnhancedInputComponent->BindAction(PutLifeStoneAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::PutLifeStone);
-
-	EnhancedInputComponent->BindAction(PutWeaponAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::PutWeapon);
-
-	EnhancedInputComponent->BindAction(VisibilityInventoryAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::SetInventory);
-
-	EnhancedInputComponent->BindAction(MapAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::SetMap);
-
-	EnhancedInputComponent->BindAction(WeaponSwitcherAction[ECharacterAttackType::HookAttack], ETriggerEvent::Completed, this, &AQLCharacterPlayer::SelectDefaultAttackType);
-	EnhancedInputComponent->BindAction(WeaponSwitcherAction[ECharacterAttackType::GunAttack], ETriggerEvent::Completed, this, &AQLCharacterPlayer::SelectGunAttackType);
-	EnhancedInputComponent->BindAction(WeaponSwitcherAction[ECharacterAttackType::BombAttack], ETriggerEvent::Completed, this, &AQLCharacterPlayer::SelectBombAttackType);
-	//PutLifeStone 
-	SetupGASInputComponent();
+	
+	QLInputComponent->InitPlayerImputComponent(PlayerInputComponent);
 }
 
-void AQLCharacterPlayer::SetupGASInputComponent()
-{
-	if (IsValid(ASC) && IsValid(InputComponent))
-	{
-		UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
-
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed, (int32)CurrentAttackType);
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased, (int32)CurrentAttackType);
-		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed, 3);
-		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased,3);
-		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &AQLCharacterPlayer::GASInputPressed, 4);
-		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &AQLCharacterPlayer::GASInputReleased, 4);
-	}
-}
 void AQLCharacterPlayer::SetCharacterControl()
 {
 
@@ -618,56 +461,6 @@ int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 	return InventoryItem[ItemType];
 }
 
-void AQLCharacterPlayer::SelectDefaultAttackType()
-{
-
-	//총이 없어서 아무일도 하지않아도 Default임.
-	FGameplayTagContainer Tag(CHARACTER_EQUIP_NON);
-	if (ASC->HasAnyMatchingGameplayTags(Tag))
-	{
-		return; //같은 경우만 체크하면된다.
-	}
-
-	QL_LOG(QLLog, Warning, TEXT("Select Default Attack Type %d"));
-	ServerRPCSwitchAttackType(ECharacterAttackType::HookAttack);
-
-}
-
-//총을 아예 먹지 않았을 수도 있음
-void AQLCharacterPlayer::SelectGunAttackType()
-{
-	//총을 가지고 있지않으면, 총을 가질 수 없음.
-	FGameplayTagContainer Tag(CHARACTER_EQUIP_GUNTYPEA);
-	if (ASC->HasAnyMatchingGameplayTags(Tag)||bHasGun == false)
-	{
-		return; //같은 경우만 체크하면된다.
-	}
-
-	QL_LOG(QLLog, Warning, TEXT("Select Gun Attack Type"));
-	ServerRPCSwitchAttackType(ECharacterAttackType::GunAttack);
-
-}
-
-void AQLCharacterPlayer::SelectBombAttackType()
-{
-	FGameplayTagContainer Tag(CHARACTER_EQUIP_BOMB);
-	if (ASC->HasAnyMatchingGameplayTags(Tag))
-	{
-		return; //같은 경우만 체크하면된다.
-	}
-
-	if (InventoryItem.Find(EItemType::Bomb))
-	{
-
-		if (InventoryItem[EItemType::Bomb] <= 0)
-		{
-			return;
-		}
-		QL_LOG(QLLog, Warning, TEXT("Select Bomb Attack Type"));
-		ServerRPCSwitchAttackType(ECharacterAttackType::BombAttack);
-	}
-}
-
 void AQLCharacterPlayer::MulticastRPCSwitchAttackType_Implementation(ECharacterAttackType InputKey)
 {
 	switch (InputKey)
@@ -765,85 +558,6 @@ void AQLCharacterPlayer::ResetBomb(const FGameplayTag CallbackTag, int32 NewCoun
 	}
 }
 
-void AQLCharacterPlayer::Move(const FInputActionValue& Value)
-{
-	////이동 벡터
-	const FVector2D MovementVector = Value.Get<FVector2D>();
-
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0, Rotation.Yaw, 0); //회전 방향인 Yaw만 냅둔다
-	//앞 방향 - x축
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	//옆 방향 - y축
-	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-	AddMovementInput(ForwardDirection, MovementVector.X);
-	AddMovementInput(RightDirection, MovementVector.Y);
-
-}
-
-void AQLCharacterPlayer::GASInputPressed(int32 id)
-{
-
-	uint8 InputAttackSpecNumber = GetInputNumber(id);
-
-	if (CurrentAttackType == ECharacterAttackType::HookAttack && InputAttackSpecNumber == 3)
-	{
-		return;
-	}
-
-	QL_LOG(QLNetLog, Log, TEXT("begin %d"), CurrentAttackType);
-	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
-	if (Spec)
-	{
-
-		Spec->InputPressed = true; //해당키를 눌렀음을 알려줌 
-
-		if (Spec->IsActive())
-		{
-			ASC->AbilitySpecInputPressed(*Spec);
-		}
-		else
-		{
-			ASC->TryActivateAbility(Spec->Handle);
-		}
-	}
-}
-
-void AQLCharacterPlayer::GASInputReleased(int32 id)
-{
-	uint8 InputAttackSpecNumber = GetInputNumber(id);
-
-	QL_LOG(QLNetLog, Log, TEXT("begin %d"), InputAttackSpecNumber);
-	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
-
-	if (Spec)
-	{
-		Spec->InputPressed = false; //해당키를 눌렀음을 알려줌
-		if (Spec->IsActive())
-		{
-			ASC->AbilitySpecInputReleased(*Spec);
-		}
-	}
-}
-
-int8 AQLCharacterPlayer::GetInputNumber(int32 id)
-{
-	if (id < (int8)ECharacterAttackType::None)
-	{
-		return static_cast<uint8>(CurrentAttackType);
-	}
-
-	return id;
-}
-
-void AQLCharacterPlayer::FarmingItemPressed()
-{
-	//ServerRPC 호출
-	ServerRPCFarming();
-
-}
-
 float AQLCharacterPlayer::CalculateSpeed()
 {
 	FVector Velocity = GetVelocity();
@@ -906,29 +620,6 @@ void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 }
 
 
-void AQLCharacterPlayer::Look(const FInputActionValue& Value)
-{
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
-	AddControllerPitchInput(LookAxisVector.Y);
-
-	AddControllerYawInput(LookAxisVector.X);
-
-}
-
-void AQLCharacterPlayer::JumpPressed()
-{
-	if (bIsCrouched)
-	{
-		CameraDownTimeline->ReverseFromEnd();
-		UnCrouch();
-	}
-	else
-	{
-		Super::Jump();
-	}
-}
-
 void AQLCharacterPlayer::SetupStartAbilities()
 {
 
@@ -958,8 +649,6 @@ void AQLCharacterPlayer::SetupStartAbilities()
 			ASC->GiveAbility(Spec);
 		}
 	}
-
-	SetupGASInputComponent();
 }
 
 void AQLCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -981,101 +670,6 @@ void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
 	}
 }
 
-void AQLCharacterPlayer::PressedCrouch()
-{
-	//클라이언트에서만 크런치를 동작시킨다.
-	if (bIsCrouched)
-	{
-		CameraDownTimeline->ReverseFromEnd();
-		UnCrouch();
-	}
-	else
-	{
-		CameraDownTimeline->Play();
-		Crouch();
-	}
-}
-
-void AQLCharacterPlayer::TimelineCameraUpDownFloatReturn(float Alpha)
-{
-	float CameraHeight = FMath::Lerp(MaxCameraHeight, MinCameraHeight, Alpha);
-	FVector OriginalSocketOffset = CameraSpringArm->SocketOffset;
-	CameraSpringArm->SocketOffset = FVector(OriginalSocketOffset.X, OriginalSocketOffset.Y, CameraHeight);
-}
-
-void AQLCharacterPlayer::Aim()
-{
-	if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_RUN)) return;
-
-	if (bIsUsingGun())
-	{
-		QL_LOG(QLLog, Log, TEXT("Aim on"));
-		bIsAiming = true;
-		ZoomInTimeline->Play();
-	}
-}
-
-void AQLCharacterPlayer::StopAiming()
-{
-	QL_LOG(QLLog, Log, TEXT("Aim off"));
-	if (bIsAiming)
-	{
-		bIsAiming = false;
-		ZoomInTimeline->ReverseFromEnd();
-	}
-}
-
-void AQLCharacterPlayer::TimelineFloatReturn(float Alpha)
-{
-	float Length = FMath::Lerp(MaxArmLength, MinArmLength, Alpha);
-	CameraSpringArm->TargetArmLength = Length;
-}
-void AQLCharacterPlayer::InitializeAttributes()
-{
-	if (!ASC)
-	{
-		return;
-	}
-
-	if (!DefaultAttributes) //Gameplay Effect를 통해서 모든 어트리뷰트 기본값으로 초기화
-	{
-		return;
-	}
-
-	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
-	EffectContext.AddSourceObject(this);
-
-	FGameplayEffectSpecHandle NewHandle = ASC->MakeOutgoingSpec(DefaultAttributes, 1, EffectContext);
-
-	if (NewHandle.IsValid())
-	{
-		FActiveGameplayEffectHandle ActiveGEHandle = ASC->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), ASC.Get());
-	}
-}
-
-void AQLCharacterPlayer::PutLifeStone() //Ctrl -> 
-{
-	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	if (bIsNearbyBox)
-	{
-		PS->ServerRPCConcealLifeStone();
-	}
-	else
-	{
-		//서버와 클라 모두 해당 위치에서 Spawn
-		//플레이어의 위치를 가져온다
-		PS->ServerRPCPutLifeStone();
-	}
-}
-
-void AQLCharacterPlayer::PutWeapon()
-{
-	if (HasAuthority())
-	{
-		CurrentAttackType = ECharacterAttackType::HookAttack;
-	}
-	ServerRPCPuttingWeapon();
-}
 
 void AQLCharacterPlayer::CheckBoxOverlap()
 {
@@ -1089,83 +683,6 @@ void AQLCharacterPlayer::CheckBoxOverlap()
 	}
 }
 
-void AQLCharacterPlayer::SetMap()
-{
-	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
-	if (bIsVisibleMap == false)
-	{
-		PlayerController->SetVisibilityHUD(EHUDType::Map);
-		bIsVisibleMap = true;
-	}
-	else
-	{
-		PlayerController->SetHiddenHUD(EHUDType::Map);
-		bIsVisibleMap = false;
-	}
-}
-//대박... 멍청한생각...이거... 서버로 안가구나...
-void AQLCharacterPlayer::SetInventory()
-{
-
-	/*주변 아이템을 탐색하는 트레이스 적용*/
-	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
-
-	if (PlayerController == nullptr)
-	{
-		return;
-	}
-	bool bResult = false;
-	FVector SearchLocation = GetMesh()->GetSocketLocation(FName("ItemDetectionSocket"));
-	//서버에서만 적용
-	FCollisionQueryParams Params(TEXT("DetectionItem"), false, this);
-
-	TArray<FHitResult> NearbyItems;
-	//ItemDetectionSocket
-	bResult = GetWorld()->SweepMultiByChannel(
-		NearbyItems,
-		SearchLocation,
-		SearchLocation,
-		FQuat::Identity,
-		CCHANNEL_QLITEMACTION,
-		FCollisionShape::MakeSphere(SearchRange),
-		Params
-	);
-
-	if (bResult)
-	{
-		for (const auto& NearbyItem : NearbyItems)
-		{
-			AQLItemBox* HitItem = Cast<AQLItemBox>(NearbyItem.GetActor());
-			if (HitItem)
-			{
-				QL_LOG(QLNetLog, Log, TEXT("Item Name %s"), *HitItem->GetName());
-				//인벤토리에 Item 정보를 전송
-				UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
-				if (ItemData->ItemType != EItemType::Weapon)
-				{
-					ItemData->CurrentItemCnt = 1;
-					PlayerController->UpdateNearbyItemEntry(ItemData);
-				}
-				//실제로 인벤토리에서 아이템을 옮기려고 할 때
-				//1. 서버에도 주변 아이템으로 있는가? RPC 확인
-				//2. 인벤토리로 드랍할 때 아이템 추가 - 클라이언트, 서버 모두 동시에 진행
-			}
-		}
-	}
-	
-#if ENABLE_DRAW_DEBUG
-	FColor Color = bResult ? FColor::Green : FColor::Red;
-	DrawDebugSphere(GetWorld(), SearchLocation, SearchRange, 10.0f, Color, false, 5.0f);
-#endif
-	/*인벤토리가 켜지는 부분*/
-
-	FInputModeUIOnly UIOnlyInputMode;
-
-	PlayerController->SetVisibilityHUD(EHUDType::Inventory);
-	PlayerController->bShowMouseCursor = true;
-	PlayerController->SetInputMode(UIOnlyInputMode);
-	
-}
 
 void AQLCharacterPlayer::UseItem(EItemType ItemId)
 {
@@ -1214,6 +731,8 @@ void AQLCharacterPlayer::ServerRPCAddInventoryByDraggedItem_Implementation(EItem
 	FVector SearchLocation = GetMesh()->GetSocketLocation(FName("ItemDetectionSocket"));
 	//서버에서만 적용
 	FCollisionQueryParams Params(TEXT("DetectionItem"), false, this);
+
+	QL_LOG(QLNetLog, Warning, TEXT("Add Item %d"), ItemCnt);
 
 	TArray<FHitResult> NearbyItems;
 	//ItemDetectionSocket
@@ -1269,6 +788,7 @@ void AQLCharacterPlayer::ServerRPCAddInventoryByDraggedItem_Implementation(EItem
 		QL_LOG(QLNetLog, Warning, TEXT("Not Found, Rollback"), ItemCnt);
 		ClientRPCRollbackInventory(ItemId, ItemCnt);
 	}
+
 
 #if ENABLE_DRAW_DEBUG
 	FColor Color = bResult ? FColor::Green : FColor::Red;

@@ -4,12 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Character/QLCharacterBase.h"
-#include "InputActionValue.h"
 #include "AbilitySystemInterface.h"
 #include "GameData/QLTurningInPlaceType.h"
 #include "GameData/QLItemType.h"
 #include "GameplayEffectTypes.h"
-#include "Components/TimelineComponent.h"
 #include "Interface/QLLifestoneContainerInterface.h"
 #include "QLCharacterPlayer.generated.h"
 
@@ -80,7 +78,15 @@ public:
 	void ServerRPCShooting(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
 	UFUNCTION(Server, Reliable)
 	void ServerRPCReload(); //Reload 행위는 Reliable
+
 protected:
+	uint8 bIsAiming : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmLength, Meta = (AllowPrivateAccess = "true"))
+	float MaxArmLength;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmLength, Meta = (AllowPrivateAccess = "true"))
+	float MinArmLength;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USpringArmComponent> CameraSpringArm;
@@ -89,41 +95,9 @@ protected:
 	TObjectPtr<class UCameraComponent> Camera;
 
 protected:
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> FarmingAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> RunAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> MoveAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> LookAction;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> AttackAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> ReloadAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> PutWeaponAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> VisibilityInventoryAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> MapAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	//누르면 태그 수정... 
-	TMap<ECharacterAttackType,TObjectPtr<class UInputAction>> WeaponSwitcherAction;
-
-	void SelectDefaultAttackType();
-	void SelectGunAttackType();
-	void SelectBombAttackType();
+	TObjectPtr<class UQLInputComponent> QLInputComponent;
 
 	UFUNCTION(Server, Unreliable)
 	void ServerRPCSwitchAttackType(ECharacterAttackType InputKey);
@@ -139,11 +113,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<class UInputMappingContext> InputMappingContext;
-
-	void Move(const FInputActionValue& Value); //이동 매칭
-	void Look(const FInputActionValue& Value); //마우스 시선 이동
-
-	void JumpPressed();
 
 	void SetupStartAbilities();
 
@@ -189,11 +158,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TMap<int32, TSubclassOf<class UGameplayAbility>> InputAbilities;
 
-	void GASInputPressed(int32 id);
-	void GASInputReleased(int32 id);
-	int8 GetInputNumber(int32 id);
-	void SetupGASInputComponent();
-
 //파밍 시스템을 위한 변수
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
@@ -210,9 +174,6 @@ protected:
 
 	int32 FarmingTraceDist;
 
-	void FarmingItemPressed();
-	void FarmingItemReleased();
-
 	void FarmingItem();
 	void EquipWeapon(class AQLItem* ItemInfo);
 	void GetItem(class AQLItem* ItemInfo);
@@ -227,54 +188,6 @@ protected:
 	UFUNCTION()
 	void DestoryItem(class AQLItemBox* Item);
 
-protected:
-	void PressedCrouch();
-
-	UPROPERTY()
-	TObjectPtr<class UTimelineComponent> CameraDownTimeline;
-
-	UPROPERTY()
-	TObjectPtr<class UCurveFloat> CameraUpDownCurve;
-
-	FOnTimelineFloat DownInterpFunction{};
-
-	UFUNCTION()
-	void TimelineCameraUpDownFloatReturn(float Alpha);
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmHeight, Meta = (AllowPrivateAccess = "true"))
-	float MaxCameraHeight = 48.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmHeight, Meta = (AllowPrivateAccess = "true"))
-	float MinCameraHeight = 28.0f;
-
-protected:
-	uint8 bIsAiming : 1;
-
-	void Aim();
-	void StopAiming();
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> AimAction;
-
-	
-	//카메라 줌인 작업을 위해서 TimelineComponent 사용
-	UPROPERTY()
-	TObjectPtr<class UTimelineComponent> ZoomInTimeline;
-
-	UPROPERTY()
-	TObjectPtr<class UCurveFloat> AimAlphaCurve;
-
-	FOnTimelineFloat AimInterpFunction{};
-
-	UFUNCTION()
-	void TimelineFloatReturn(float Alpha);
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmLength, Meta = (AllowPrivateAccess = "true"))
-	float MaxArmLength;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmLength, Meta = (AllowPrivateAccess = "true"))
-	float MinArmLength;
-
-	//Mesh Section
 
 protected:
 	
@@ -288,16 +201,6 @@ protected:
 	void InitializeAttributes();
 
 protected:
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> PutLifeStoneAction;
-
-	//Put LifeStone 
-	 //서버에게 눌렀음을 전달
-	void PutLifeStone();
-
-	//무기를 버림
-	void PutWeapon();
 
 	UFUNCTION(Server,WithValidation, Reliable)
 	void ServerRPCPuttingWeapon();
@@ -327,9 +230,6 @@ public:
 	UFUNCTION(Client,Reliable)
 	void ClientRPCRemoveItem(UQLItemData* Item, int32 ItemCnt);
 
-	UFUNCTION(BlueprintCallable)
-	void SetInventory();
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	float SearchRange;
 
@@ -346,10 +246,7 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPCAddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt);
 
-protected:
-	//Map Section
-	void SetMap();
-	uint8 bIsVisibleMap : 1;
 
+	friend class UQLInputComponent;
 
 };
