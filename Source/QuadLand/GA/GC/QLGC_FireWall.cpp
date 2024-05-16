@@ -29,15 +29,5 @@ bool UQLGC_FireWall::OnExecute_Implementation(AActor* Target, const FGameplayCue
 	
 	UGameplayStatics::SpawnSoundAtLocation(Target, FirewallSound, Parameters.Location, FRotator::ZeroRotator);
 
-//	GetWorld()->GetTimerManager().SetTimer(DestoryTimerHandle, this, &UQLGC_FireWall::OnOwnerDestroyed,3.0f, false, -1.0f);
-	
 	return false;
-}
-
-void UQLGC_FireWall::OnOwnerDestroyed()
-{
-	Super::OnOwnerDestroyed();
-
-	GetWorld()->GetTimerManager().ClearTimer(DestoryTimerHandle);
-
 }

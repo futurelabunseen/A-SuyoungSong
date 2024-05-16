@@ -50,6 +50,8 @@ void UQLInventoryComponent::UseItem(EItemType ItemId)
 
 int UQLInventoryComponent::GetInventoryCnt(EItemType ItemType)
 {
+	if (InventoryItem.Find(ItemType) == 0)
+		return 0;
 	return InventoryItem[ItemType];
 }
 bool UQLInventoryComponent::ServerRPCRemoveItem_Validate(EItemType ItemId, int32 ItemCnt)

@@ -512,7 +512,8 @@ void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
 
 	//플레이어가 살아있으면 동작한다. -> 즉, 플레이어가 죽었으면 Yaw 동작을 끔
 	float Speed = CalculateSpeed();
-	bool IsFalling = GetMovementComponent()->IsFalling();
+	bool IsFalling = GetCharacterMovement()->IsFalling();
+
 	if (Speed == 0.f && !IsFalling)
 	{
 		//CurrentYaw 계산
@@ -538,11 +539,12 @@ void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 {
 	//현재 Yaw>90.0f ->오른쪽
 	//방향 외적 (+/-)
-	if (CurrentYaw > 45.0f)
+	QL_LOG(QLLog, Warning, TEXT("Current Yaw %lf"), CurrentYaw);
+	if (CurrentYaw > 90.0f)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Right;
 	}
-	else if (CurrentYaw < -45.0f)
+	else if (CurrentYaw < -90.0f)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Left;
 	}
@@ -551,7 +553,7 @@ void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 	{
 		InterpYaw = FMath::FInterpTo(InterpYaw, 0.0f, DeltaTime, 4.0f); //도는 각도를 보간하고 있구나?
 		CurrentYaw = InterpYaw;
-
+		
 		if (FMath::Abs(CurrentYaw) < 15.f) //어느정도 적당히 돌았음을 확인
 		{
 			TurningInPlace = ETurningPlaceType::ETIP_NotTurning;

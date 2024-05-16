@@ -143,6 +143,7 @@ protected:
 	void TurnInPlace(float DeltaTime);
 
 	float InterpYaw; //보간용도
+
 	float CurrentYaw;
 protected:
 

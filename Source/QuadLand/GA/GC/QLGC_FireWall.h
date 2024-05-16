@@ -24,8 +24,4 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GameplayCue)
 	TObjectPtr<class USoundCue> FirewallSound;
 
-	virtual void OnOwnerDestroyed() override;
-
-
-	FTimerHandle DestoryTimerHandle;
 };
