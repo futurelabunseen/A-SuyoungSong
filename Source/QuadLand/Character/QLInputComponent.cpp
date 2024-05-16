@@ -368,7 +368,7 @@ void UQLInputComponent::PutLifeStone()
 {
 	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
-	if (PS == nullptr || Character)
+	if (PS == nullptr || Character == nullptr)
 	{
 		return;
 	}
@@ -387,7 +387,7 @@ void UQLInputComponent::PutLifeStone()
 void UQLInputComponent::PutWeapon()
 {
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
-	if (Character)
+	if (Character == nullptr)
 	{
 		return;
 	}
