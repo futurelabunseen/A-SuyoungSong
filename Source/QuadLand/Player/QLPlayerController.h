@@ -20,6 +20,7 @@ class QUADLAND_API AQLPlayerController : public APlayerController
 	GENERATED_BODY()
 	
 public:
+
 	void SetVisibilityHUD(EHUDType UItype);
 	void SetHiddenHUD(EHUDType UItype);
 
@@ -43,6 +44,9 @@ public:
 	void ClientRPCShowLifestoneWidget(float Timer);
 	
 	void ActivateDeathTimer(float Time);
+
+	UFUNCTION(Client, Reliable)
+	void ClientRPCGameStart();
 
 	FOnDeathCheckDelegate OnDeathCheckDelegate;
 protected:

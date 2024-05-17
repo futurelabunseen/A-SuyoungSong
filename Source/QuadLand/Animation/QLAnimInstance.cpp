@@ -4,6 +4,8 @@
 #include "Animation/QLAnimInstance.h"
 #include "GameFramework/Character.h"
 #include "Character/QLCharacterPlayer.h"
+#include "GameData/QLTurningInPlaceType.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 UQLAnimInstance::UQLAnimInstance()
@@ -11,6 +13,7 @@ UQLAnimInstance::UQLAnimInstance()
 	MovingThreshold = 3.0f; //변경하면서 확인해보자.
 	JumpingThreshold = 50.0f;
 	AimSpeedRate = 1.7f;
+	TurningInPlaceType = ETurningPlaceType::ETIP_NotTurning;
 }
 
 void UQLAnimInstance::NativeInitializeAnimation()
@@ -45,8 +48,8 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Direction = CalculateDirection(Velocity, Owner->GetActorRotation()); //Locomotion Angle
 		bIsAiming = Player->GetIsAiming();
 		//AimSpeedRate = Player->GetIsRunning()? 1.0f : 1.5f;
-		RootYawOffset = Player->GetCurrnetYaw();
 		TurningInPlaceType = Player->GetTurningInPlaceType();
 		bIsPickup = Player->GetPickup();
+		RootYawOffset = Player->GetCurrnetYaw();
 	}
 }

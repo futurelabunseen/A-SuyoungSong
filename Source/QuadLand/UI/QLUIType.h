@@ -8,5 +8,6 @@ enum class EHUDType : uint8
 	HUD,
 	Inventory,
 	Map,
-	DeathTimer
+	DeathTimer,
+	Loading
 };

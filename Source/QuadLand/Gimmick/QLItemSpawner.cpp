@@ -45,4 +45,5 @@ void AQLItemSpawner::BeginPlay()
 		}
 	}
 	
+	SetLifeSpan(10.0f);
 }
