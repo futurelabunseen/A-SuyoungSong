@@ -7,7 +7,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Character.h"
-
+#include "Sound/SoundBase.h"
+#include "Components/AudioComponent.h"
 UQLGC_DamageEffect::UQLGC_DamageEffect()
 {
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DecalMaterialRef(TEXT("/Script/Engine.ParticleSystem'/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Default.P_Default'"));
@@ -36,10 +37,8 @@ bool UQLGC_DamageEffect::OnExecute_Implementation(AActor* MyTarget, const FGamep
 		const IQLLifestoneContainerInterface* TargetActor = Cast<IQLLifestoneContainerInterface>(HitResult->GetActor());
 		const ACharacter* Character = Cast<ACharacter>(HitResult->GetActor());
 		UDecalComponent* SpawnedDecal = nullptr;
-		if (TargetActor )
+		if (TargetActor)
 		{
-			UE_LOG(LogTemp, Log, TEXT("find a player"));
-
 			//이놈은 멀티캐스트가 안되기 때문에, 서버에서도 생성 클라에서도 생성해야함. 멀티캐스트 사용해서 수행해야할듯
 			SpawnedDecal = UGameplayStatics::SpawnDecalAttached(BloodDecal, FVector(20.0f, 20.0f, 20.0f), Character->GetMesh(), FName("TargetActorBloodDecals"), HitResult->ImpactPoint, FRotator::ZeroRotator, EAttachLocation::KeepWorldPosition, -1.0f);
 			if (SpawnedDecal)
@@ -49,7 +48,7 @@ bool UQLGC_DamageEffect::OnExecute_Implementation(AActor* MyTarget, const FGamep
 			}
 		}
 		
-		UDecalComponent* SpawnedBulletDecal = UGameplayStatics::SpawnDecalAttached(BulletMarks, FVector(5.0f, 5.0f, 5.0f), HitResult->GetComponent(), FName("TargetActorBulletDecals"), HitResult->ImpactPoint, FRotator::ZeroRotator, EAttachLocation::KeepWorldPosition, -1.0f);
+		UDecalComponent* SpawnedBulletDecal = UGameplayStatics::SpawnDecalAttached(BulletMarks, FVector(5.0f, 5.0f, 5.0f), HitResult->GetComponent(), FName("TargetActorBulletDecals"), HitResult->ImpactPoint, FRotator::ZeroRotator, EAttachLocation::KeepWorldPosition);
 		
 		if (SpawnedBulletDecal)
 		{
