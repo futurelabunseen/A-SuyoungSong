@@ -84,8 +84,6 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	TakeItemDestory.BindUObject(this, &AQLCharacterPlayer::DestoryItem);
 
 	TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
-	CurrentYaw = 0.0f;
-	PreviousRotation = FRotator::ZeroRotator;
 }
 
 /// <summary>
@@ -157,7 +155,6 @@ void AQLCharacterPlayer::BeginPlay()
 	SetCharacterControl();
 
 	Weapon->Weapon->SetHiddenInGame(true); //Mesh 게임에서 안보이도록 해놓음
-
 }
 
 void AQLCharacterPlayer::InitializeAttributes()
@@ -539,27 +536,31 @@ void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 {
 	//현재 Yaw>90.0f ->오른쪽
 	//방향 외적 (+/-)
-	QL_LOG(QLLog, Warning, TEXT("Current Yaw %lf"), CurrentYaw);
-	if (CurrentYaw > 90.0f)
+
+
+	if (CurrentYaw > 55.0f)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Right;
 	}
-	else if (CurrentYaw < -90.0f)
+	else if (CurrentYaw < -55.0f)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Left;
 	}
 	//Yaw<-90.0f ->왼쪽
 	if (TurningInPlace != ETurningPlaceType::ETIP_NotTurning)
 	{
-		InterpYaw = FMath::FInterpTo(InterpYaw, 0.0f, DeltaTime, 4.0f); //도는 각도를 보간하고 있구나?
+		InterpYaw = FMath::FInterpTo(InterpYaw, 0.f, DeltaTime, 6.f); //도는 각도를 보간하고 있구나?
 		CurrentYaw = InterpYaw;
-		
-		if (FMath::Abs(CurrentYaw) < 15.f) //어느정도 적당히 돌았음을 확인
+		QL_LOG(QLLog, Warning, TEXT("Current Yaw %lf"), CurrentYaw);
+
+		if (FMath::Abs(CurrentYaw) < 5.0f) //어느정도 적당히 돌았음을 확인
 		{
 			TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
 			PreviousRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f); //Turn을 재조정
 		}
-	}
+	}	
+
+	
 }
 
 void AQLCharacterPlayer::SetupStartAbilities()

@@ -64,6 +64,13 @@ void AQLPlayerController::ActivateDeathTimer(float Time)
 	GetWorld()->GetTimerManager().SetTimer(StopTimer, this, &AQLPlayerController::StopDeathSec, Time, true, -1.0f);
 }
 
+void AQLPlayerController::ClientRPCGameStart_Implementation()
+{
+	SetHiddenHUD(EHUDType::Loading);
+	FInputModeGameOnly GameOnlyInputMode;
+	SetInputMode(GameOnlyInputMode);
+}
+
 void AQLPlayerController::ReduceDeathSec()
 {
 
@@ -129,7 +136,13 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::Inventory);
 	SetHiddenHUD(EHUDType::Map);
 	SetHiddenHUD(EHUDType::DeathTimer);
+
+	FInputModeUIOnly UIOnlyInputMode;
+	SetInputMode(UIOnlyInputMode);
 	//HUD ÃÊ±âÈ­
+
+	//PC->bShowMouseCursor = true;
+	//PC->SetInputMode(UIOnlyInputMode);
 }
 
 void AQLPlayerController::UpdateNearbyItemEntry(UObject* Item)
