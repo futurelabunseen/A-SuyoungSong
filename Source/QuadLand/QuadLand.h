@@ -8,6 +8,10 @@
 #define CUR_LINE ANSI_TO_TCHAR(__FUNCTION__)
 
 
+#define LOG_GASTAREMOTEROLEINFO *(UEnum::GetValueAsString(TEXT("Engine.ENetRole"), GetAvatarActor()->GetOwner()->GetRemoteRole())
+#define LOG_GASTALOCALROLEINFO *(UEnum::GetValueAsString(TEXT("Engine.ENetRole"),GetAvatarActor()->GetOwner()->GetLocalRole())
+
+
 #define LOG_GASREMOTEROLEINFO *(UEnum::GetValueAsString(TEXT("Engine.ENetRole"), CurrentActorInfo->AvatarActor.Get()->GetOwner()->GetRemoteRole()))
 #define LOG_GASLOCALROLEINFO *(UEnum::GetValueAsString(TEXT("Engine.ENetRole"), CurrentActorInfo->AvatarActor.Get()->GetOwner()->GetLocalRole()))
 
@@ -28,6 +32,9 @@
 
 #define QL_GASLOG(LogCat, Verbosity, Format, ...) UE_LOG(LogCat, Verbosity, TEXT("[%s] [%s / %s] %s %s"),LOG_GASNETMODEINFO,LOG_GASLOCALROLEINFO, LOG_GASREMOTEROLEINFO, CUR_LINE, *FString::Printf(Format,##__VA_ARGS__))
 
+#define QL_GASTALOG(LogCat, Verbosity, Format, ...) UE_LOG(LogCat, Verbosity, TEXT("[%s / %s] %s %s"),LOG_GASTALOCALROLEINFO, LOG_GASTAREMOTEROLEINFO, CUR_LINE, *FString::Printf(Format,##__VA_ARGS__))
+
+//GetAvatarActor
 #define QL_SUBLOG(LogCat, Verbosity, Format, ...) UE_LOG(LogCat, Verbosity, TEXT("[%s] [%s / %s] %s %s"),LOG_NETMODEINFO,LOG_SUBLOCALROLEINFO, LOG_SUBREMOTEROLEINFO, CUR_LINE, *FString::Printf(Format,##__VA_ARGS__))
 
 DECLARE_LOG_CATEGORY_EXTERN(QLLog, Log, All);

@@ -225,8 +225,19 @@ public:
 	//Inventory Section
 	void GetItem(class AQLItem* ItemInfo);
 
+	
+protected:
+	
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	TObjectPtr<class USplineComponent> BombPath;
+
+public:
+	
+	class USplineComponent* GetBombPath() { return BombPath; }
+
 	friend class UQLInventoryComponent;
 
 	friend class UQLInputComponent;
+
 
 };

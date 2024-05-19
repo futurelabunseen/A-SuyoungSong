@@ -21,16 +21,24 @@ public:
 	virtual void TickTask(float DeltaTime) override;
 
 	virtual void Activate() override;
+	virtual void OnDestroy(bool bInOwnerFinished) override;
 
 	/** Wait until the user releases the input button for this ability's activation. Returns time from hitting this node, till release. Will return 0 if input was already released. */
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
-	static UQLAT_TrackDrawer* CreateTask(UGameplayAbility* OwningAbility, TSubclassOf<class AActor> InDrawer, bool bTestAlreadyReleased = false);
+	static UQLAT_TrackDrawer* CreateTask(UGameplayAbility* OwningAbility, class UStaticMesh* InDrawer, bool bTestAlreadyReleased = false);
 
 protected:
 	UPROPERTY()
 	TObjectPtr<class AQLCharacterPlayer> Character;
 
 	UPROPERTY()
-	TSubclassOf<class AActor> Drawer;
+	TObjectPtr<class USplineComponent> BombPath;
+
+	UPROPERTY()
+	TArray<TObjectPtr<class USplineMeshComponent>> BombPathMeshComp;
+
+	UPROPERTY()
+	TObjectPtr<class UStaticMesh> StaticMesh;
+
 	FVector PreForward;
 };

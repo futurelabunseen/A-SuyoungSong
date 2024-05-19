@@ -9,6 +9,7 @@
 #include "EngineUtils.h"
 
 #include "Character/QLCharacterPlayer.h"
+#include "Components/SplineComponent.h"
 #include "Item/QLWeaponComponent.h"
 #include "GA/AT/QLAT_TrackDrawer.h"
 #include "GameplayTag/GamplayTags.h"
@@ -27,15 +28,24 @@ UQLGA_BombThrower::UQLGA_BombThrower():ItemType(EItemType::Bomb)
 void UQLGA_BombThrower::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+
+	if (Player)
+	{
+		Player->GetBombPath()->SetHiddenInGame(false);
+	}
 }
 
 void UQLGA_BombThrower::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	
-	TrackDrawer = UQLAT_TrackDrawer::CreateTask(this,Drawer);
-	TrackDrawer->ReadyForActivation();
 
+	if (IsLocallyControlled())
+	{
+		TrackDrawer = UQLAT_TrackDrawer::CreateTask(this, DrawerStaticMesh);
+		TrackDrawer->ReadyForActivation();
+	}
+	
 	AnimSpeedRate = 1.0f;
 	GrapAndThrowMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PunchAnimMontage"), ThrowAnimMontage, AnimSpeedRate, FName("Grap"));
 	GrapAndThrowMontage->OnCompleted.AddDynamic(this, &UQLGA_BombThrower::OnCompletedCallback);
@@ -57,7 +67,6 @@ void UQLGA_BombThrower::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		ASC->AddLooseGameplayTags(Tag);
 	}
-
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
 }
@@ -65,14 +74,16 @@ void UQLGA_BombThrower::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {	
 	MontageJumpToSection(FName("Throw"));
-	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
-	
 	FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	ASC->TryActivateAbilitiesByTag(TargetTag);
-	
-	QL_GASLOG(QLNetLog, Warning, TEXT("Client Item Type %d"), Player->GetInventoryCnt(ItemType));
+
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
 	Player->GetInventory()->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType));
+	if (Player)
+	{
+		Player->GetBombPath()->SetHiddenInGame(true);
+	}
 	ServerRPCAttackHitCheck();
 }
 
