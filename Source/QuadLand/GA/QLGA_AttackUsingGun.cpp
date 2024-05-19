@@ -7,6 +7,8 @@
 #include "AbilitySystemComponent.h"
 #include "AT/QLAT_LineTrace.h"
 #include "TA/QLTA_LineTraceResult.h"
+#include "Camera/CameraShakeBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameplayTag/GamplayTags.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "QuadLand.h"
@@ -41,6 +43,22 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		OnCompletedCallback();
 		return;
 	}
+
+
+	if (CameraShakeClass == nullptr)
+	{
+		bool bReplicateEndAbility = true;
+		bool bWasCancelled = true;
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+		return;
+	}
+
+	if (IsLocallyControlled())
+	{
+		APlayerCameraManager* LocalCamera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+		LocalCamera->StartCameraShake(CameraShakeClass);
+	}
+	
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
 
 	UAnimMontage* AnimMontageUsingGun = Player->GetAnimMontage();
