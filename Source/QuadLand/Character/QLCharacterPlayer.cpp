@@ -5,7 +5,6 @@
 #include "GameFramework/SpringArmComponent.h" //springArm - GameFramework
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h" //camera - Camera
-#include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "AbilitySystemComponent.h"
@@ -14,8 +13,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Abilities/GameplayAbility.h"
-#include "Components/SphereComponent.h"
-
+#include "Components/SplineComponent.h"
 
 #include "GameplayTag/GamplayTags.h"
 #include "Item/QLItemBox.h"
@@ -74,6 +72,10 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 		InputMappingContext = InputContextMappingRef.Object;
 	}
 	
+	//BombPath = CreateDefaultSubobject<USplineComponent>(TEXT("BombPath"));
+	//BombPath->SetupAttachment(GetMesh(),TEXT("head"));
+	//BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
+
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::EquipWeapon)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::HasLifeStone)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::GetAmmo)));
@@ -155,6 +157,13 @@ void AQLCharacterPlayer::BeginPlay()
 	SetCharacterControl();
 
 	Weapon->Weapon->SetHiddenInGame(true); //Mesh 게임에서 안보이도록 해놓음
+
+	if (IsLocallyControlled())
+	{
+		BombPath = NewObject<USplineComponent>(this,TEXT("BombPath"));
+		BombPath->SetupAttachment(GetMesh(),TEXT("Bomb"));
+		BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
+	}
 }
 
 void AQLCharacterPlayer::InitializeAttributes()
@@ -182,10 +191,7 @@ void AQLCharacterPlayer::InitializeAttributes()
 
 void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
-	
+	Super::SetupPlayerInputComponent(PlayerInputComponent);	
 	QLInputComponent->InitPlayerImputComponent(PlayerInputComponent);
 }
 
@@ -551,7 +557,6 @@ void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 	{
 		InterpYaw = FMath::FInterpTo(InterpYaw, 0.f, DeltaTime, 6.f); //도는 각도를 보간하고 있구나?
 		CurrentYaw = InterpYaw;
-		QL_LOG(QLLog, Warning, TEXT("Current Yaw %lf"), CurrentYaw);
 
 		if (FMath::Abs(CurrentYaw) < 5.0f) //어느정도 적당히 돌았음을 확인
 		{

@@ -32,4 +32,10 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<class UGameplayEffect> ReduceAmmoCntEffect;
+
+	UPROPERTY(EditAnywhere, Category = "CameraShake")
+	TSubclassOf<class UCameraShakeBase> CameraShakeClass;
+
+	UPROPERTY(EditAnywhere, Category = "CameraShake")
+	TObjectPtr<class UCameraShakeBase> CamShake;
 };

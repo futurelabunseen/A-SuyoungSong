@@ -43,7 +43,7 @@ protected:
 	TObjectPtr<class UAbilityTask_WaitInputRelease> TrackDrawer;
 	
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<class AActor> Drawer;
+	TObjectPtr<class UStaticMesh> DrawerStaticMesh;
 
 	float AnimSpeedRate;
 

@@ -5,6 +5,8 @@
 #include "TA/QLTA_LineTraceResult.h"
 #include "AT/QLAT_LineTrace.h"
 
+#include "Camera/PlayerCameraManager.h"
+
 #include "Math/UnrealMathUtility.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
@@ -24,7 +26,7 @@ UQLGA_AttackHitCheckUsingGun::UQLGA_AttackHitCheckUsingGun()
 void UQLGA_AttackHitCheckUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	
+
 	UQLAT_LineTrace* AttackLineTrace = UQLAT_LineTrace::CreateTask(this, AQLTA_LineTraceResult::StaticClass());
 	AttackLineTrace->OnCompleted.AddDynamic(this, &UQLGA_AttackHitCheckUsingGun::OnCompletedCallback);
 	AttackLineTrace->ReadyForActivation();
@@ -100,6 +102,6 @@ void UQLGA_AttackHitCheckUsingGun::OnCompletedCallback(const FGameplayAbilityTar
 	}
 
 	bool bReplicateEndAbility = true;
-	bool bWasCancelled = true;
+	bool bWasCancelled = false;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
