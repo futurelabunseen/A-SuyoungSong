@@ -17,9 +17,6 @@ class QUADLAND_API UQLAT_TrackDrawer : public UAbilityTask_WaitInputRelease
 public:
 	UQLAT_TrackDrawer();
 
-	/** Tick function for this task, if bTickingTask == true */
-	virtual void TickTask(float DeltaTime) override;
-
 	virtual void Activate() override;
 	virtual void OnDestroy(bool bInOwnerFinished) override;
 
@@ -27,7 +24,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
 	static UQLAT_TrackDrawer* CreateTask(UGameplayAbility* OwningAbility, class UStaticMesh* InDrawer, bool bTestAlreadyReleased = false);
 
+	void Recursive();
+
 protected:
+
+	FTimerHandle DrawerTimerHandle;
+
 	UPROPERTY()
 	TObjectPtr<class AQLCharacterPlayer> Character;
 

@@ -67,18 +67,25 @@ public:
 	FORCEINLINE bool GetIsReload() const { return bIsReload; }
 	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
 	FORCEINLINE bool GetPickup() const { return bPressedFarmingKey; }
-	
+	FORCEINLINE bool GetIsProning() const { return bIsProning; }
 	int GetInventoryCnt(EItemType ItemType);
 	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
+	FORCEINLINE void SetIsProning(bool IsProning) { bIsProning = IsProning; }
 
 	FORCEINLINE ETurningPlaceType GetTurningInPlaceType() const { return TurningInPlace; }
 	FORCEINLINE const class UQLWeaponComponent* GetWeapon() const { return Weapon; }
 	FORCEINLINE float GetCurrnetYaw() { return CurrentYaw; }
+
 	UFUNCTION(Server, Unreliable)
 	void ServerRPCShooting(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
 	UFUNCTION(Server, Reliable)
 	void ServerRPCReload(); //Reload 행위는 Reliable
 	class UQLInventoryComponent* GetInventory() { return QLInventory; }
+
+protected:
+
+	UPROPERTY(Replicated)
+	uint8 bIsProning : 1;
 
 protected:
 	virtual FVector GetVelocity() const override;
@@ -180,6 +187,8 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRPCFarming(class UQLWeaponStat*Stat);
 
+	//리플리케이션(ReplicatedUsing = 함수명) -> 도착 알림 이벤트 함수 
+	//Replicated
 	UPROPERTY(Replicated) //복제만 수행하면 된다.
 	uint8 bPressedFarmingKey : 1;
 
@@ -231,10 +240,18 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	TObjectPtr<class USplineComponent> BombPath;
 
+	UPROPERTY()
+	uint8 bThrowBomb : 1;
+
 public:
 	
 	class USplineComponent* GetBombPath() { return BombPath; }
 
+	void SetThrowBomb(bool OutThrowBomb) { bThrowBomb = OutThrowBomb; }
+	bool GetThrowBomb() { return bThrowBomb; }
+	UFUNCTION()
+	void OnPlayMontageNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
+	
 	friend class UQLInventoryComponent;
 
 	friend class UQLInputComponent;

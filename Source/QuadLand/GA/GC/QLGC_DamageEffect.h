@@ -25,4 +25,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = GameplayCue)
 	TObjectPtr<class UMaterialInterface> BulletMarks;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GameplayCue)
+	TObjectPtr<class UParticleSystem> ParticleSystem;
+
 };

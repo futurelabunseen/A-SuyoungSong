@@ -4,30 +4,36 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "QLGA_AttackUsingGun.generated.h"
+#include "QLGA_AttackUsingGunByAutonomatic.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class QUADLAND_API UQLGA_AttackUsingGun : public UGameplayAbility
+class QUADLAND_API UQLGA_AttackUsingGunByAutonomatic : public UGameplayAbility
 {
 	GENERATED_BODY()
-	
 public:
-	UQLGA_AttackUsingGun();
+	UQLGA_AttackUsingGunByAutonomatic();
 
-	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	UFUNCTION()
-	void OnCompletedCallback();
-	UFUNCTION()
-	void OnInterruptedCallback();
+	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const;
 
+	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
+	void Attack();
+	void OnCompleted();
+
+	UFUNCTION(Server,Reliable)
+	void ServerRPCStopAttack();
 protected:
+
+	FTimerHandle AttackTimerHandle;
+
+
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<class UGameplayEffect> ReduceAmmoCntEffect;
 
