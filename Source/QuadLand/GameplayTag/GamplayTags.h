@@ -25,6 +25,11 @@
 #define CHARACTER_STATE_RELOAD FGameplayTag::RequestGameplayTag(FName("Character.State.Reload")) //Damage를 받았을때
 #define CHARACTER_STATE_DANGER FGameplayTag::RequestGameplayTag(FName("Character.State.Danger")) //Damage를 받았을때
 
+#define CHARACTER_STATE_PRONE FGameplayTag::RequestGameplayTag(FName("Character.State.Prone")) //Damage를 받았을때
+
+#define WEAPON_GUN_AUTO FGameplayTag::RequestGameplayTag(FName("Weapon.Gun.Auto")) //Damage를 받았을때
+#define WEAPON_GUN_SEMIAUTO FGameplayTag::RequestGameplayTag(FName("Weapon.Gun.Semiauto")) //Damage를 받았을때
+
 #define STAT_STAMINA_STATUS_REDUCE FGameplayTag::RequestGameplayTag(FName("Stat.Stamina.Status.Reduce"))
 
 #define GAMEPLAYCUE_EFFECT_FIREWALL FGameplayTag::RequestGameplayTag(FName("GameplayCue.Effect.Firewall"))

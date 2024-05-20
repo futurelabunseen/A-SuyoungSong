@@ -54,9 +54,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> PutLifeStoneAction;
 
+	//ProneAction
+
 	//Jump & Crouch Section
 protected:
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> ProneAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> JumpAction;
@@ -64,10 +67,19 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> CrouchAction;
 
-	void JumpPressed();
+	void PressedJump();
 
 	void PressedCrouch();
 
+	void PressedProne();
+
+	UFUNCTION(Server,Unreliable)
+	void ServerRPCPressedProne();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastRPCSettingProne(); //속도, 캡슐 작게 
+
+	//몽타주를 가지고 있는다
 	//Mesh Section
 
 	UPROPERTY()
@@ -138,7 +150,12 @@ protected:
 	void SelectGunAttackType();
 	void SelectBombAttackType();
 
+	TObjectPtr<class UInputAction> ShootingMethodAction;
 
+	void ChangeShootingMethod();
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCChangeShootingMethod();
 	//GAS Input
 protected:
 
@@ -155,4 +172,7 @@ protected:
 	void GASInputPressed(int32 id);
 	void GASInputReleased(int32 id);
 	int8 GetInputNumber(int32 id);
+
+
+
 };

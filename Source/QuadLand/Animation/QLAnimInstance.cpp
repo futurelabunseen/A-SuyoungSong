@@ -50,5 +50,6 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		TurningInPlaceType = Player->GetTurningInPlaceType();
 		bIsPickup = Player->GetPickup();
 		RootYawOffset = Player->GetCurrnetYaw();
+		bIsProning = Player->GetIsProning();
 	}
 }

@@ -5,6 +5,7 @@
 #include "Interface/QLLifestoneContainerInterface.h"
 #include "Components/DecalComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Character.h"
 #include "Sound/SoundBase.h"
@@ -23,6 +24,12 @@ UQLGC_DamageEffect::UQLGC_DamageEffect()
 	if (BulletMaterialRef.Object)
 	{
 		BulletMarks = BulletMaterialRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> ExplosionRef(TEXT("/Script/Engine.ParticleSystem'/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Explosion_Smoke.P_Explosion_Smoke'"));
+	if (ExplosionRef.Object)
+	{
+		ParticleSystem = ExplosionRef.Object;
 	}
 }
 
@@ -55,6 +62,8 @@ bool UQLGC_DamageEffect::OnExecute_Implementation(AActor* MyTarget, const FGamep
 			SpawnedBulletDecal->SortOrder = 1;
 			SpawnedBulletDecal->AttachToComponent(HitResult->GetComponent(), FAttachmentTransformRules::KeepWorldTransform);
 		}
+
+		UGameplayStatics::SpawnEmitterAtLocation(HitResult->GetActor(), ParticleSystem, Parameters.Location, FRotator::ZeroRotator, true);
 
 	}
 	//ÃÑÀÚ±¹ Decal Spawn 

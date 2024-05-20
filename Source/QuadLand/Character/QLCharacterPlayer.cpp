@@ -115,7 +115,7 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
-
+	ASC->AddLooseGameplayTag(WEAPON_GUN_AUTO);
 }
 
 //Client Only 
@@ -141,7 +141,7 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
-
+	ASC->AddLooseGameplayTag(WEAPON_GUN_AUTO);
 }
 
 void AQLCharacterPlayer::BeginPlay()
@@ -163,6 +163,8 @@ void AQLCharacterPlayer::BeginPlay()
 		BombPath = NewObject<USplineComponent>(this,TEXT("BombPath"));
 		BombPath->SetupAttachment(GetMesh(),TEXT("Bomb"));
 		BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
+
+		GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AQLCharacterPlayer::OnPlayMontageNotifyBegin);
 	}
 }
 
@@ -606,6 +608,7 @@ void AQLCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AQLCharacterPlayer, bPressedFarmingKey);
 	DOREPLIFETIME(AQLCharacterPlayer, bIsShooting);
 	DOREPLIFETIME(AQLCharacterPlayer, bIsReload);
+	DOREPLIFETIME(AQLCharacterPlayer, bIsProning);
 }
 
 void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
@@ -689,3 +692,12 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 	QLInventory->ClientRPCAddItem(ItemData, ItemCnt);
 	ItemInfo->SetLifeSpan(0.5f);
 }
+
+void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
+{
+	if (NotifyName == FName(TEXT("ThrowAnimNofity")))
+	{
+		bThrowBomb = true;
+	}
+}
+

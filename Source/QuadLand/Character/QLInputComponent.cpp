@@ -8,6 +8,8 @@
 #include "AbilitySystemComponent.h"
 #include "GameFramework/SpringArmComponent.h" 
 #include "Engine/EngineTypes.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 
 #include "Character/QLCharacterPlayer.h"
 #include "Player/QLPlayerController.h"
@@ -120,6 +122,19 @@ UQLInputComponent::UQLInputComponent(const FObjectInitializer& ObjectInitializer
 		ReloadAction = ReloadActionRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> ProneActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Prone.IA_Prone'"));
+
+	if (ProneActionRef.Object)
+	{
+		ProneAction = ProneActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> ShootingMethodActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_ShootingMethod.IA_ShootingMethod'"));
+
+	if (ShootingMethodActionRef.Object)
+	{
+		ShootingMethodAction = ShootingMethodActionRef.Object;
+	}
 
 	static ConstructorHelpers::FObjectFinder<UCurveFloat> CameraCurveRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/CameraDownAlpha.CameraDownAlpha'"));
 
@@ -149,9 +164,11 @@ void UQLInputComponent::InitPlayerImputComponent(UInputComponent* InputComponent
 
 		EnhancedInputComponent->BindAction(FarmingAction, ETriggerEvent::Started, this, &UQLInputComponent::FarmingItemPressed);
 
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &UQLInputComponent::JumpPressed);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &UQLInputComponent::PressedJump);
 
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &UQLInputComponent::PressedCrouch);
+		
+		EnhancedInputComponent->BindAction(ProneAction, ETriggerEvent::Triggered, this, &UQLInputComponent::PressedProne);
 
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &UQLInputComponent::Aim);
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &UQLInputComponent::StopAiming);
@@ -163,7 +180,8 @@ void UQLInputComponent::InitPlayerImputComponent(UInputComponent* InputComponent
 		EnhancedInputComponent->BindAction(VisibilityInventoryAction, ETriggerEvent::Completed, this, &UQLInputComponent::SetInventory);
 
 		EnhancedInputComponent->BindAction(MapAction, ETriggerEvent::Completed, this, &UQLInputComponent::SetMap);
-
+		
+		EnhancedInputComponent->BindAction(ShootingMethodAction, ETriggerEvent::Completed, this, &UQLInputComponent::ChangeShootingMethod);
 
 		EnhancedInputComponent->BindAction(WeaponSwitcherAction[ECharacterAttackType::HookAttack], ETriggerEvent::Completed, this, &UQLInputComponent::SelectDefaultAttackType);
 		EnhancedInputComponent->BindAction(WeaponSwitcherAction[ECharacterAttackType::GunAttack], ETriggerEvent::Completed, this, &UQLInputComponent::SelectGunAttackType);
@@ -187,10 +205,10 @@ void UQLInputComponent::InitGASInputComponent(UInputComponent* InputComponent)
 
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &UQLInputComponent::GASInputPressed, (int32)Character->CurrentAttackType);
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &UQLInputComponent::GASInputReleased, (int32)Character->CurrentAttackType);
-	EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &UQLInputComponent::GASInputPressed, 3);
-	EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Completed, this, &UQLInputComponent::GASInputReleased, 3);
-	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &UQLInputComponent::GASInputPressed, 4);
-	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &UQLInputComponent::GASInputReleased, 4);
+	EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &UQLInputComponent::GASInputPressed, 4);
+	EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Completed, this, &UQLInputComponent::GASInputReleased, 4);
+	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &UQLInputComponent::GASInputPressed, 5);
+	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &UQLInputComponent::GASInputReleased, 5);
 }
 
 void UQLInputComponent::BeginPlay()
@@ -259,7 +277,7 @@ void UQLInputComponent::FarmingItemPressed()
 
 }
 
-void UQLInputComponent::JumpPressed()
+void UQLInputComponent::PressedJump()
 {
 
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
@@ -297,6 +315,66 @@ void UQLInputComponent::PressedCrouch()
 		CameraDownTimeline->Play();
 		Character->Crouch();
 	}
+}
+
+void UQLInputComponent::PressedProne()
+{
+	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
+	if (Character == nullptr)
+	{
+		return;
+	}
+
+	ServerRPCPressedProne();
+}
+
+void UQLInputComponent::MulticastRPCSettingProne_Implementation()
+{
+	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
+	if (Character == nullptr)
+	{
+		return;
+	}
+	UCharacterMovementComponent* Movement = Cast<UCharacterMovementComponent>(Character->GetMovementComponent());
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+	UCapsuleComponent *Collision = Character->GetCapsuleComponent();
+
+	QL_SUBLOG(QLLog, Log, TEXT("1"));
+
+	if (Character->bIsProning)
+	{
+		QL_SUBLOG(QLLog, Log, TEXT("2"));
+
+		Character->bIsProning = false;
+
+		if (Movement)
+		{
+			Movement->MaxWalkSpeed = 450.f;
+		}
+		Collision->SetCapsuleSize(25.f, 90.0f);
+		ASC->RemoveLooseGameplayTag(CHARACTER_STATE_PRONE);
+		CameraDownTimeline->ReverseFromEnd();
+	}
+	else
+	{
+		CameraDownTimeline->Play();
+		Character->bIsProning = true;
+
+		if (Movement)
+		{
+			Movement->MaxWalkSpeed = 150.0f;
+
+		}
+
+		Character->GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -10.f));
+		Collision->SetCapsuleSize(25.0f, 35.0f);
+		ASC->AddLooseGameplayTag(CHARACTER_STATE_PRONE);
+	}
+}
+
+void UQLInputComponent::ServerRPCPressedProne_Implementation()
+{
+	MulticastRPCSettingProne();
 }
 
 void UQLInputComponent::TimelineCameraUpDownFloatReturn(float Alpha)
@@ -531,6 +609,37 @@ void UQLInputComponent::SelectBombAttackType()
 	}
 	Character->ServerRPCSwitchAttackType(ECharacterAttackType::BombAttack);
 
+}
+
+
+void UQLInputComponent::ChangeShootingMethod()
+{
+	ServerRPCChangeShootingMethod();
+}
+
+void UQLInputComponent::ServerRPCChangeShootingMethod_Implementation()
+{
+	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
+	if (Character == nullptr)
+	{
+		return;
+	}
+
+	FGameplayTagContainer Tag(WEAPON_GUN_AUTO);
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+
+	if (ASC->HasAnyMatchingGameplayTags(Tag))
+	{
+		Character->CurrentAttackType = ECharacterAttackType::GunAttack;
+		ASC->RemoveLooseGameplayTag(WEAPON_GUN_AUTO);
+		ASC->AddLooseGameplayTag(WEAPON_GUN_SEMIAUTO);
+	}
+	else
+	{
+		Character->CurrentAttackType = ECharacterAttackType::AutomaticGunAttack;
+		ASC->RemoveLooseGameplayTag(WEAPON_GUN_SEMIAUTO);
+		ASC->AddLooseGameplayTag(WEAPON_GUN_AUTO);
+	}
 }
 
 void UQLInputComponent::GASInputPressed(int32 id)

@@ -6,6 +6,7 @@ enum class ECharacterAttackType : uint8
 {
 	HookAttack,
 	GunAttack,
+	AutomaticGunAttack,
 	BombAttack,
 	None
 };
