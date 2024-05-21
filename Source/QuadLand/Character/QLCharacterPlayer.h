@@ -83,8 +83,6 @@ public:
 	class UQLInventoryComponent* GetInventory() { return QLInventory; }
 
 protected:
-
-	UPROPERTY(Replicated)
 	uint8 bIsProning : 1;
 
 protected:

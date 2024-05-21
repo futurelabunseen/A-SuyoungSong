@@ -608,7 +608,6 @@ void AQLCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AQLCharacterPlayer, bPressedFarmingKey);
 	DOREPLIFETIME(AQLCharacterPlayer, bIsShooting);
 	DOREPLIFETIME(AQLCharacterPlayer, bIsReload);
-	DOREPLIFETIME(AQLCharacterPlayer, bIsProning);
 }
 
 void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)

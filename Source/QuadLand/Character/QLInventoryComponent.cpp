@@ -33,19 +33,15 @@ void UQLInventoryComponent::AddItem(EItemType ItemId, int32 ItemCnt)
 void UQLInventoryComponent::UseItem(EItemType ItemId)
 {
 
-	UE_LOG(LogTemp, Warning, TEXT("Use Item 1"));
 	if (EItemType::Ammo == ItemId || EItemType::Bomb == ItemId)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Use Item 2"));
 		return; //얘는 사용할 수 없어;;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Use Item 3"));
+
 	if (InventoryItem.Find(ItemId))
 	{
 		ServerRPCRemoveItem(ItemId, InventoryItem[ItemId]);
-		UE_LOG(LogTemp, Warning, TEXT("Use Item 4"));
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Use Item 5"));
 }
 
 int UQLInventoryComponent::GetInventoryCnt(EItemType ItemType)
@@ -54,6 +50,7 @@ int UQLInventoryComponent::GetInventoryCnt(EItemType ItemType)
 		return 0;
 	return InventoryItem[ItemType];
 }
+
 bool UQLInventoryComponent::ServerRPCRemoveItem_Validate(EItemType ItemId, int32 ItemCnt)
 {
 	if (InventoryItem.Find(ItemId) == false)

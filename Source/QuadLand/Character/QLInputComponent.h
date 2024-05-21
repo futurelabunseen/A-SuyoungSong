@@ -73,14 +73,20 @@ protected:
 
 	void PressedProne();
 
-	UFUNCTION(Server,Unreliable)
+	UFUNCTION(Server, Reliable)
 	void ServerRPCPressedProne();
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastRPCSettingProne(); //속도, 캡슐 작게 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPCPressedProne();
 
 	//몽타주를 가지고 있는다
 	//Mesh Section
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category=AnimMontage)
+	TObjectPtr<class UAnimMontage> ToProne;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AnimMontage)
+	TObjectPtr<class UAnimMontage> ToStand;
+
 
 	UPROPERTY()
 	TObjectPtr<class UTimelineComponent> CameraDownTimeline;
