@@ -45,7 +45,10 @@ public:
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	//FORCEINLINE
-	 class UAnimMontage* GetAnimMontage() const { return AttackAnimMontage[CurrentAttackType]; }
+	 class UAnimMontage* GetAnimMontage() const 
+	 {
+		 return AttackAnimMontage[CurrentAttackType]; 
+	 }
 
 	 const ECharacterAttackType& GetCurrentAttackType() const { return CurrentAttackType; }
 
