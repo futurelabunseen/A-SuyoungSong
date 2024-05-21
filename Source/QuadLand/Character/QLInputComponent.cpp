@@ -10,6 +10,7 @@
 #include "Engine/EngineTypes.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "EngineUtils.h"
 
 #include "Character/QLCharacterPlayer.h"
 #include "Player/QLPlayerController.h"
@@ -168,7 +169,7 @@ void UQLInputComponent::InitPlayerImputComponent(UInputComponent* InputComponent
 
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &UQLInputComponent::PressedCrouch);
 		
-		EnhancedInputComponent->BindAction(ProneAction, ETriggerEvent::Triggered, this, &UQLInputComponent::PressedProne);
+		EnhancedInputComponent->BindAction(ProneAction, ETriggerEvent::Completed, this, &UQLInputComponent::PressedProne);
 
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &UQLInputComponent::Aim);
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &UQLInputComponent::StopAiming);
@@ -305,6 +306,11 @@ void UQLInputComponent::PressedCrouch()
 		return;
 	}
 
+	if (Character->bIsProning)
+	{
+		PressedProne();
+	}
+
 	if (Character->bIsCrouched)
 	{
 		CameraDownTimeline->ReverseFromEnd();
@@ -324,57 +330,109 @@ void UQLInputComponent::PressedProne()
 	{
 		return;
 	}
+	if (Character->IsLocallyControlled())
+	{
+		UCharacterMovementComponent* Movement = Cast<UCharacterMovementComponent>(Character->GetMovementComponent());
+		if (Character->bIsProning)
+		{
+			Character->PlayAnimMontage(ToStand); //Stand
+			CameraDownTimeline->ReverseFromEnd();
+
+			FVector ActorLoc = Character->GetActorLocation();
+			ActorLoc.Z = 0.0f;
+			Character->SetActorLocation(ActorLoc);
+			FVector NewLoc(0.0f, 0.0f, 0.0f);
+			if (Character->bIsCrouched)
+			{
+				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(40.0f);
+				NewLoc.Z = -40.f;
+				Movement->MaxWalkSpeed = 450.0f;
+			}
+			else
+			{
+				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(90.0f);
+				NewLoc.Z = -90.f;
+				Movement->MaxWalkSpeed = 300.0f;
+			}
+			Character->GetMesh()->SetRelativeLocation(NewLoc);
+			Character->bIsProning = false;
+		}
+		else
+		{
+			Character->PlayAnimMontage(ToProne); //Stand
+			CameraDownTimeline->Play();
+			Movement->MaxWalkSpeed = 100.0;
+
+			FVector ActorLoc = Character->GetActorLocation();
+			ActorLoc.Z = 0.0f;
+			Character->SetActorLocation(ActorLoc);
+			Character->GetCapsuleComponent()->SetCapsuleHalfHeight(25.0f);
+			FVector NewLoc(0.0f, 0.0f, -30.0f);
+			Character->GetMesh()->SetRelativeLocation(NewLoc);
+			Character->bIsProning = true;
+		}
+	}
 
 	ServerRPCPressedProne();
 }
 
-void UQLInputComponent::MulticastRPCSettingProne_Implementation()
+void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 {
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 	if (Character == nullptr)
 	{
 		return;
 	}
-	UCharacterMovementComponent* Movement = Cast<UCharacterMovementComponent>(Character->GetMovementComponent());
-	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
-	UCapsuleComponent *Collision = Character->GetCapsuleComponent();
+	UCharacterMovementComponent*Movement = Cast<UCharacterMovementComponent>(Character->GetMovementComponent());
 
-	QL_SUBLOG(QLLog, Log, TEXT("1"));
-
-	if (Character->bIsProning)
+	QL_SUBLOG(QLLog, Log, TEXT("Movement %d"), Movement == nullptr);
+	if (!Character->IsLocallyControlled())
 	{
-		QL_SUBLOG(QLLog, Log, TEXT("2"));
-
-		Character->bIsProning = false;
-
-		if (Movement)
+		if (Character->bIsProning)
 		{
-			Movement->MaxWalkSpeed = 450.f;
-		}
-		Collision->SetCapsuleSize(25.f, 90.0f);
-		ASC->RemoveLooseGameplayTag(CHARACTER_STATE_PRONE);
-		CameraDownTimeline->ReverseFromEnd();
-	}
-	else
-	{
-		CameraDownTimeline->Play();
-		Character->bIsProning = true;
+			Character->PlayAnimMontage(ToStand); //Stand
 
-		if (Movement)
+			FVector ActorLoc = Character->GetActorLocation();
+			ActorLoc.Z = 0.0f;
+			FVector NewLoc(0.0f, 0.0f, 0.0f);
+			if (Character->bIsCrouched)
+			{
+				Movement->MaxWalkSpeed = 450.0f;
+				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(40.0f);
+				NewLoc.Z = -40.f;
+			}
+			else
+			{
+				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(90.0f);
+				NewLoc.Z = -90.f;
+				Movement->MaxWalkSpeed = 300.0f;
+			}
+			Character->SetActorLocation(ActorLoc);
+			Character->CacheInitialMeshOffset(NewLoc, Character->GetMesh()->GetRelativeRotation());
+			Character->bIsProning = false;
+			
+		}
+		else
 		{
-			Movement->MaxWalkSpeed = 150.0f;
+			Character->PlayAnimMontage(ToProne); //Stand
+			Movement->MaxWalkSpeed = 100.0f;
 
+			FVector ActorLoc = Character->GetActorLocation();
+			ActorLoc.Z = 0.0f;
+			Character->SetActorLocation(ActorLoc);
+			Character->GetCapsuleComponent()->SetCapsuleHalfHeight(25.0f);
+			FVector NewLoc(0.0f, 0.0f, -30.0f);
+			Character->CacheInitialMeshOffset(NewLoc, Character->GetMesh()->GetRelativeRotation());
+			Character->bIsProning = true;
 		}
-
-		Character->GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -10.f));
-		Collision->SetCapsuleSize(25.0f, 35.0f);
-		ASC->AddLooseGameplayTag(CHARACTER_STATE_PRONE);
 	}
+	
 }
+
 
 void UQLInputComponent::ServerRPCPressedProne_Implementation()
 {
-	MulticastRPCSettingProne();
+	MulticastRPCPressedProne();
 }
 
 void UQLInputComponent::TimelineCameraUpDownFloatReturn(float Alpha)
@@ -624,22 +682,16 @@ void UQLInputComponent::ServerRPCChangeShootingMethod_Implementation()
 	{
 		return;
 	}
-
-	FGameplayTagContainer Tag(WEAPON_GUN_AUTO);
-	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
-
-	if (ASC->HasAnyMatchingGameplayTags(Tag))
+	if (Character->CurrentAttackType == ECharacterAttackType::GunAttack)
 	{
-		Character->CurrentAttackType = ECharacterAttackType::GunAttack;
-		ASC->RemoveLooseGameplayTag(WEAPON_GUN_AUTO);
-		ASC->AddLooseGameplayTag(WEAPON_GUN_SEMIAUTO);
+		Character->CurrentAttackType = ECharacterAttackType::AutomaticGunAttack;
 	}
 	else
 	{
-		Character->CurrentAttackType = ECharacterAttackType::AutomaticGunAttack;
-		ASC->RemoveLooseGameplayTag(WEAPON_GUN_SEMIAUTO);
-		ASC->AddLooseGameplayTag(WEAPON_GUN_AUTO);
+		Character->CurrentAttackType = ECharacterAttackType::GunAttack;
 	}
+
+	QL_SUBLOG(QLLog, Warning, TEXT("Has Gun %d"), Character->GetHasGun());
 }
 
 void UQLInputComponent::GASInputPressed(int32 id)
@@ -653,7 +705,7 @@ void UQLInputComponent::GASInputPressed(int32 id)
 	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 	uint8 InputAttackSpecNumber = GetInputNumber(id);
 
-	if (Character->CurrentAttackType == ECharacterAttackType::HookAttack && InputAttackSpecNumber == 3)
+	if (Character->CurrentAttackType == ECharacterAttackType::HookAttack && InputAttackSpecNumber == 4)
 	{
 		return;
 	}

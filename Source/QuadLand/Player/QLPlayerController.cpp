@@ -20,14 +20,14 @@
 void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
 {
 
-	if (IsLocalController())
+	if (IsLocalController() && HUDs.Find(UItype))
 	{
 		HUDs[UItype]->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 void AQLPlayerController::SetVisibilityHUD(EHUDType UItype)
 {
-	if (IsLocalController())
+	if (IsLocalController() && HUDs.Find(UItype))
 	{
 		HUDs[UItype]->SetVisibility(ESlateVisibility::Visible);
 	}

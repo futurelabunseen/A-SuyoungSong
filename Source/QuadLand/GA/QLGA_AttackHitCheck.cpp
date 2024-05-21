@@ -42,26 +42,29 @@ void UQLGA_AttackHitCheck::EndAbility(const FGameplayAbilitySpecHandle Handle, c
 
 void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataHandle& TargetDataHandle)
 {
-	QL_GASLOG(QLNetLog, Log, TEXT("Current Punch Section"));
 	if (UAbilitySystemBlueprintLibrary::TargetDataHasHitResult(TargetDataHandle, 0))
 	{
 		FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(TargetDataHandle, 0);
 
 		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
-		const UQLAS_WeaponStat* SourceAttributeSet = SourceASC->GetSet<UQLAS_WeaponStat>();
-		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(AttackDamageEffect);
 
-		//FGameplayEventData Payload;
-		FGameplayTagContainer TargetTag(CHARACTER_ATTACK_TAKENDAMAGE);
-		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitResult.GetActor());
-		TargetASC->TryActivateAbilitiesByTag(TargetTag);
-
-		if (EffectSpecHandle.IsValid())
+		if (SourceASC)
 		{
-			EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, SourceAttributeSet->GetAttackDamage());
-			ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
-		}
+			const UQLAS_WeaponStat* SourceAttributeSet = SourceASC->GetSet<UQLAS_WeaponStat>();
+			FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(AttackDamageEffect);
 
+			//FGameplayEventData Payload;
+			FGameplayTagContainer TargetTag(CHARACTER_ATTACK_TAKENDAMAGE);
+			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitResult.GetActor());
+			TargetASC->TryActivateAbilitiesByTag(TargetTag);
+
+			if (EffectSpecHandle.IsValid())
+			{
+				EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, SourceAttributeSet->GetAttackDamage());
+				ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
+			}
+		}
+	
 	}
 
 	bool bReplicateEndAbility = true;

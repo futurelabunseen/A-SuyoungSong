@@ -45,7 +45,10 @@ public:
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	//FORCEINLINE
-	 class UAnimMontage* GetAnimMontage() const { return AttackAnimMontage[CurrentAttackType]; }
+	 class UAnimMontage* GetAnimMontage() const 
+	 {
+		 return AttackAnimMontage[CurrentAttackType]; 
+	 }
 
 	 const ECharacterAttackType& GetCurrentAttackType() const { return CurrentAttackType; }
 
@@ -83,8 +86,6 @@ public:
 	class UQLInventoryComponent* GetInventory() { return QLInventory; }
 
 protected:
-
-	UPROPERTY(Replicated)
 	uint8 bIsProning : 1;
 
 protected:
