@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "GameData/WeaponType.h"
 #include "QLSwitchWeaponWidget.generated.h"
 
 /**
@@ -14,4 +15,31 @@ class QUADLAND_API UQLSwitchWeaponWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	//ÃÑÀ» È¹µæÇÏ°Å³ª, »ç¿ëÁßÀÏ ¶§ SwitchWeaponWidget Àü´Þ
+	UQLSwitchWeaponWidget(const FObjectInitializer& ObjectInitializer);
+	virtual void NativeConstruct() override;
+
+	void SwitchWeaponStyle(ECharacterAttackType AttackType);
+protected:
+
+	FVector2D DeactivePunchScale;
+	FVector2D ActivePunchScale;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UImage> IMGPunch;
+
+	FVector2D DeactiveGunScale;
+	FVector2D ActiveGunScale;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UImage> IMGGun;
+
+	FVector2D DeactiveBombScale;
+	FVector2D ActiveBombScale;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UImage> IMGBomb;
+	FLinearColor ActiveColor;
+	FLinearColor DiactiveColor;
 };

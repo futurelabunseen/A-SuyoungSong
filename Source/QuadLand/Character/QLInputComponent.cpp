@@ -263,7 +263,7 @@ void UQLInputComponent::Look(const FInputActionValue& Value)
 	{
 		Character->AddControllerPitchInput(LookAxisVector.Y);
 		Character->AddControllerYawInput(LookAxisVector.X);
-	}
+	} 
 	
 }
 
@@ -611,6 +611,7 @@ void UQLInputComponent::SelectDefaultAttackType()
 {
 
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
+
 	if (Character == nullptr)
 	{
 		return;
@@ -626,6 +627,7 @@ void UQLInputComponent::SelectDefaultAttackType()
 		return; //같은 경우만 체크하면된다.
 	}
 
+	
 	Character->ServerRPCSwitchAttackType(ECharacterAttackType::HookAttack);
 }
 
@@ -646,6 +648,7 @@ void UQLInputComponent::SelectGunAttackType()
 	{
 		return; //같은 경우만 체크하면된다.
 	}
+	
 	Character->ServerRPCSwitchAttackType(ECharacterAttackType::GunAttack);
 }
 
@@ -672,6 +675,23 @@ void UQLInputComponent::SelectBombAttackType()
 
 void UQLInputComponent::ChangeShootingMethod()
 {
+	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+	if (Character == nullptr||Character->bHasGun == false)
+	{
+		return;
+	}
+	
+	if (Character->CurrentAttackType == ECharacterAttackType::GunAttack)
+	{
+		Character->bIsSemiAutomatic = false;
+	}
+	else
+	{
+		Character->bIsSemiAutomatic = true;
+	}
+
+	Character->OnChangeShootingMethod.ExecuteIfBound(Character->bIsSemiAutomatic,false);
 	ServerRPCChangeShootingMethod();
 }
 
@@ -685,13 +705,13 @@ void UQLInputComponent::ServerRPCChangeShootingMethod_Implementation()
 	if (Character->CurrentAttackType == ECharacterAttackType::GunAttack)
 	{
 		Character->CurrentAttackType = ECharacterAttackType::AutomaticGunAttack;
+		Character->bIsSemiAutomatic = false;
 	}
 	else
 	{
 		Character->CurrentAttackType = ECharacterAttackType::GunAttack;
+		Character->bIsSemiAutomatic = true;
 	}
-
-	QL_SUBLOG(QLLog, Warning, TEXT("Has Gun %d"), Character->GetHasGun());
 }
 
 void UQLInputComponent::GASInputPressed(int32 id)

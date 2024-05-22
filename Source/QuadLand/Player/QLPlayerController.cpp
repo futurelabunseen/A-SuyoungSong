@@ -64,6 +64,17 @@ void AQLPlayerController::ActivateDeathTimer(float Time)
 	GetWorld()->GetTimerManager().SetTimer(StopTimer, this, &AQLPlayerController::StopDeathSec, Time, true, -1.0f);
 }
 
+void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)
+{
+	UQLUserWidget* UserWidget = Cast< UQLUserWidget>(HUDs[EHUDType::HUD]);
+
+	if (UserWidget)
+	{
+		QL_LOG(QLNetLog, Warning, TEXT("Current Attack Type %d"), AttackType);
+		UserWidget->SwitchWeaponStyle(AttackType);
+	}
+}
+
 void AQLPlayerController::ClientRPCGameStart_Implementation()
 {
 	SetHiddenHUD(EHUDType::Loading);
@@ -143,6 +154,13 @@ void AQLPlayerController::CreateHUD()
 
 	//PC->bShowMouseCursor = true;
 	//PC->SetInputMode(UIOnlyInputMode);
+
+	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+	if (QLCharacter)
+	{
+		QL_LOG(QLNetLog, Warning, TEXT("Player is founded"));
+		QLCharacter->OnChangeShootingMethod.BindUObject(Widget, &UQLUserWidget::VisibleShootingMethodUI);
+	}
 }
 
 void AQLPlayerController::UpdateNearbyItemEntry(UObject* Item)

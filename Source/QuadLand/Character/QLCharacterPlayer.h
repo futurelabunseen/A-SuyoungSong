@@ -8,12 +8,14 @@
 #include "GameData/QLTurningInPlaceType.h"
 #include "GameData/QLItemType.h"
 #include "GameplayEffectTypes.h"
+#include "Components/TimelineComponent.h"
 #include "Interface/QLLifestoneContainerInterface.h"
 #include "QLCharacterPlayer.generated.h"
 
 /**
  * 
  */
+DECLARE_DELEGATE_TwoParams(FOnChagneShootingMethod, bool,bool);
 DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class AQLItem*);
 DECLARE_DELEGATE_OneParam(FOnTakeItemDestoryDelegate, class AQLItemBox*);
 USTRUCT(BlueprintType)
@@ -31,6 +33,8 @@ class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase,public IQLLifest
 	GENERATED_BODY()
 	
 public:
+
+	FOnChagneShootingMethod OnChangeShootingMethod;
 	AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer);
 
 	//Default
@@ -253,9 +257,31 @@ public:
 	UFUNCTION()
 	void OnPlayMontageNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
 	
+
+	uint8 bIsSemiAutomatic : 1;
 	friend class UQLInventoryComponent;
 
 	friend class UQLInputComponent;
 
 
+	//총 반동에 대해서 
+protected:
+	FTimeline RecoilTimeline;
+
+	UPROPERTY()
+	TObjectPtr<class UCurveFloat> HorizontalRecoil;
+
+	UPROPERTY()
+	TObjectPtr<class UCurveFloat> VerticalRecoil;
+
+	UFUNCTION()
+	void StartHorizontalRecoil(float Value);
+
+	UFUNCTION()
+	void StartVerticalRecoil(float Value);
+public:
+
+	void StartRecoil();
+
+	void ReverseRecoil();
 };

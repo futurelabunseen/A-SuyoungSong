@@ -84,6 +84,7 @@ void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, c
 	{
 		Player->GetBombPath()->SetHiddenInGame(true);
 	}
+
 	ServerRPCAttackHitCheck();
 }
 

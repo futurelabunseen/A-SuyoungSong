@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "UI/QLUIType.h"
+#include "GameData/WeaponType.h"
 #include "GameData/QLItemType.h"
 #include "AbilitySystemInterface.h"
 #include "QLPlayerController.generated.h"
@@ -47,6 +48,8 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void ClientRPCGameStart();
+
+	void SwitchWeaponStyle(ECharacterAttackType AttackType);
 
 	FOnDeathCheckDelegate OnDeathCheckDelegate;
 protected:

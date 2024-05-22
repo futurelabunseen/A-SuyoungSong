@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "GameData/WeaponType.h"
 #include "QLUserWidget.generated.h"
 
 /**
@@ -21,11 +22,15 @@ public:
 	void ChangedRemainingAmmo(float InAmmo);
 	void ChangedHPPercentage(float InHP,float InMaxHP);
 	void ChangedStaminaPercentage(float InStamina, float InMaxStamina);
+	void SwitchWeaponStyle(ECharacterAttackType AttackType);
 
+	void VisibleShootingMethodUI(bool bIsSemiAutomatic,bool Hidden);
+	void HiddenShootingMethodUI();
 	FORCEINLINE class UQLPlayerHUDWidget* GetStatHUD() { return CharacterStat; }
 	FORCEINLINE class UQLPlayerHpBarWidget* GetHpHUD() { return HpBar; }
 protected:
 	virtual void NativeConstruct() override;
+	FTimerHandle HiddenTimer;
 
 protected:
 
@@ -34,4 +39,13 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class UQLPlayerHUDWidget> CharacterStat;
+
+	UPROPERTY()
+	TObjectPtr<class UQLSwitchWeaponWidget> SwitchWeapon;
+
+	UPROPERTY()
+	TObjectPtr<class UTextBlock> TxtShootingMethod;
+
+	uint8 bIsSemiAutomatic : 1;
+
 };
