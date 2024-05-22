@@ -86,6 +86,7 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	TakeItemDestory.BindUObject(this, &AQLCharacterPlayer::DestoryItem);
 
 	TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
+	bIsSemiAutomatic = true;
 }
 
 /// <summary>
@@ -475,31 +476,58 @@ void AQLCharacterPlayer::ServerRPCSwitchAttackType_Implementation(ECharacterAtta
 
 void AQLCharacterPlayer::ResetNotEquip(const FGameplayTag CallbackTag, int32 NewCount)
 {
+
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+
 	if (ASC&& NewCount == 1)
 	{
 		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
 		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_BOMB);
 		CurrentAttackType = ECharacterAttackType::HookAttack;
+		if (IsLocallyControlled())
+		{
+			PC->SwitchWeaponStyle(CurrentAttackType);
+		}
 	}
 }
 
 void AQLCharacterPlayer::ResetEquipTypeA(const FGameplayTag CallbackTag, int32 NewCount)
 {
+
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
 	if (ASC&& NewCount == 1)
 	{
 		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
 		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_BOMB);
-		CurrentAttackType = ECharacterAttackType::GunAttack;
+		if (bIsSemiAutomatic)
+		{
+			CurrentAttackType = ECharacterAttackType::GunAttack; //만약 연사이면 연사로 변경해야함.
+		}
+		else
+		{
+			CurrentAttackType = ECharacterAttackType::AutomaticGunAttack;
+		}
+		if (IsLocallyControlled())
+		{
+			PC->SwitchWeaponStyle(CurrentAttackType); //만약 연사이면 연사로 변경해야함.
+		}
 	}
 }
 
 void AQLCharacterPlayer::ResetBomb(const FGameplayTag CallbackTag, int32 NewCount)
 {
+
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
 	if (ASC&& NewCount == 1)
 	{
 		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
 		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
 		CurrentAttackType = ECharacterAttackType::BombAttack;
+
+		if (IsLocallyControlled())
+		{
+			PC->SwitchWeaponStyle(CurrentAttackType);
+		}
 	}
 }
 

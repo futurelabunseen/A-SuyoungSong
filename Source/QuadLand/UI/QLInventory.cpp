@@ -6,6 +6,7 @@
 #include "Components/ListView.h"
 #include "UI/QLListItemEntry.h"
 #include "GameData/QLItemData.h"
+
 #include "Blueprint/WidgetBlueprintLibrary.h"
 
 UQLInventory::UQLInventory(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)

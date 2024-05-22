@@ -14,6 +14,7 @@
 /**
  * 
  */
+DECLARE_DELEGATE_TwoParams(FOnChagneShootingMethod, bool,bool);
 DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class AQLItem*);
 DECLARE_DELEGATE_OneParam(FOnTakeItemDestoryDelegate, class AQLItemBox*);
 USTRUCT(BlueprintType)
@@ -31,6 +32,8 @@ class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase,public IQLLifest
 	GENERATED_BODY()
 	
 public:
+
+	FOnChagneShootingMethod OnChangeShootingMethod;
 	AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer);
 
 	//Default
@@ -253,6 +256,8 @@ public:
 	UFUNCTION()
 	void OnPlayMontageNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
 	
+
+	uint8 bIsSemiAutomatic : 1;
 	friend class UQLInventoryComponent;
 
 	friend class UQLInputComponent;
