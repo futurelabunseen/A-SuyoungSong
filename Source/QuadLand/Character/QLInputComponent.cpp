@@ -263,7 +263,7 @@ void UQLInputComponent::Look(const FInputActionValue& Value)
 	{
 		Character->AddControllerPitchInput(LookAxisVector.Y);
 		Character->AddControllerYawInput(LookAxisVector.X);
-	}
+	} 
 	
 }
 

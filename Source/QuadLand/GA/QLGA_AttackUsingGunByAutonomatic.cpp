@@ -58,7 +58,7 @@ void UQLGA_AttackUsingGunByAutonomatic::ActivateAbility(const FGameplayAbilitySp
 
 	if (AttackTimerHandle.IsValid() == false)
 	{
-		GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UQLGA_AttackUsingGunByAutonomatic::Attack, 0.5f, true);
+		GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UQLGA_AttackUsingGunByAutonomatic::Attack, 0.1f, true);
 	}
 
 }
@@ -67,10 +67,16 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 {
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
+	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+	UAnimMontage* AnimMontageUsingGun = Character->GetAnimMontage();
+	UAnimInstance* AnimInstance = GetActorInfo().GetAnimInstance();
 
 	if (WeaponStat && WeaponStat->GetCurrentAmmo() <= 0.0f)
 	{
-		OnCompleted();
+		if (IsLocallyControlled())
+		{
+			InputReleased(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
+		}
 		return;
 	}
 
@@ -81,11 +87,8 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 	}
 	QL_GASLOG(QLLog, Warning, TEXT("Current Effect Spec"));
 
-	float AnimSpeedRate = 1.0f;
+	float AnimSpeedRate = 1.5f;
 
-	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
-	UAnimMontage* AnimMontageUsingGun = Character->GetAnimMontage();
-	UAnimInstance* AnimInstance = GetActorInfo().GetAnimInstance();
 
 	if (AnimInstance->Montage_IsActive(AnimMontageUsingGun) == false)
 	{
@@ -94,6 +97,7 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 
 	if (IsLocallyControlled())
 	{
+		Character->StartRecoil();
 		if (Character->GetIsShooting() == false)
 		{
 			Character->ServerRPCShooting();
@@ -133,6 +137,7 @@ void UQLGA_AttackUsingGunByAutonomatic::OnCompleted()
 void UQLGA_AttackUsingGunByAutonomatic::ServerRPCStopAttack_Implementation()
 {
 	OnCompleted();
+	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
 }
 
 
@@ -140,16 +145,14 @@ void UQLGA_AttackUsingGunByAutonomatic::InputReleased(const FGameplayAbilitySpec
 {
 	
 	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
-	if (IsLocallyControlled())
+	if (Character->GetIsShooting())
 	{
-		if (Character->GetIsShooting())
-		{
-			Character->ServerRPCShooting();
-		}
+		Character->ServerRPCShooting();
 	}
 
 	OnCompleted();
 	ServerRPCStopAttack();
+	Character->ReverseRecoil();
 	QL_GASLOG(QLLog, Warning, TEXT("Released"));
 }
 

@@ -8,6 +8,7 @@
 #include "GameData/QLTurningInPlaceType.h"
 #include "GameData/QLItemType.h"
 #include "GameplayEffectTypes.h"
+#include "Components/TimelineComponent.h"
 #include "Interface/QLLifestoneContainerInterface.h"
 #include "QLCharacterPlayer.generated.h"
 
@@ -263,4 +264,24 @@ public:
 	friend class UQLInputComponent;
 
 
+	//총 반동에 대해서 
+protected:
+	FTimeline RecoilTimeline;
+
+	UPROPERTY()
+	TObjectPtr<class UCurveFloat> HorizontalRecoil;
+
+	UPROPERTY()
+	TObjectPtr<class UCurveFloat> VerticalRecoil;
+
+	UFUNCTION()
+	void StartHorizontalRecoil(float Value);
+
+	UFUNCTION()
+	void StartVerticalRecoil(float Value);
+public:
+
+	void StartRecoil();
+
+	void ReverseRecoil();
 };

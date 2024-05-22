@@ -87,6 +87,20 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 
 	TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
 	bIsSemiAutomatic = true;
+
+	static ConstructorHelpers::FObjectFinder<UCurveFloat> HorizontalRecoilRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/HorizontalRecoilCurve.HorizontalRecoilCurve'"));
+
+	if (HorizontalRecoilRef.Object)
+	{
+		HorizontalRecoil = HorizontalRecoilRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UCurveFloat> VerticalRecoilRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/VerticalRecoilCurve.VerticalRecoilCurve'"));
+
+	if (VerticalRecoilRef.Object)
+	{
+		VerticalRecoil = VerticalRecoilRef.Object;
+	}
 }
 
 /// <summary>
@@ -160,12 +174,27 @@ void AQLCharacterPlayer::BeginPlay()
 
 	if (IsLocallyControlled())
 	{
-		BombPath = NewObject<USplineComponent>(this,TEXT("BombPath"));
-		BombPath->SetupAttachment(GetMesh(),TEXT("Bomb"));
+		BombPath = NewObject<USplineComponent>(this, TEXT("BombPath"));
+		BombPath->SetupAttachment(GetMesh(), TEXT("Bomb"));
 		BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
 
 		GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AQLCharacterPlayer::OnPlayMontageNotifyBegin);
 	}
+
+
+	if (!HorizontalRecoil || !VerticalRecoil)
+	{
+		return;
+	}
+	FOnTimelineFloat XRecoilCurve;
+	//델리게이트 연결
+	XRecoilCurve.BindUFunction(this, FName("StartHorizontalRecoil"));
+	FOnTimelineFloat YRecoilCurve;
+	YRecoilCurve.BindUFunction(this, FName("StartVerticalRecoil"));
+
+	RecoilTimeline.AddInterpFloat(HorizontalRecoil, XRecoilCurve);
+	RecoilTimeline.AddInterpFloat(VerticalRecoil, YRecoilCurve);
+
 }
 
 void AQLCharacterPlayer::InitializeAttributes()
@@ -226,7 +255,19 @@ UAbilitySystemComponent* AQLCharacterPlayer::GetAbilitySystemComponent() const
 void AQLCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
 	RotateBornSetting(DeltaSeconds);
+
+	if (RecoilTimeline.IsPlaying())
+	{
+		RecoilTimeline.TickTimeline(DeltaSeconds); //앞으로 진행
+	}
+
+	if (RecoilTimeline.IsReversing())
+	{
+		RecoilTimeline.TickTimeline(DeltaSeconds); //되돌리기
+	}
+	
 }
 
 void AQLCharacterPlayer::FarmingItem()
@@ -725,5 +766,27 @@ void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranc
 	{
 		bThrowBomb = true;
 	}
+}
+
+void AQLCharacterPlayer::StartHorizontalRecoil(float Value)
+{
+	QL_LOG(QLNetLog, Warning, TEXT("Start Horizontal %lf"),Value);
+	AddControllerYawInput(Value);
+}
+
+void AQLCharacterPlayer::StartVerticalRecoil(float Value)
+{
+	QL_LOG(QLNetLog, Warning, TEXT("Start Vertical %lf"),Value);
+	AddControllerPitchInput(Value); //캐릭터에 반동을 제공한다.
+}
+
+void AQLCharacterPlayer::StartRecoil()
+{
+	RecoilTimeline.PlayFromStart();
+}
+
+void AQLCharacterPlayer::ReverseRecoil()
+{
+	RecoilTimeline.Reverse();
 }
 
