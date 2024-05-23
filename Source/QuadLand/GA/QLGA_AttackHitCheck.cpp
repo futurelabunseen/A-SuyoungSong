@@ -64,7 +64,6 @@ void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataH
 				ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
 			}
 
-			/*총 일때 설정해야하는데?*/
 			// CueContextHandle -> Params 감싸서 전달
 			FGameplayEffectContextHandle CueContextHandle = UAbilitySystemBlueprintLibrary::GetEffectContext(EffectSpecHandle);
 			CueContextHandle.AddHitResult(HitResult);

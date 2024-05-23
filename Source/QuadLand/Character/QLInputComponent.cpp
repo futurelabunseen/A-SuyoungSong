@@ -346,6 +346,7 @@ void UQLInputComponent::PressedProne()
 			FVector NewLoc(0.0f, 0.0f, 0.0f);
 			if (Character->bIsCrouched)
 			{
+				Character->Crouch();
 				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(40.0f);
 				NewLoc.Z = -40.f;
 			}
@@ -362,7 +363,11 @@ void UQLInputComponent::PressedProne()
 		{
 			CameraDownTimeline->Play();
 			Character->PlayAnimMontage(ToProne); //Stand
-
+			if (Character->bIsCrouched)
+			{
+				Character->UnCrouch();
+			}
+			QL_SUBLOG(LogTemp, Warning, TEXT("1"));
 			Movement->ChangeProneSpeedCommand();
 			FVector ActorLoc = Character->GetActorLocation();
 			ActorLoc.Z = 0.0f;
@@ -396,9 +401,10 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 			ActorLoc.Z = 0.0f;
 			FVector NewLoc(0.0f, 0.0f, 0.0f);
 			if (Character->bIsCrouched)
-			{
+			{ //ÃÊ±âÈ­ 
 				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(40.0f);
 				NewLoc.Z = -40.f;
+				Character->Crouch();
 			}
 			else
 			{
@@ -406,7 +412,7 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 				NewLoc.Z = -90.f; 
 			}
 			Movement->RestoreProneSpeedCommand();
-
+			
 			Character->SetActorLocation(ActorLoc);
 			Character->CacheInitialMeshOffset(NewLoc, Character->GetMesh()->GetRelativeRotation());
 			Character->bIsProning = false;
@@ -415,7 +421,10 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 		else
 		{
 			Movement->ChangeProneSpeedCommand();
-
+			if (Character->bIsCrouched)
+			{
+				Character->UnCrouch();
+			}
 			Character->PlayAnimMontage(ToProne); //Stand
 			FVector ActorLoc = Character->GetActorLocation();
 			ActorLoc.Z = 0.0f;
@@ -436,13 +445,11 @@ void UQLInputComponent::ServerRPCPressedProne_Implementation()
 
 void UQLInputComponent::TimelineCameraUpDownFloatReturn(float Alpha)
 {
-	QL_SUBLOG(QLNetLog, Log, TEXT("1 %lf"),Alpha);
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 	if (Character == nullptr)
 	{
 		return;
 	}
-	QL_SUBLOG(QLNetLog, Log, TEXT("1 %lf"), Alpha);
 	float CameraHeight = FMath::Lerp(MaxCameraHeight, MinCameraHeight, Alpha);
 	FVector OriginalSocketOffset = Character->CameraSpringArm->SocketOffset;
 	Character->CameraSpringArm->SocketOffset = FVector(OriginalSocketOffset.X, OriginalSocketOffset.Y, CameraHeight);

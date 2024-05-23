@@ -19,6 +19,6 @@ public:
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GameplayCue)
-	TObjectPtr<class USoundCue> Sound;
+	TObjectPtr<class USoundWave> Sound;
 
 };

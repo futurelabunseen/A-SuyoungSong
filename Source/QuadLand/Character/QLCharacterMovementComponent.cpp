@@ -35,20 +35,23 @@ void UQLCharacterMovementComponent::RestoreProneSpeedCommand()
 
 void UQLCharacterMovementComponent::SpeedSetting()
 {
+
 	if (CharacterOwner)
 	{
-
 		if (bPressedProne == false && bPressed == true)
 		{
+
 			MaxWalkSpeed = SprintMaxSpeed;
 		}
-		else if (bPressedProne == true && bPressed == false)
+		else if ((bPressedProne == true && bPressed == true)||(bPressed == false && bPressedProne == false))
 		{
-			MaxWalkSpeed = 150.0f;
+
+			MaxWalkSpeed = SprintMinSpeed;
 		}
 		else
 		{
-			MaxWalkSpeed = SprintMinSpeed;
+
+			MaxWalkSpeed = 150.0f;
 		}
 	}
 }
