@@ -94,6 +94,8 @@ void UQLInventoryComponent::ServerRPCRemoveItem_Implementation(EItemType InItemI
 		{
 		case EItemType::StaminaRecoveryItem:
 			PS->AddStaminaStat(ItemStat->GetStat());
+			MulticastRPCItemMotion(InItemId);
+			//모션을 넣고싶음..
 			break;
 		case EItemType::HPRecoveryItem:
 			PS->AddHPStat(ItemStat->GetStat());
@@ -246,6 +248,23 @@ void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId, int32 ItemC
 	//Server RPC 전송 -> Server 아이템 생성 및 아이템 조정 
 	ServerRPCAddGroundByDraggedItem(ItemId, ItemCnt);
 }
+
+void UQLInventoryComponent::MulticastRPCItemMotion_Implementation(EItemType ItemId)
+{
+	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
+	if (Character == nullptr)
+	{
+		return;
+	}
+
+	switch (ItemId)
+	{
+		case EItemType::StaminaRecoveryItem:
+			Character->PlayAnimMontage(ItemMontage[ItemId]); //Stand
+		break;
+	}
+}
+
 
 void UQLInventoryComponent::ServerRPCAddGroundByDraggedItem_Implementation(EItemType ItemId, int32 ItemCnt)
 {

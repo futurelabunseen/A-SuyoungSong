@@ -331,54 +331,53 @@ void UQLInputComponent::PressedProne()
 	{
 		return;
 	}
-	//if (Character->IsLocallyControlled())
-	{
-		UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(Character->GetMovementComponent());
 
-		if (Character->bIsProning)
+	UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(Character->GetMovementComponent());
+
+	if (Character->bIsProning)
+	{
+		CameraDownTimeline->ReverseFromEnd();
+		Character->PlayAnimMontage(ToStand); //Stand
+
+		FVector ActorLoc = Character->GetActorLocation();
+		ActorLoc.Z = 0.0f;
+		Character->SetActorLocation(ActorLoc);
+		FVector NewLoc(0.0f, 0.0f, 0.0f);
+		if (Character->bIsCrouched)
 		{
-			CameraDownTimeline->ReverseFromEnd();
-			Character->PlayAnimMontage(ToStand); //Stand
-			
-			FVector ActorLoc = Character->GetActorLocation();
-			ActorLoc.Z = 0.0f;
-			Character->SetActorLocation(ActorLoc);
-			FVector NewLoc(0.0f, 0.0f, 0.0f);
-			if (Character->bIsCrouched)
-			{
-				Character->Crouch();
-				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(40.0f);
-				NewLoc.Z = -40.f;
-			}
-			else
-			{
-				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(90.0f);
-				NewLoc.Z = -90.f;
-			}
-			Movement->RestoreProneSpeedCommand();
-			Character->GetMesh()->SetRelativeLocation(NewLoc);
-			Character->bIsProning = false;
+			Character->Crouch();
+			Character->GetCapsuleComponent()->SetCapsuleHalfHeight(40.0f);
+			NewLoc.Z = -40.f;
 		}
 		else
 		{
-			CameraDownTimeline->Play();
-			Character->PlayAnimMontage(ToProne); //Stand
-			if (Character->bIsCrouched)
-			{
-				Character->UnCrouch();
-			}
-			QL_SUBLOG(LogTemp, Warning, TEXT("1"));
-			Movement->ChangeProneSpeedCommand();
-			FVector ActorLoc = Character->GetActorLocation();
-			ActorLoc.Z = 0.0f;
-			Character->SetActorLocation(ActorLoc);
-			Character->GetCapsuleComponent()->SetCapsuleHalfHeight(25.0f);
-			FVector NewLoc(0.0f, 0.0f, -30.0f);
-			Character->GetMesh()->SetRelativeLocation(NewLoc);
-			Character->bIsProning = true;
+			Character->GetCapsuleComponent()->SetCapsuleHalfHeight(90.0f);
+			NewLoc.Z = -90.f;
 		}
+		Movement->RestoreProneSpeedCommand();
+		Character->GetMesh()->SetRelativeLocation(NewLoc);
+		Character->bIsProning = false;
 	}
+	else
+	{
+		CameraDownTimeline->Play();
+		Character->PlayAnimMontage(ToProne); //Stand
+		if (Character->bIsCrouched)
+		{
+			Character->UnCrouch();
+		}
+		QL_SUBLOG(LogTemp, Warning, TEXT("1"));
+		Movement->ChangeProneSpeedCommand();
+		FVector ActorLoc = Character->GetActorLocation();
+		ActorLoc.Z = 0.0f;
+		Character->SetActorLocation(ActorLoc);
+		Character->GetCapsuleComponent()->SetCapsuleHalfHeight(25.0f);
+		FVector NewLoc(0.0f, 0.0f, -30.0f);
+		Character->GetMesh()->SetRelativeLocation(NewLoc);
+		Character->bIsProning = true;
 
+	}
+	
 	ServerRPCPressedProne();
 }
 
