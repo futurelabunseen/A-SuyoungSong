@@ -56,14 +56,14 @@ void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 		return;
 	}
 	
-	PC->SetVisibilityHUD(EHUDType::Loading);
+	//PC->SetVisibilityHUD(EHUDType::Loading);
 
-	if(GetNumPlayers() >= 2)
-	{
-		FTimerHandle StartTimerHandle;
+	//if(GetNumPlayers() >= 2)
+	//{
+	//	FTimerHandle StartTimerHandle;
 
-		GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 3.0f, false);
-	}
+	//	GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 3.0f, false);
+	//}
 }
 
 void AQLGameMode::GameStart()

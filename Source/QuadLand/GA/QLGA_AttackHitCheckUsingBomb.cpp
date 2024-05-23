@@ -99,6 +99,21 @@ void UQLGA_AttackHitCheckUsingBomb::OnCompletedCallback()
 		}
 	}
 
+	if (HasAuthority(&CurrentActivationInfo))
+	{
+		MulticastRPCShowGameplayCue();
+	}
+
+	Bomb->SetLifeSpan(0.5f); //없어짐.
+	
+	bool bReplicateEndAbility = true;
+	bool bWasCancelled = false;
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UQLGA_AttackHitCheckUsingBomb::MulticastRPCShowGameplayCue_Implementation()
+{
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	if (SourceASC)
 	{
 		FGameplayCueParameters CueParam;
@@ -107,13 +122,5 @@ void UQLGA_AttackHitCheckUsingBomb::OnCompletedCallback()
 		//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
 		SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_EFFECT_FIREWALL, CueParam);
 	}
-#if ENABLE_DRAW_DEBUG
-	FColor Color = bResult ? FColor::Green : FColor::Red;
-	DrawDebugSphere(GetWorld(), Bomb->GetActorLocation(), WeaponStat->GetAttackDistance(), 10.0f, Color, false, 5.0f);
-#endif
-	Bomb->SetLifeSpan(0.5f); //없어짐.
-	
-	bool bReplicateEndAbility = true;
-	bool bWasCancelled = false;
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+
 }
