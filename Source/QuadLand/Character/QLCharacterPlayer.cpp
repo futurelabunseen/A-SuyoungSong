@@ -730,8 +730,6 @@ void AQLCharacterPlayer::MulticastRPCPuttingWeapon_Implementation()
 {
 	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
 	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON); //이것도 변경되어야할사항...
-	//Reset
-	QL_LOG(QLLog, Log, TEXT("Put Weapon"));
 	Weapon->Weapon->SetSkeletalMesh(nullptr);
 	bHasGun = false;
 }
@@ -766,17 +764,22 @@ void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranc
 	{
 		bThrowBomb = true;
 	}
+
+	if (NotifyName == FName(TEXT("StopCrawlingSound")))
+	{
+		QL_LOG(QLLog, Log, TEXT("StopCrawlingSound"));
+
+		
+	}
 }
 
 void AQLCharacterPlayer::StartHorizontalRecoil(float Value)
 {
-	QL_LOG(QLNetLog, Warning, TEXT("Start Horizontal %lf"),Value);
 	AddControllerYawInput(Value);
 }
 
 void AQLCharacterPlayer::StartVerticalRecoil(float Value)
 {
-	QL_LOG(QLNetLog, Warning, TEXT("Start Vertical %lf"),Value);
 	AddControllerPitchInput(Value); //캐릭터에 반동을 제공한다.
 }
 

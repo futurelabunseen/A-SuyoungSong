@@ -294,11 +294,7 @@ void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
         FVector Location = GetPawn()->GetActorLocation(); //Possessed Pawn Position
         FActorSpawnParameters Params;
         Params.Owner = this;
-        LifeStone = GetWorld()->SpawnActor<AQLPlayerLifeStone>(Location, FRotator::ZeroRotator, Params);
-     
-        FRepMovement Movement;
-        Movement.Location = LifeStone->GetActorLocation();
-        LifeStone->SetReplicatedMovement(Movement);
+        LifeStone = GetWorld()->SpawnActor<AQLPlayerLifeStone>(LifeStoneClass,Location, FRotator::ZeroRotator, Params);
         bHasLifeStone = false;
     }
 }
@@ -381,7 +377,6 @@ void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     DOREPLIFETIME(AQLPlayerState, bIsDead);
     DOREPLIFETIME(AQLPlayerState, bIsWin);
     DOREPLIFETIME(AQLPlayerState, bHasLifeStone);
-    DOREPLIFETIME(AQLPlayerState, LifeStone);
 
 }
 

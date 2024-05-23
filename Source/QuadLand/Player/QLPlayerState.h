@@ -121,8 +121,10 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bHasLifeStone : 1;
 
-	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
+	UPROPERTY(EditAnywhere, Category = Battle)
 	TObjectPtr<class AQLPlayerLifeStone> LifeStone;
 
+	UPROPERTY(EditAnywhere, Category = Battle)
+	TSubclassOf<class AQLPlayerLifeStone> LifeStoneClass;
 	friend class AQLCharacterPlayer;
 };

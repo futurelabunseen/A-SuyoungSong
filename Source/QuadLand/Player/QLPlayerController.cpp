@@ -147,13 +147,10 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::Inventory);
 	SetHiddenHUD(EHUDType::Map);
 	SetHiddenHUD(EHUDType::DeathTimer);
-
-	FInputModeUIOnly UIOnlyInputMode;
-	SetInputMode(UIOnlyInputMode);
+	SetHiddenHUD(EHUDType::Loading);
+	//FInputModeUIOnly UIOnlyInputMode;
+	//SetInputMode(UIOnlyInputMode);
 	//HUD ÃÊ±âÈ­
-
-	//PC->bShowMouseCursor = true;
-	//PC->SetInputMode(UIOnlyInputMode);
 
 	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 	if (QLCharacter)
