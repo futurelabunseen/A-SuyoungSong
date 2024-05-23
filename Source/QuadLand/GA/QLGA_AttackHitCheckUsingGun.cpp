@@ -98,7 +98,7 @@ void UQLGA_AttackHitCheckUsingGun::OnCompletedCallback(const FGameplayAbilityTar
 		CueParam.EffectContext = CueContextHandle;
 
 		//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
-		SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_CHARACTER_DAMAGEEFFECT, CueParam);
+		SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_CHARACTER_FIREEFFECT, CueParam);
 	}
 
 	bool bReplicateEndAbility = true;

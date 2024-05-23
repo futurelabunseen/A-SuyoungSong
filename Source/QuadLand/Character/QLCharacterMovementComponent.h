@@ -20,7 +20,7 @@ public:
 	virtual uint8 GetCompressedFlags() const override;
 
 	uint8 bPressedSprint : 1; //입력 전달
-	uint8 bPressedCrouch : 1;
+	uint8 bPressedProne : 1;
 };
 class QLFNetworkPredictionData_Client_Character : public FNetworkPredictionData_Client_Character //상속받아서 구현 
 {
@@ -39,22 +39,28 @@ class QUADLAND_API UQLCharacterMovementComponent : public UCharacterMovementComp
 public:
 	UQLCharacterMovementComponent();
 
-	void SetSprintCommand();
-	void UnSetSprintCommand();
+	void ChangeSprintSpeedCommand();
+	void RestoreSprintSpeedCommand();
 
+	void ChangeProneSpeedCommand();
+
+	void RestoreProneSpeedCommand();
 public:
+	uint8 bPressedProne : 1; //입력 전달
 
-	uint8 bPressedSprint : 1; //입력 전달
-
-protected:
+	uint8 bPressed : 1; //입력 전달
 	//Sprint Max 값, Min 값
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
+	float ProneMinSpeed;
+	UPROPERTY(EditAnywhere)
 	float SprintMaxSpeed;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	float SprintMinSpeed;
 
-	virtual void RunOrWalk();
+protected:
+
+	virtual void SpeedSetting();
 protected:
 	//Client Section
 	virtual void OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity) override;
