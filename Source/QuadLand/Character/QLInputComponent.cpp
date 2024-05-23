@@ -8,11 +8,11 @@
 #include "AbilitySystemComponent.h"
 #include "GameFramework/SpringArmComponent.h" 
 #include "Engine/EngineTypes.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "EngineUtils.h"
 
 #include "Character/QLCharacterPlayer.h"
+#include "Character/QLCharacterMovementComponent.h"
 #include "Player/QLPlayerController.h"
 #include "Player/QLPlayerState.h"
 #include "GameplayTag/GamplayTags.h"
@@ -320,6 +320,7 @@ void UQLInputComponent::PressedCrouch()
 	{
 		CameraDownTimeline->Play();
 		Character->Crouch();
+		
 	}
 }
 
@@ -330,39 +331,44 @@ void UQLInputComponent::PressedProne()
 	{
 		return;
 	}
-	if (Character->IsLocallyControlled())
+	//if (Character->IsLocallyControlled())
 	{
-		UCharacterMovementComponent* Movement = Cast<UCharacterMovementComponent>(Character->GetMovementComponent());
+		UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(Character->GetMovementComponent());
+
 		if (Character->bIsProning)
 		{
-			Character->PlayAnimMontage(ToStand); //Stand
 			CameraDownTimeline->ReverseFromEnd();
-
+			Character->PlayAnimMontage(ToStand); //Stand
+			
 			FVector ActorLoc = Character->GetActorLocation();
 			ActorLoc.Z = 0.0f;
 			Character->SetActorLocation(ActorLoc);
 			FVector NewLoc(0.0f, 0.0f, 0.0f);
 			if (Character->bIsCrouched)
 			{
+				Character->Crouch();
 				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(40.0f);
 				NewLoc.Z = -40.f;
-				Movement->MaxWalkSpeed = 450.0f;
 			}
 			else
 			{
 				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(90.0f);
 				NewLoc.Z = -90.f;
-				Movement->MaxWalkSpeed = 300.0f;
 			}
+			Movement->RestoreProneSpeedCommand();
 			Character->GetMesh()->SetRelativeLocation(NewLoc);
 			Character->bIsProning = false;
 		}
 		else
 		{
-			Character->PlayAnimMontage(ToProne); //Stand
 			CameraDownTimeline->Play();
-			Movement->MaxWalkSpeed = 100.0;
-
+			Character->PlayAnimMontage(ToProne); //Stand
+			if (Character->bIsCrouched)
+			{
+				Character->UnCrouch();
+			}
+			QL_SUBLOG(LogTemp, Warning, TEXT("1"));
+			Movement->ChangeProneSpeedCommand();
 			FVector ActorLoc = Character->GetActorLocation();
 			ActorLoc.Z = 0.0f;
 			Character->SetActorLocation(ActorLoc);
@@ -383,11 +389,10 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 	{
 		return;
 	}
-	UCharacterMovementComponent*Movement = Cast<UCharacterMovementComponent>(Character->GetMovementComponent());
-
-	QL_SUBLOG(QLLog, Log, TEXT("Movement %d"), Movement == nullptr);
 	if (!Character->IsLocallyControlled())
 	{
+		UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(Character->GetMovementComponent());
+
 		if (Character->bIsProning)
 		{
 			Character->PlayAnimMontage(ToStand); //Stand
@@ -396,17 +401,18 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 			ActorLoc.Z = 0.0f;
 			FVector NewLoc(0.0f, 0.0f, 0.0f);
 			if (Character->bIsCrouched)
-			{
-				Movement->MaxWalkSpeed = 450.0f;
+			{ //ÃÊ±âÈ­ 
 				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(40.0f);
 				NewLoc.Z = -40.f;
+				Character->Crouch();
 			}
 			else
 			{
 				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(90.0f);
-				NewLoc.Z = -90.f;
-				Movement->MaxWalkSpeed = 300.0f;
+				NewLoc.Z = -90.f; 
 			}
+			Movement->RestoreProneSpeedCommand();
+			
 			Character->SetActorLocation(ActorLoc);
 			Character->CacheInitialMeshOffset(NewLoc, Character->GetMesh()->GetRelativeRotation());
 			Character->bIsProning = false;
@@ -414,9 +420,12 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 		}
 		else
 		{
+			Movement->ChangeProneSpeedCommand();
+			if (Character->bIsCrouched)
+			{
+				Character->UnCrouch();
+			}
 			Character->PlayAnimMontage(ToProne); //Stand
-			Movement->MaxWalkSpeed = 100.0f;
-
 			FVector ActorLoc = Character->GetActorLocation();
 			ActorLoc.Z = 0.0f;
 			Character->SetActorLocation(ActorLoc);
@@ -426,7 +435,6 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 			Character->bIsProning = true;
 		}
 	}
-	
 }
 
 
@@ -442,7 +450,6 @@ void UQLInputComponent::TimelineCameraUpDownFloatReturn(float Alpha)
 	{
 		return;
 	}
-
 	float CameraHeight = FMath::Lerp(MaxCameraHeight, MinCameraHeight, Alpha);
 	FVector OriginalSocketOffset = Character->CameraSpringArm->SocketOffset;
 	Character->CameraSpringArm->SocketOffset = FVector(OriginalSocketOffset.X, OriginalSocketOffset.Y, CameraHeight);
@@ -455,6 +462,8 @@ void UQLInputComponent::TimelineFloatReturn(float Alpha)
 	{
 		return;
 	}
+
+	
 	float Length = FMath::Lerp(Character->MaxArmLength, Character->MinArmLength, Alpha);
 	Character->CameraSpringArm->TargetArmLength = Length;
 }

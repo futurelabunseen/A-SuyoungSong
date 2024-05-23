@@ -63,8 +63,18 @@ void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataH
 				EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, SourceAttributeSet->GetAttackDamage());
 				ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
 			}
+
+			// CueContextHandle -> Params 감싸서 전달
+			FGameplayEffectContextHandle CueContextHandle = UAbilitySystemBlueprintLibrary::GetEffectContext(EffectSpecHandle);
+			CueContextHandle.AddHitResult(HitResult);
+			FGameplayCueParameters CueParam;
+			CueParam.Location = HitResult.Location;
+			CueParam.EffectContext = CueContextHandle;
+
+			//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
+			SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_CHARACTER_DAMAGEEFFECT, CueParam);
 		}
-	
+
 	}
 
 	bool bReplicateEndAbility = true;

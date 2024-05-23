@@ -121,7 +121,6 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 
 		if (PC)
 		{
-			PC->ConsoleCommand(TEXT("showdebug abilitysystem"));
 			PC->CreateHUD();
 		}
 	}
@@ -150,7 +149,6 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 	AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
 	if (PC)
 	{
-		PC->ConsoleCommand(TEXT("showdebug abilitysystem"));
 		PC->CreateHUD();
 	}
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);

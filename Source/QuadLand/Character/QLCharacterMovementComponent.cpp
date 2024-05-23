@@ -7,52 +7,71 @@ UQLCharacterMovementComponent::UQLCharacterMovementComponent()
 {
 	SprintMaxSpeed = 600.0f;
 	SprintMinSpeed = 400.0f;
+	ProneMinSpeed = 150.0f;
 
-	bPressedSprint = false;
+	bPressed = false;
+	bPressedProne = false;
 }
 
-void UQLCharacterMovementComponent::SetSprintCommand()
+void UQLCharacterMovementComponent::ChangeSprintSpeedCommand()
 {
-	bPressedSprint = true; //눌림
+	bPressed = true; //눌림
 }
 
-void UQLCharacterMovementComponent::UnSetSprintCommand()
+void UQLCharacterMovementComponent::RestoreSprintSpeedCommand()
 {
-	bPressedSprint = false; //눌림 해제
+	bPressed = false; //눌림 해제
 }
 
-
-void UQLCharacterMovementComponent::RunOrWalk()
+void UQLCharacterMovementComponent::ChangeProneSpeedCommand()
 {
+	bPressedProne = true;
+}
+
+void UQLCharacterMovementComponent::RestoreProneSpeedCommand()
+{
+	bPressedProne = false;
+}
+
+void UQLCharacterMovementComponent::SpeedSetting()
+{
+
 	if (CharacterOwner)
 	{
-		if (bPressedSprint)
+		if (bPressedProne == false && bPressed == true)
 		{
+
 			MaxWalkSpeed = SprintMaxSpeed;
+		}
+		else if ((bPressedProne == true && bPressed == true)||(bPressed == false && bPressedProne == false))
+		{
+
+			MaxWalkSpeed = SprintMinSpeed;
 		}
 		else
 		{
-			MaxWalkSpeed = SprintMinSpeed;
+
+			MaxWalkSpeed = 150.0f;
 		}
 	}
 }
 
 void UQLCharacterMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity)
 {
-	RunOrWalk();
+	Super::OnMovementUpdated(DeltaSeconds, OldLocation, OldVelocity);
+	SpeedSetting();
 }
 
 void UQLCharacterMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
 {
 	Super::UpdateFromCompressedFlags(Flags);
 
-	bPressedSprint = (Flags & FSavedMove_Character::FLAG_Custom_0) != 0;
-
+	bPressed = (Flags & FSavedMove_Character::FLAG_Custom_0) != 0;
+	bPressedProne = (Flags & FSavedMove_Character::FLAG_Custom_1) != 0;
 	if (CharacterOwner && CharacterOwner->GetLocalRole() == ROLE_Authority)
 	{
 		//클라이언트에서 동작했으니 서버에서도 동작
-		
-		RunOrWalk();
+		SpeedSetting();
 	}
 }
 
@@ -82,6 +101,7 @@ void FQLSavedMove_Character::Clear()
 {
 	FSavedMove_Character::Clear();
 	bPressedSprint = false;
+	bPressedProne = false;
 }
 
 void FQLSavedMove_Character::SetInitialPosition(ACharacter* Character)
@@ -92,7 +112,9 @@ void FQLSavedMove_Character::SetInitialPosition(ACharacter* Character)
 
 	if (QLMovement)
 	{
-		bPressedSprint = QLMovement->bPressedSprint;
+		bPressedSprint = QLMovement->bPressed;
+
+		bPressedProne = QLMovement->bPressedProne;
 	}
 
 }
@@ -105,6 +127,11 @@ uint8 FQLSavedMove_Character::GetCompressedFlags() const
 	if (bPressedSprint)
 	{
 		Result |= FLAG_Custom_0;
+	}
+
+	if (bPressedProne)
+	{
+		Result |= FLAG_Custom_1;
 	}
 
 	return Result;

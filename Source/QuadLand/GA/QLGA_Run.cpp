@@ -36,7 +36,7 @@ void UQLGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 	UQLCharacterMovementComponent* QLMovement = Cast< UQLCharacterMovementComponent>(Character->GetMovementComponent());
 	if (QLMovement)
 	{
-		QLMovement->SetSprintCommand();
+		QLMovement->ChangeSprintSpeedCommand();
 	}
 
 	if (!StaminaTimer.IsValid())
@@ -52,8 +52,6 @@ void UQLGA_Run::ReduceStamina()
 
 	if (PlayerStat->GetStamina() <= 5.0f)
 	{
-		QL_GASLOG(QLNetLog, Warning, TEXT("Current Percentage %lf"), PlayerStat->GetStamina());
-
 		FGameplayTagContainer Tag(CHARACTER_STATE_NOTRUN);
 		if (SourceASC->HasAnyMatchingGameplayTags(Tag) == false)
 		{
@@ -67,7 +65,6 @@ void UQLGA_Run::ReduceStamina()
 
 	if (EffectSpecHandle.IsValid())
 	{
-		QL_GASLOG(QLNetLog, Log, TEXT("Reduce Stamina"));
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
 	}
 }
@@ -81,7 +78,7 @@ void UQLGA_Run::StopStamina()
 	UQLCharacterMovementComponent* QLMovement = Cast< UQLCharacterMovementComponent>(Character->GetMovementComponent());
 	if (QLMovement)
 	{
-		QLMovement->UnSetSprintCommand();
+		QLMovement->RestoreSprintSpeedCommand();
 	}
 	
 	OnCompleted();
