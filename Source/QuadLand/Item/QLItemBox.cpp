@@ -35,7 +35,7 @@ void AQLItemBox::InitPosition()
 
 		float Theta = FMath::FRandRange(-180.f, 180.0f);
 
-		float XValue = Radius * FMath::Cos(Theta);
+		float XValue = Radius * FMath::Cos(Theta); 
 		float YValue = Radius * FMath::Sin(Theta);
 
 		FVector TargetLoc(XValue, YValue, 0.0f); //¹æÇâ
@@ -46,9 +46,11 @@ void AQLItemBox::InitPosition()
 
 void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
+
 	Trigger->SetSimulatePhysics(false);
 	Mesh->SetSimulatePhysics(false);
 
-	QL_LOG(QLLog, Warning, TEXT("current false"));
 	Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
+
+	QL_LOG(QLNetLog, Log, TEXT("?"));
 }

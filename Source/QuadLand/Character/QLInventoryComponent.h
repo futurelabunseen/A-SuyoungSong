@@ -24,6 +24,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item, Meta = (AllowPrivateAccess = "true"))
 	TMap<EItemType, int32> InventoryItem;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item, Meta = (AllowPrivateAccess = "true"))
+	TMap<EItemType, TObjectPtr<class UAnimMontage>> ItemMontage;
+
 	uint8 bIsSetVisibleInventory : 1;
 
 public:
@@ -33,6 +36,9 @@ public:
 	void AddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt);
 
 public:
+
+	UFUNCTION(NetMulticast,Unreliable)
+	void MulticastRPCItemMotion(EItemType ItemId);
 
 	//RPC Section - Remove
 	UFUNCTION(Server, WithValidation, Reliable)

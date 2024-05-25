@@ -709,11 +709,12 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 	FVector Location = GetActorLocation();
 	FActorSpawnParameters Params;
 	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GroundWeapon, Location, FRotator::ZeroRotator, Params);
+
 	CurrentAttackType = ECharacterAttackType::HookAttack;
 
 	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	//ECharacterAttackType::BombAttack
+	
 	const UQLWeaponStat* WeaponStat = DataManager->GetWeaponStat(CurrentAttackType);
 
 	if (WeaponStat)
