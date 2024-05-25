@@ -12,7 +12,7 @@ class QUADLAND_API AQLItemBox : public AQLItem
 	GENERATED_BODY()
 	
 public:
-	// Sets default values for this actor's properties
+
 	AQLItemBox();
 
 	class USkeletalMeshComponent* GetMesh() const { return Mesh; }
@@ -25,7 +25,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Mesh)
 	TObjectPtr<class USkeletalMeshComponent> Mesh;
-	
 	
 	UPROPERTY(EditAnywhere,Category = Position)
 	float Radius; //ÁÂÇ¥°ªÀº cos, sin
