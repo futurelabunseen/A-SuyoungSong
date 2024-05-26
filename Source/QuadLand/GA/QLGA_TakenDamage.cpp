@@ -4,6 +4,8 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "AbilitySystemComponent.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
+#include "GameFramework/Character.h"
+#include "Player/QLPlayerController.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayTag/GamplayTags.h"
 #include "QuadLand.h"
@@ -16,9 +18,6 @@ UQLGA_TakenDamage::UQLGA_TakenDamage()
 void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	//CommitAbility(Handle, ActorInfo, ActivationInfo); //CommitAbility
-
-	QL_GASLOG(QLNetLog, Log, TEXT("Current Punch Section"));
 
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	
@@ -29,6 +28,16 @@ void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	else
 	{
 		Tag = CHARACTER_EQUIP_GUNTYPEA;
+	}
+
+	ACharacter* Character = Cast< ACharacter>(ActorInfo->AvatarActor.Get());
+
+	AQLPlayerController* PC = Character->GetController<AQLPlayerController>();
+
+	if (IsLocallyControlled() && PC)
+	{
+		PC->BlinkBloodWidget();
+		QL_GASLOG(QLNetLog, Log, TEXT("this?"));
 	}
 
 	float AnimSpeedRate = 1.0f;
@@ -42,6 +51,8 @@ void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 void UQLGA_TakenDamage::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	ACharacter* Character = Cast< ACharacter>(ActorInfo->AvatarActor.Get());
+	AQLPlayerController* PC = Character->GetController<AQLPlayerController>();
 }
 
 void UQLGA_TakenDamage::OnCompletedCallback()

@@ -342,7 +342,7 @@ void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 
 void AQLCharacterPlayer::ServerRPCFarming_Implementation()
 {
-	if (bPressedFarmingKey) return;
+	if (bPressedFarmingKey) return;	
 
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	FTimerHandle ItemMotionTimer;
@@ -707,9 +707,11 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 {
 	// Multicast 위치 or Server 위치하고 Replicated할지.. 
 	FVector Location = GetActorLocation();
+	Location.X -= 30.0f;
+	Location.Y -= 30.0f;
 	FActorSpawnParameters Params;
 	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GroundWeapon, Location, FRotator::ZeroRotator, Params);
-
+	
 	CurrentAttackType = ECharacterAttackType::HookAttack;
 
 	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
@@ -750,10 +752,11 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 	UQLItemData* ItemData = Cast<UQLItemData>(ItemInfo->Stat);
 
 	int32 ItemCnt = 1;
-	QLInventory->AddItem(ItemData->ItemType, ItemCnt);
+	QLInventory->AddItem(ItemData->ItemType, ItemCnt); //Server Cnt Increase
 
-	UE_LOG(LogTemp, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, ItemCnt);
-	QLInventory->ClientRPCAddItem(ItemData, ItemCnt);
+	QL_LOG(LogTemp, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, QLInventory->GetInventoryCnt(ItemData->ItemType));
+	QLInventory->ClientRPCAddItem(ItemData->ItemType, ItemCnt);
+
 	ItemInfo->SetLifeSpan(0.5f);
 }
 
@@ -762,13 +765,6 @@ void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranc
 	if (NotifyName == FName(TEXT("ThrowAnimNofity")))
 	{
 		bThrowBomb = true;
-	}
-
-	if (NotifyName == FName(TEXT("StopCrawlingSound")))
-	{
-		QL_LOG(QLLog, Log, TEXT("StopCrawlingSound"));
-
-		
 	}
 }
 

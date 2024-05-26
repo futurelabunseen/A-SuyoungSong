@@ -45,7 +45,7 @@ public:
 	void ServerRPCRemoveItem(EItemType ItemId, int32 ItemCnt);
 
 	UFUNCTION(Client, Reliable)
-	void ClientRPCRemoveItem(class UQLItemData* Item, int32 ItemCnt);
+	void ClientRPCRemoveItem(EItemType ItemId, int32 ItemCnt);
 
 public:
 	//RPC Section - Add
@@ -56,7 +56,7 @@ public:
 	void ServerRPCAddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt);
 
 	UFUNCTION(Client, Reliable)
-	void ClientRPCAddItem(class UQLItemData* Item, int32 ItemCnt);
+	void ClientRPCAddItem(EItemType ItemId, int32 ItemCnt);
 
 
 	UFUNCTION(Client, Reliable)

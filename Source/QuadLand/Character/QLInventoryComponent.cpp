@@ -22,12 +22,14 @@ void UQLInventoryComponent::AddItem(EItemType ItemId, int32 ItemCnt)
 {
 	if (InventoryItem.Find(ItemId))
 	{
-		ItemCnt = ++InventoryItem[ItemId]; //없으면 0을 리턴
+		InventoryItem[ItemId] += ItemCnt; //없으면 0을 리턴
 	}
 	else
 	{
 		InventoryItem.Add(ItemId, ItemCnt);
 	}
+
+	QL_SUBLOG(QLNetLog, Warning, TEXT("Item Add %d"), InventoryItem[ItemId]);
 }
 
 void UQLInventoryComponent::UseItem(EItemType ItemId)
@@ -109,10 +111,10 @@ void UQLInventoryComponent::ServerRPCRemoveItem_Implementation(EItemType InItemI
 
 	UE_LOG(LogTemp, Warning, TEXT("item use %d %d"), InItemId, InventoryItem[InItemId]);
 
-	ClientRPCRemoveItem(ItemData, ItemCnt); //클라랑 서버랑 개수 일치
+	ClientRPCRemoveItem(InItemId, ItemCnt); //클라랑 서버랑 개수 일치
 }
 
-void UQLInventoryComponent::ClientRPCRemoveItem_Implementation(UQLItemData* Item, int32 ItemCnt)
+void UQLInventoryComponent::ClientRPCRemoveItem_Implementation(EItemType InItemId, int32 ItemCnt)
 {
 	AQLPlayerController* PC = GetController<AQLPlayerController>();
 
@@ -120,11 +122,15 @@ void UQLInventoryComponent::ClientRPCRemoveItem_Implementation(UQLItemData* Item
 	{
 		return;
 	}
-	InventoryItem[Item->ItemType] = ItemCnt;
-	Item->CurrentItemCnt = ItemCnt;
-	PC->UpdateItemEntry(Item, ItemCnt);
-	UE_LOG(LogTemp, Warning, TEXT("update? %d %d"), Item->ItemType, InventoryItem[Item->ItemType]);
 
+	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	UQLItemData* ItemData = DataManager->GetItem(InItemId);
+
+	InventoryItem[InItemId] = ItemCnt;
+	ItemData->CurrentItemCnt = ItemCnt;
+
+	PC->UpdateItemEntry(ItemData, ItemCnt);
+	UE_LOG(LogTemp, Warning, TEXT("update? %d %d"), ItemData->ItemType, InventoryItem[ItemData->ItemType]);
 }
 
 
@@ -132,16 +138,7 @@ void UQLInventoryComponent::AddInventoryByDraggedItem(EItemType InItemId, int32 
 {
 	if (!HasAuthority())
 	{
-		if (InventoryItem.Find(InItemId))
-		{
-			InventoryItem[InItemId] += InItemCnt;
-			QL_SUBLOG(QLNetLog, Warning, TEXT("Same Item %d"), InItemCnt);
-		}
-		else
-		{
-			InventoryItem.Add(InItemId, InItemCnt);
-		}
-
+		AddItem(InItemId,InItemCnt);
 	}
 	//실제로 아이템이 있는지 검사하기 위해서 서버에게 요청해야함;
 	ServerRPCAddInventoryByDraggedItem(InItemId, InItemCnt);
@@ -193,6 +190,7 @@ void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EI
 					if (InventoryItem.Find(ItemId))
 					{
 						IsNotFound = false;
+
 						InventoryItem[ItemId]++;
 						UE_LOG(LogTemp, Log, TEXT("Current Cnt %d"), InventoryItem[ItemId]);
 					}
@@ -314,7 +312,8 @@ void UQLInventoryComponent::ServerRPCAddGroundByDraggedItem_Implementation(EItem
 		//	GroundItem->bReplicate
 	}
 }
-void UQLInventoryComponent::ClientRPCAddItem_Implementation(UQLItemData* ItemData, int32 ItemCnt)
+
+void UQLInventoryComponent::ClientRPCAddItem_Implementation(EItemType ItemId, int32 ItemCnt)
 {
 	AQLPlayerController* PC = GetController<AQLPlayerController>();
 
@@ -323,17 +322,12 @@ void UQLInventoryComponent::ClientRPCAddItem_Implementation(UQLItemData* ItemDat
 		return;
 	}
 
-	if (!InventoryItem.Find(ItemData->ItemType))
-	{
-		InventoryItem.Add(ItemData->ItemType, ItemCnt);
-	}
-	else
-	{
-		InventoryItem[ItemData->ItemType] = ItemCnt;
-	}
+	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	UQLItemData* ItemData = DataManager->GetItem(ItemId);
 
-	ItemData->CurrentItemCnt = ItemCnt;
-	PC->UpdateItemEntry(ItemData, ItemCnt);
+	ItemData->CurrentItemCnt = GetInventoryCnt(ItemId) + ItemCnt;
+	AddItem(ItemId, ItemCnt);
+	PC->UpdateItemEntry(ItemData, ItemData->CurrentItemCnt);
 }
 
 void UQLInventoryComponent::ClientRPCRollbackInventory_Implementation(EItemType InItemId, int32 ItemCnt)

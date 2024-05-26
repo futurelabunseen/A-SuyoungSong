@@ -49,10 +49,15 @@ public:
 	UFUNCTION(Client, Reliable)
 	void ClientRPCGameStart();
 
+	void BlinkBloodWidget();
+	void CancelBloodWidget();
+
 	void SwitchWeaponStyle(ECharacterAttackType AttackType);
 
 	FOnDeathCheckDelegate OnDeathCheckDelegate;
 protected:
+
+	uint8 bIsBlinkWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
 	TMap<EHUDType,TSubclassOf<class UUserWidget>> HUDClass;

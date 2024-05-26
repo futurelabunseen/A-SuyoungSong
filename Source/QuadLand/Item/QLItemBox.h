@@ -18,6 +18,11 @@ public:
 	class USkeletalMeshComponent* GetMesh() const { return Mesh; }
 
 	void InitPosition();
+	UPROPERTY(EditAnywhere, Category = Position)
+	float Radius; //ÁÂÇ¥°ªÀº cos, sin
+
+	UPROPERTY(EditAnywhere, Category = Power)
+	float Power; //ÁÂÇ¥°ªÀº cos, sin
 protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Collision)
@@ -25,12 +30,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Mesh)
 	TObjectPtr<class USkeletalMeshComponent> Mesh;
-	
-	UPROPERTY(EditAnywhere,Category = Position)
-	float Radius; //ÁÂÇ¥°ªÀº cos, sin
-
-	UPROPERTY(EditAnywhere, Category = Power)
-	float Power; //ÁÂÇ¥°ªÀº cos, sin
 
 	UFUNCTION()
 	void OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);

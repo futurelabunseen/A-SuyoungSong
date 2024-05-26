@@ -5,6 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameData/QLWeaponStat.h"
+#include "Item/QLWeaponItemBox.h"
 #include "Physics/QLCollision.h"
 #include "QuadLand.h"
 
@@ -39,7 +40,6 @@ void AQLItemBox::InitPosition()
 		float YValue = Radius * FMath::Sin(Theta);
 
 		FVector TargetLoc(XValue, YValue, 0.0f); //¹æÇâ
-
 		Mesh->AddImpulse(TargetLoc * Power); //¹æÇâ * Èû
 	}
 }
@@ -47,10 +47,18 @@ void AQLItemBox::InitPosition()
 void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
 
-	Trigger->SetSimulatePhysics(false);
-	Mesh->SetSimulatePhysics(false);
+	if (HasAuthority())
+	{
+		Trigger->SetSimulatePhysics(false);
+		Mesh->SetSimulatePhysics(false);
 
-	Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
+		Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
 
-	QL_LOG(QLNetLog, Log, TEXT("?"));
+		AQLWeaponItemBox* WeaponBox = Cast<AQLWeaponItemBox>(this);
+
+		if (WeaponBox)
+		{
+			WeaponBox->SpawnBulletsAround();
+		}
+	}
 }

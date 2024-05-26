@@ -42,5 +42,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UStaticMesh> StaticMesh;
 
+	UPROPERTY()
+	TObjectPtr<class UMaterialInterface> Material;
 	FVector PreForward;
 };

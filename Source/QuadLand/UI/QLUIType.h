@@ -9,5 +9,6 @@ enum class EHUDType : uint8
 	Inventory,
 	Map,
 	DeathTimer,
-	Loading
+	Loading,
+	Blood
 };
