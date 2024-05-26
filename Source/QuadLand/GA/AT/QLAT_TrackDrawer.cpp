@@ -14,6 +14,12 @@
 #include "QuadLand.h"
 UQLAT_TrackDrawer::UQLAT_TrackDrawer()
 {
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DecalMaterialRef(TEXT("/Script/Engine.Material'/Engine/MapTemplates/Materials/BasicAsset01.BasicAsset01'"));
+
+	if (DecalMaterialRef.Object)
+	{
+		Material = DecalMaterialRef.Object;
+	}
 }
 
 
@@ -116,6 +122,7 @@ void UQLAT_TrackDrawer::Recursive()
 			USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(this, USplineMeshComponent::StaticClass());
 			SplineMeshComponent->SetForwardAxis(ESplineMeshAxis::Z);
 			SplineMeshComponent->SetStaticMesh(StaticMesh);
+			SplineMeshComponent->SetMaterial(0,Material);
 			SplineMeshComponent->SetMobility(EComponentMobility::Stationary);
 			SplineMeshComponent->CreationMethod = EComponentCreationMethod::UserConstructionScript;
 

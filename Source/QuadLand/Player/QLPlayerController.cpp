@@ -10,6 +10,7 @@
 #include "UI/QLUserWidget.h"
 #include "UI/QLInventory.h"
 #include "UI/QLMap.h"
+#include "UI/QLBloodWidget.h"
 #include "UI/QLDeathTimerWidget.h"
 #include "QuadLand.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
@@ -62,6 +63,34 @@ void AQLPlayerController::ActivateDeathTimer(float Time)
 	}
 	FTimerHandle StopTimer;
 	GetWorld()->GetTimerManager().SetTimer(StopTimer, this, &AQLPlayerController::StopDeathSec, Time, true, -1.0f);
+}
+
+void AQLPlayerController::BlinkBloodWidget()
+{
+	SetVisibilityHUD(EHUDType::Blood);
+	UQLBloodWidget* Widget = Cast<UQLBloodWidget>(HUDs[EHUDType::Blood]);
+
+	if (Widget)
+	{
+		Widget->BlinkWidget();
+	}
+	FTimerHandle CancelTimer;
+
+	GetWorld()->GetTimerManager().SetTimer(CancelTimer, this,&AQLPlayerController::CancelBloodWidget, 3.0f, false);
+
+}
+
+void AQLPlayerController::CancelBloodWidget()
+{
+	UQLBloodWidget* Widget = Cast<UQLBloodWidget>(HUDs[EHUDType::Blood]);
+
+	if (Widget)
+	{
+		Widget->CancelWidget();
+	}
+	SetHiddenHUD(EHUDType::Blood);
+
+	QL_LOG(QLNetLog, Warning, TEXT("Cancel"));
 }
 
 void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)
@@ -148,6 +177,7 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::Map);
 	SetHiddenHUD(EHUDType::DeathTimer);
 	SetHiddenHUD(EHUDType::Loading);
+	SetHiddenHUD(EHUDType::Blood);
 	//FInputModeUIOnly UIOnlyInputMode;
 	//SetInputMode(UIOnlyInputMode);
 	//HUD √ ±‚»≠

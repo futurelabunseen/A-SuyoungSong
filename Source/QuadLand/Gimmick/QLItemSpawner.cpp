@@ -40,10 +40,14 @@ void AQLItemSpawner::BeginPlay()
 				FActorSpawnParameters Params;
 				Params.Owner = this;
 				AQLItemBox* Item = GetWorld()->SpawnActor<AQLItemBox>(ItemBox.Key, Location, FRotator::ZeroRotator, Params);
+				Item->Radius = 100.0f;
+				Item->Power = 100.0f;
 				Item->InitPosition();
 			}
 		}
 	}
 	
+	QL_LOG(QLNetLog, Log, TEXT("aa"));
+
 	SetLifeSpan(10.0f);
 }

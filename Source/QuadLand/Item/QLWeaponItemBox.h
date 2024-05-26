@@ -14,11 +14,12 @@ class QUADLAND_API AQLWeaponItemBox : public AQLItemBox
 {
 	GENERATED_BODY()
 	
+public:
+
+	void SpawnBulletsAround();
 protected:
 	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AQLItemBox> AmmoClass;
-
-public:
-	virtual void OverlapCheck(); 
+ 
 };

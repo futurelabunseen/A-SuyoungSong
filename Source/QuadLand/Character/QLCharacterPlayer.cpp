@@ -342,7 +342,7 @@ void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 
 void AQLCharacterPlayer::ServerRPCFarming_Implementation()
 {
-	if (bPressedFarmingKey) return;
+	if (bPressedFarmingKey) return;	
 
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	FTimerHandle ItemMotionTimer;
@@ -707,9 +707,11 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 {
 	// Multicast 위치 or Server 위치하고 Replicated할지.. 
 	FVector Location = GetActorLocation();
+	Location.X -= 30.0f;
+	Location.Y -= 30.0f;
 	FActorSpawnParameters Params;
 	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GroundWeapon, Location, FRotator::ZeroRotator, Params);
-
+	
 	CurrentAttackType = ECharacterAttackType::HookAttack;
 
 	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
