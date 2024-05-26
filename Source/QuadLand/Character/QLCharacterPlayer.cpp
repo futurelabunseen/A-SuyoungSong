@@ -752,10 +752,11 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 	UQLItemData* ItemData = Cast<UQLItemData>(ItemInfo->Stat);
 
 	int32 ItemCnt = 1;
-	QLInventory->AddItem(ItemData->ItemType, ItemCnt);
+	QLInventory->AddItem(ItemData->ItemType, ItemCnt); //Server Cnt Increase
 
-	UE_LOG(LogTemp, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, ItemCnt);
-	QLInventory->ClientRPCAddItem(ItemData, ItemCnt);
+	QL_LOG(LogTemp, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, QLInventory->GetInventoryCnt(ItemData->ItemType));
+	QLInventory->ClientRPCAddItem(ItemData->ItemType, ItemCnt);
+
 	ItemInfo->SetLifeSpan(0.5f);
 }
 
@@ -764,13 +765,6 @@ void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranc
 	if (NotifyName == FName(TEXT("ThrowAnimNofity")))
 	{
 		bThrowBomb = true;
-	}
-
-	if (NotifyName == FName(TEXT("StopCrawlingSound")))
-	{
-		QL_LOG(QLLog, Log, TEXT("StopCrawlingSound"));
-
-		
 	}
 }
 
