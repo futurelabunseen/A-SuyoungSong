@@ -261,8 +261,8 @@ void UQLInputComponent::Look(const FInputActionValue& Value)
 
 	if (Character)
 	{
-		Character->AddControllerPitchInput(LookAxisVector.Y);
-		Character->AddControllerYawInput(LookAxisVector.X);
+		Character->AddControllerPitchInput(LookAxisVector.Y * 0.5f);
+		Character->AddControllerYawInput(LookAxisVector.X * 0.5f);
 	} 
 	
 }
@@ -287,21 +287,34 @@ void UQLInputComponent::PressedJump()
 		return;
 	}
 
+
+	if (Character->bIsProning)
+	{
+		PressedProne();
+		return;
+	}
+
 	if (Character->bIsCrouched)
 	{
 		CameraDownTimeline->ReverseFromEnd();
 		Character->UnCrouch();
+		return;
 	}
-	else
-	{
-		Character->Jump();
-	}
+
+	Character->Jump();
 }
 
 void UQLInputComponent::PressedCrouch()
 {
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 	if (Character == nullptr)
+	{
+		return;
+	}
+
+	UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(Character->GetMovementComponent());
+
+	if (Movement->IsFalling())
 	{
 		return;
 	}
@@ -318,6 +331,7 @@ void UQLInputComponent::PressedCrouch()
 	}
 	else
 	{
+		
 		CameraDownTimeline->Play();
 		Character->Crouch();
 		
@@ -334,11 +348,14 @@ void UQLInputComponent::PressedProne()
 
 	UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(Character->GetMovementComponent());
 
+	if (Movement->IsFalling())
+	{
+		return;
+	}
 	if (Character->bIsProning)
 	{
-		CameraDownTimeline->ReverseFromEnd();
 		Character->PlayAnimMontage(ToStand); //Stand
-
+		CameraDownTimeline->ReverseFromEnd();
 		FVector ActorLoc = Character->GetActorLocation();
 		ActorLoc.Z = 0.0f;
 		Character->SetActorLocation(ActorLoc);
@@ -361,12 +378,11 @@ void UQLInputComponent::PressedProne()
 	else
 	{
 		CameraDownTimeline->Play();
-		Character->PlayAnimMontage(ToProne); //Stand
 		if (Character->bIsCrouched)
 		{
 			Character->UnCrouch();
 		}
-		QL_SUBLOG(LogTemp, Warning, TEXT("1"));
+		Character->PlayAnimMontage(ToProne); //Stand
 		Movement->ChangeProneSpeedCommand();
 		FVector ActorLoc = Character->GetActorLocation();
 		ActorLoc.Z = 0.0f;
@@ -375,7 +391,6 @@ void UQLInputComponent::PressedProne()
 		FVector NewLoc(0.0f, 0.0f, -30.0f);
 		Character->GetMesh()->SetRelativeLocation(NewLoc);
 		Character->bIsProning = true;
-
 	}
 	
 	ServerRPCPressedProne();
@@ -411,7 +426,6 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 				NewLoc.Z = -90.f; 
 			}
 			Movement->RestoreProneSpeedCommand();
-			
 			Character->SetActorLocation(ActorLoc);
 			Character->CacheInitialMeshOffset(NewLoc, Character->GetMesh()->GetRelativeRotation());
 			Character->bIsProning = false;
@@ -585,16 +599,9 @@ void UQLInputComponent::SetInventory()
 		}
 	}
 
-#if ENABLE_DRAW_DEBUG
-	FColor Color = bResult ? FColor::Green : FColor::Red;
-	DrawDebugSphere(GetWorld(), SearchLocation, Character->SearchRange, 10.0f, Color, false, 5.0f);
-#endif
-	/*인벤토리가 켜지는 부분*/
-
 	FInputModeUIOnly UIOnlyInputMode;
 
 	PC->SetVisibilityHUD(EHUDType::Inventory);
-
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	PC->bShowMouseCursor = true;
 	PC->SetInputMode(UIOnlyInputMode);
