@@ -26,6 +26,8 @@ AQLItemBox::AQLItemBox() : Power(100.0f), Radius(100.0f)
 	OnActorHit.AddDynamic(this, &AQLItemBox::OnActorOverlap);
 	bReplicates = true;
 	SetReplicateMovement(true);
+
+	NetCullDistanceSquared = 4000000.0f;
 }
 
 void AQLItemBox::InitPosition()

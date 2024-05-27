@@ -116,20 +116,19 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 	if (QLPlayerState)
 	{
 		SetupStartAbilities();
-
-		AQLPlayerController* PC = Cast<AQLPlayerController>(NewController);
-
-		if (PC)
-		{
-			PC->CreateHUD();
-		}
 	}
 	InitializeAttributes();
 
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
+	
+	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
 
+	if (PlayerController)
+	{
+		PlayerController->CreateHUD();
+	}
 }
 
 //Client Only 
@@ -145,22 +144,29 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 		ASC->InitAbilityActorInfo(QLPlayerState, this);
 	}
 	InitializeAttributes();
-
-	AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
-	if (PC)
-	{
-		PC->CreateHUD();
-	}
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
 }
 
+void AQLCharacterPlayer::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+
+	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
+
+	if (PlayerController)
+	{
+		PlayerController->CreateHUD();
+	}
+}
+
+
 void AQLCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
 	if (PlayerController)
 	{
 		EnableInput(PlayerController);
@@ -192,7 +198,6 @@ void AQLCharacterPlayer::BeginPlay()
 
 	RecoilTimeline.AddInterpFloat(HorizontalRecoil, XRecoilCurve);
 	RecoilTimeline.AddInterpFloat(VerticalRecoil, YRecoilCurve);
-
 }
 
 void AQLCharacterPlayer::InitializeAttributes()
@@ -227,8 +232,8 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 void AQLCharacterPlayer::SetCharacterControl()
 {
 
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-
+	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
+	
 	if (PlayerController)
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* SubSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -241,7 +246,10 @@ void AQLCharacterPlayer::SetCharacterControl()
 				SubSystem->AddMappingContext(NewMappingContext, 0);
 			}
 		}
+
+		PlayerController->CreateHUD();
 	}
+
 }
 
 UAbilitySystemComponent* AQLCharacterPlayer::GetAbilitySystemComponent() const
@@ -426,6 +434,11 @@ FVector AQLCharacterPlayer::GetCameraForward()
 int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 {
 	return QLInventory->GetInventoryCnt(ItemType);
+}
+
+void AQLCharacterPlayer::SetMove()
+{
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 }
 
 FVector AQLCharacterPlayer::GetVelocity() const

@@ -30,7 +30,6 @@ void UQLGA_Run::ServerRPCStop_Implementation()
 void UQLGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	CommitAbility(Handle, ActorInfo, ActivationInfo); //CommitAbility 
 	
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
 	UQLCharacterMovementComponent* QLMovement = Cast< UQLCharacterMovementComponent>(Character->GetMovementComponent());

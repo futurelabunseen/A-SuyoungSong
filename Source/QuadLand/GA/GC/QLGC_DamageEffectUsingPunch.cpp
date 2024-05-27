@@ -17,11 +17,8 @@ UQLGC_DamageEffectUsingPunch::UQLGC_DamageEffectUsingPunch()
 bool UQLGC_DamageEffectUsingPunch::OnExecute_Implementation(AActor* Target, const FGameplayCueParameters& Parameters) const
 {
 
-	UE_LOG(LogTemp, Log, TEXT("1"));
 	if (Parameters.EffectContext.GetHitResult())
 	{
-
-		UE_LOG(LogTemp, Log, TEXT("2"));
 		UGameplayStatics::SpawnSoundAtLocation(Target, Sound, Parameters.Location, FRotator::ZeroRotator);
 
 	}

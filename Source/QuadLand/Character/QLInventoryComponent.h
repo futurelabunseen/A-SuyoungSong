@@ -22,7 +22,8 @@ public:
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item, Meta = (AllowPrivateAccess = "true"))
-	TMap<EItemType, int32> InventoryItem;
+	TMap<EItemType, int32> InventoryItem; //타입, 개수 
+	//TArray < struct- Type, int, UI 위치 >
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item, Meta = (AllowPrivateAccess = "true"))
 	TMap<EItemType, TObjectPtr<class UAnimMontage>> ItemMontage;
