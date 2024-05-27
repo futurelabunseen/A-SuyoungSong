@@ -52,6 +52,9 @@ public:
 	void BlinkBloodWidget();
 	void CancelBloodWidget();
 
+	UFUNCTION(BlueprintCallable)
+	void CloseInventroy();
+
 	void SwitchWeaponStyle(ECharacterAttackType AttackType);
 
 	FOnDeathCheckDelegate OnDeathCheckDelegate;

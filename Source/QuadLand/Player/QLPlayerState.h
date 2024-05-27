@@ -116,8 +116,6 @@ protected:
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastRPCUpdateStorageWidget(FName Nickname, class AQLLifestoneStorageBox* StorageBox);
 
-
-
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bHasLifeStone : 1;
 

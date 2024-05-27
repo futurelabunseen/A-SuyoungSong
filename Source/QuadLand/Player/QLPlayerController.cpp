@@ -35,13 +35,7 @@ void AQLPlayerController::SetVisibilityHUD(EHUDType UItype)
 }
 
 void AQLPlayerController::CloseHUD(EHUDType UItype)
-{
-	if (UItype == EHUDType::Inventory)
-	{
-		UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[UItype]);
-		InventoryUI->RemoveAllNearbyItemEntries(); //傈何 力芭
-	}
-	
+{	
 	FInputModeGameOnly GameOnlyInputMode;
 	SetHiddenHUD(UItype);
 	bShowMouseCursor = false;
@@ -90,7 +84,23 @@ void AQLPlayerController::CancelBloodWidget()
 	}
 	SetHiddenHUD(EHUDType::Blood);
 
-	QL_LOG(QLNetLog, Warning, TEXT("Cancel"));
+}
+
+void AQLPlayerController::CloseInventroy()
+{
+	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
+
+	if (InventoryUI)
+	{
+		InventoryUI->RemoveAllNearbyItemEntries(); //傈何 力芭
+		CloseHUD(EHUDType::Inventory);
+	}
+	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+
+	if (QLCharacter)
+	{
+		QLCharacter->SetMove();
+	}
 }
 
 void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)

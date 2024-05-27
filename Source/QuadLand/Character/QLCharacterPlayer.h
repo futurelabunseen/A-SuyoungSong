@@ -59,6 +59,7 @@ public:
 	 class UQLPunchAttackData* GetPunchAttackData() { return PunchAttackData; }
 
 	 virtual void OnRep_PlayerState() override;
+	 virtual void OnRep_Controller() override;
 
 	 virtual void Tick(float DeltaSeconds) override;
 	//Attack을 위한 카메라 위치 가져오기
@@ -78,7 +79,7 @@ public:
 	int GetInventoryCnt(EItemType ItemType);
 	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
 	FORCEINLINE void SetIsProning(bool IsProning) { bIsProning = IsProning; }
-
+	FORCEINLINE void SetMove();
 	FORCEINLINE ETurningPlaceType GetTurningInPlaceType() const { return TurningInPlace; }
 	FORCEINLINE const class UQLWeaponComponent* GetWeapon() const { return Weapon; }
 	FORCEINLINE float GetCurrnetYaw() { return CurrentYaw; }
