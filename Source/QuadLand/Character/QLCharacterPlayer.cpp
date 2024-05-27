@@ -181,10 +181,9 @@ void AQLCharacterPlayer::BeginPlay()
 		BombPath = NewObject<USplineComponent>(this, TEXT("BombPath"));
 		BombPath->SetupAttachment(GetMesh(), TEXT("Bomb"));
 		BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
-
-		GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AQLCharacterPlayer::OnPlayMontageNotifyBegin);
 	}
 
+	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AQLCharacterPlayer::OnPlayMontageNotifyBegin);
 
 	if (!HorizontalRecoil || !VerticalRecoil)
 	{
@@ -434,11 +433,6 @@ FVector AQLCharacterPlayer::GetCameraForward()
 int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 {
 	return QLInventory->GetInventoryCnt(ItemType);
-}
-
-void AQLCharacterPlayer::SetMove()
-{
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 }
 
 FVector AQLCharacterPlayer::GetVelocity() const
@@ -766,8 +760,6 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 
 	int32 ItemCnt = 1;
 	QLInventory->AddItem(ItemData->ItemType, ItemCnt); //Server Cnt Increase
-
-	QL_LOG(LogTemp, Warning, TEXT("Current Idx %s %d"), *ItemData->ItemName, QLInventory->GetInventoryCnt(ItemData->ItemType));
 	QLInventory->ClientRPCAddItem(ItemData->ItemType, ItemCnt);
 
 	ItemInfo->SetLifeSpan(0.5f);
@@ -775,9 +767,19 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 
 void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
 {
-	if (NotifyName == FName(TEXT("ThrowAnimNofity")))
+	if (IsLocallyControlled()&&NotifyName == FName(TEXT("ThrowAnimNofity")))
 	{
 		bThrowBomb = true;
+	}
+
+	if (NotifyName == FName(TEXT("StopProneMontage")))
+	{
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	}
+
+	if (NotifyName == FName(TEXT("StartProneMontage")))
+	{
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	}
 }
 

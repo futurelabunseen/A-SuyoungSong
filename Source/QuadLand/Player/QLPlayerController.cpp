@@ -95,12 +95,6 @@ void AQLPlayerController::CloseInventroy()
 		InventoryUI->RemoveAllNearbyItemEntries(); //전부 제거
 		CloseHUD(EHUDType::Inventory);
 	}
-	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
-
-	if (QLCharacter)
-	{
-		QLCharacter->SetMove();
-	}
 }
 
 void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)

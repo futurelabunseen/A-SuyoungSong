@@ -142,7 +142,6 @@ void UQLInventoryComponent::AddInventoryByDraggedItem(EItemType InItemId, int32 
 	}
 	//실제로 아이템이 있는지 검사하기 위해서 서버에게 요청해야함;
 	ServerRPCAddInventoryByDraggedItem(InItemId, InItemCnt);
-	QL_SUBLOG(QLNetLog, Warning, TEXT("AddItem %d"), InItemCnt);
 }
 
 void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EItemType ItemId, int32 ItemCnt)
@@ -158,8 +157,6 @@ void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EI
 	FVector SearchLocation = Character->GetMesh()->GetSocketLocation(FName("ItemDetectionSocket"));
 	//서버에서만 적용
 	FCollisionQueryParams Params(TEXT("DetectionItem"), false, Character);
-
-	UE_LOG(LogTemp, Warning, TEXT("Add Item %d"), ItemCnt);
 
 	TArray<FHitResult> NearbyItems;
 	//ItemDetectionSocket
@@ -216,20 +213,12 @@ void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EI
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Not Found, Rollback"), ItemCnt);
 		ClientRPCRollbackInventory(ItemId, ItemCnt);
 	}
-
-
-#if ENABLE_DRAW_DEBUG
-	FColor Color = bResult ? FColor::Green : FColor::Red;
-	DrawDebugSphere(GetWorld(), SearchLocation, Character->SearchRange, 10.0f, Color, false, 5.0f);
-#endif
 }
 
 void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AddGroundByDraggedItem %d"), ItemCnt);
 
 	if (!HasAuthority())
 	{
@@ -239,7 +228,6 @@ void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId, int32 ItemC
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("Error / is not valid %d"), ItemCnt);
 			return;
 		}
 	}
@@ -308,7 +296,6 @@ void UQLInventoryComponent::ServerRPCAddGroundByDraggedItem_Implementation(EItem
 			}
 			PS->BulletWaste(AmmoStatData->GetStat()); //땅에 버릴 때 
 		}
-		UE_LOG(LogTemp, Warning, TEXT("AddGroundByDraggedItem %d"), ItemCnt);
 		//	GroundItem->bReplicate
 	}
 }
