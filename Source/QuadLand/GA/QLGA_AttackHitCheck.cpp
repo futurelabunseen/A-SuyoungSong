@@ -56,23 +56,27 @@ void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataH
 			//FGameplayEventData Payload;
 			FGameplayTagContainer TargetTag(CHARACTER_ATTACK_TAKENDAMAGE);
 			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitResult.GetActor());
-			TargetASC->TryActivateAbilitiesByTag(TargetTag);
-
-			if (EffectSpecHandle.IsValid())
+			
+			if (TargetASC && SourceAttributeSet)
 			{
-				EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, SourceAttributeSet->GetAttackDamage());
-				ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
+				TargetASC->TryActivateAbilitiesByTag(TargetTag);
+
+				if (EffectSpecHandle.IsValid())
+				{
+					EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, SourceAttributeSet->GetAttackDamage());
+					ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
+				}
+
+				// CueContextHandle -> Params 감싸서 전달
+				FGameplayEffectContextHandle CueContextHandle = UAbilitySystemBlueprintLibrary::GetEffectContext(EffectSpecHandle);
+				CueContextHandle.AddHitResult(HitResult);
+				FGameplayCueParameters CueParam;
+				CueParam.Location = HitResult.Location;
+				CueParam.EffectContext = CueContextHandle;
+
+				//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
+				SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_CHARACTER_DAMAGEEFFECT, CueParam);
 			}
-
-			// CueContextHandle -> Params 감싸서 전달
-			FGameplayEffectContextHandle CueContextHandle = UAbilitySystemBlueprintLibrary::GetEffectContext(EffectSpecHandle);
-			CueContextHandle.AddHitResult(HitResult);
-			FGameplayCueParameters CueParam;
-			CueParam.Location = HitResult.Location;
-			CueParam.EffectContext = CueContextHandle;
-
-			//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
-			SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_CHARACTER_DAMAGEEFFECT, CueParam);
 		}
 
 	}
