@@ -10,7 +10,7 @@
 #include "QuadLand.h"
 
 // Sets default values
-AQLItemBox::AQLItemBox() : Power(100.0f), Radius(100.0f)
+AQLItemBox::AQLItemBox()
 {
 	Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
@@ -30,19 +30,38 @@ AQLItemBox::AQLItemBox() : Power(100.0f), Radius(100.0f)
 	NetCullDistanceSquared = 4000000.0f;
 }
 
-void AQLItemBox::InitPosition()
+void AQLItemBox::InitPosition(const FVector& Location)
 {
 	if (HasAuthority())
 	{
-		FVector StartLoc = Mesh->GetRelativeLocation();
+		FCollisionQueryParams CollisionParams(SCENE_QUERY_STAT(GroundCheckLineTrace), false, this); //식별자 
 
-		float Theta = FMath::FRandRange(-180.f, 180.0f);
+		FHitResult OutHitResult;
 
-		float XValue = Radius * FMath::Cos(Theta); 
-		float YValue = Radius * FMath::Sin(Theta);
+		FVector StartLocation = Location;
 
-		FVector TargetLoc(XValue, YValue, 0.0f); //방향
-		Mesh->AddImpulse(TargetLoc * Power); //방향 * 힘
+		FVector EndLocation = StartLocation + 150.0f * GetActorUpVector() * -1;
+		bool bResult = GetWorld()->LineTraceSingleByChannel(
+			OutHitResult,
+			StartLocation,
+			EndLocation,
+			CCHANNEL_QLGROUND,
+			CollisionParams
+		);
+
+		if (bResult)
+		{
+			OutHitResult.Location.Z += GetZPos();
+			SetActorLocation(OutHitResult.Location);
+		}
+
+		AQLWeaponItemBox* WeaponBox = Cast<AQLWeaponItemBox>(this);
+
+		if (WeaponBox)
+		{
+			WeaponBox->SpawnBulletsAround();
+		}
+
 	}
 }
 
@@ -53,19 +72,8 @@ float AQLItemBox::GetZPos()
 
 void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-
 	if (HasAuthority())
 	{
-		Trigger->SetSimulatePhysics(false);
 		Mesh->SetSimulatePhysics(false);
-
-		Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
-
-		AQLWeaponItemBox* WeaponBox = Cast<AQLWeaponItemBox>(this);
-
-		if (WeaponBox)
-		{
-			WeaponBox->SpawnBulletsAround();
-		}
 	}
 }

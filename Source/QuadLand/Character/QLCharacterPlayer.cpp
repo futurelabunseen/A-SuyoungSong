@@ -415,7 +415,6 @@ void AQLCharacterPlayer::GetAmmo(AQLItem* ItemInfo)
 {
 	UQLAmmoData* AmmoItem = Cast<UQLAmmoData>(ItemInfo->Stat);
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	QL_LOG(QLNetLog, Log, TEXT("Get Ammo"));
 	PS->SetAmmoStat(AmmoItem->AmmoCnt);
 	GetItem(ItemInfo);
 }
@@ -428,6 +427,11 @@ FVector AQLCharacterPlayer::CalPlayerLocalCameraStartPos()
 FVector AQLCharacterPlayer::GetCameraForward()
 {
 	return  Camera->GetForwardVector();
+}
+
+bool AQLCharacterPlayer::GetIsJumping()
+{
+	return GetCharacterMovement()->IsFalling();
 }
 
 int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
@@ -602,6 +606,7 @@ void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
 		{
 			InterpYaw = CurrentYaw;
 		}
+		bUseControllerRotationYaw = true;
 		TurnInPlace(DeltaTime);
 	}
 
@@ -609,6 +614,7 @@ void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
 	{
 		PreviousRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
 		CurrentYaw = 0.f;
+		bUseControllerRotationYaw = true;
 		TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
 	}
 }
@@ -619,21 +625,21 @@ void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 	//방향 외적 (+/-)
 
 
-	if (CurrentYaw > 55.0f)
+	if (CurrentYaw > 90.0f)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Right;
 	}
-	else if (CurrentYaw < -55.0f)
+	else if (CurrentYaw < -90.0f)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Left;
 	}
 	//Yaw<-90.0f ->왼쪽
 	if (TurningInPlace != ETurningPlaceType::ETIP_NotTurning)
 	{
-		InterpYaw = FMath::FInterpTo(InterpYaw, 0.f, DeltaTime, 6.f); //도는 각도를 보간하고 있구나?
+		InterpYaw = FMath::FInterpTo(InterpYaw, 0.f, DeltaTime, 4.f); //도는 각도를 보간하고 있구나?
 		CurrentYaw = InterpYaw;
 
-		if (FMath::Abs(CurrentYaw) < 5.0f) //어느정도 적당히 돌았음을 확인
+		if (FMath::Abs(CurrentYaw) < 15.0f) //어느정도 적당히 돌았음을 확인
 		{
 			TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
 			PreviousRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f); //Turn을 재조정
@@ -718,7 +724,8 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 	Location.Y -= 30.0f;
 	FActorSpawnParameters Params;
 	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GroundWeapon, Location, FRotator::ZeroRotator, Params);
-	
+	GroundItem->GetMesh()->SetSimulatePhysics(true);
+	GroundItem->GetMesh()->AddImpulse(GetActorForwardVector() * 10.0f);
 	CurrentAttackType = ECharacterAttackType::HookAttack;
 
 	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();

@@ -235,8 +235,7 @@ void UQLInputComponent::BeginPlay()
 	{
 		StandToProneTimeline->AddInterpFloat(ProneCurve, ProneDownCurve, FName{ TEXT("ProneDownTimeline") });
 	}
-	FOnTimelineFloat ProneUpCurve;
-	ProneUpCurve.BindUFunction(this, FName("ProneUpTimeline"));
+
 	ACharacter* Character = GetPawn<ACharacter>();
 	
 	if (Character)
@@ -538,7 +537,6 @@ void UQLInputComponent::Aim()
 
 	UAbilitySystemComponent *ASC = Character->GetAbilitySystemComponent();
 
-
 	if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_RUN))
 	{
 		return;
@@ -590,11 +588,17 @@ void UQLInputComponent::PutLifeStone()
 
 void UQLInputComponent::PutWeapon()
 {
+
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 	if (Character == nullptr)
 	{
 		return;
 	}
+	if (Character->bHasGun == false)
+	{
+		return;
+	}
+
 	if (HasAuthority())
 	{
 		Character->CurrentAttackType = ECharacterAttackType::HookAttack;

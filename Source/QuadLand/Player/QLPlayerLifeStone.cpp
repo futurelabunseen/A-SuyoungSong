@@ -19,7 +19,6 @@ AQLPlayerLifeStone::AQLPlayerLifeStone()
 	Mesh->SetWorldRotation(FRotator(-90.0f, 0.f, 0.f));
 
 	Mesh->SetCollisionProfileName(CPROFILE_QLPHYSICS);
-	Mesh->SetSimulatePhysics(true);
 	Mesh->SetupAttachment(Trigger);
 
 	static ConstructorHelpers::FObjectFinder<UMaterialInstance> MeterialMeshRef(TEXT("/Script/Engine.MaterialInstanceConstant'/Game/GemMaterial/Material/MI_Master_12.MI_Master_12'"));
@@ -46,8 +45,18 @@ AQLPlayerLifeStone::AQLPlayerLifeStone()
 		Stat = ItemTypeRef.Object;
 	}
 
+	OnActorHit.AddDynamic(this, &AQLPlayerLifeStone::OnActorOverlap);
 	bReplicates = true;
+	SetReplicateMovement(true);
 
+	NetCullDistanceSquared = 4000000.0f;
 }
 
 
+void AQLPlayerLifeStone::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (HasAuthority())
+	{
+		Mesh->SetSimulatePhysics(false);
+	}
+}

@@ -285,6 +285,7 @@ void UQLInventoryComponent::ServerRPCAddGroundByDraggedItem_Implementation(EItem
 		FActorSpawnParameters Params;
 		Params.Owner = Character;
 		AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(DataManager->GetItemBoxClass(ItemId), Location, FRotator::ZeroRotator, Params);
+		GroundItem->GetMesh()->SetSimulatePhysics(true);
 
 		if (ItemId == EItemType::Ammo)
 		{

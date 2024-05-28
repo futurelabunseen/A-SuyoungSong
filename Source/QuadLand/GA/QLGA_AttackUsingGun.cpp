@@ -36,14 +36,11 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		return;
 	}
 
-	QL_GASLOG(QLNetLog, Log, TEXT("Current"));
-
 	if (WeaponStat && WeaponStat->GetCurrentAmmo() <= 0.0f)
 	{
 		OnCompletedCallback();
 		return;
 	}
-
 
 	if (CameraShakeClass == nullptr)
 	{
@@ -52,14 +49,20 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 		return;
 	}
+	//총을 쏜다면 플레이어를 회전 시킨다.
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
+
+	if (Player->GetIsJumping())
+	{
+		OnCompletedCallback();
+		return;
+	}
 
 	if (IsLocallyControlled())
 	{
 		APlayerCameraManager* LocalCamera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
 		LocalCamera->StartCameraShake(CameraShakeClass);
 	}
-	
-	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
 
 	UAnimMontage* AnimMontageUsingGun = Player->GetAnimMontage();
 
@@ -100,10 +103,6 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
 		SourceASC->TryActivateAbilitiesByTag(TargetTag,false); //Attack_HITCHECK + EQUIP 
 	}
-
-	//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
-	//SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_CHARACTER_FIREEFFECT, CueParams);
-
 	AttackUsingGunMontage->ReadyForActivation();
 }
 

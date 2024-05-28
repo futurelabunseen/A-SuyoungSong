@@ -64,7 +64,6 @@ void UQLGA_AttackHitCheckUsingGun::OnCompletedCallback(const FGameplayAbilityTar
 
 				FGameplayTagContainer TargetTag(CHARACTER_ATTACK_TAKENDAMAGE);
 				TargetASC->TryActivateAbilitiesByTag(TargetTag);
-				QL_GASLOG(QLNetLog, Log, TEXT("Current Gun Section"));
 
 				//Hit 위치 판정 헤드샷일 때 +10 더해준다.
 				//타겟 액터의 본 위치를 가져온다
@@ -81,7 +80,6 @@ void UQLGA_AttackHitCheckUsingGun::OnCompletedCallback(const FGameplayAbilityTar
 					if (Distance < HeadDistThreshold)
 					{
 						Damage += 10.0f; //head 와 가까우면 데미지 +10
-						QL_GASLOG(QLNetLog, Warning, TEXT("headshot %lf damage %lf"), Distance, Damage);
 					}
 
 					EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, Damage);

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "Components/TimelineComponent.h"
 #include "QLGA_AttackUsingGun.generated.h"
 
 /**
@@ -25,8 +26,7 @@ public:
 	void OnCompletedCallback();
 	UFUNCTION()
 	void OnInterruptedCallback();
-
-
+	
 protected:
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<class UGameplayEffect> ReduceAmmoCntEffect;
@@ -36,4 +36,5 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "CameraShake")
 	TObjectPtr<class UCameraShakeBase> CamShake;
+
 };

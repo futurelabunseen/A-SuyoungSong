@@ -10,16 +10,10 @@
 // Sets default values
 AQLItemSpawner::AQLItemSpawner()
 {
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Stage"));
-	Mesh->Mobility = EComponentMobility::Static;
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshRef(TEXT("/Script/Engine.StaticMesh'/Engine/MapTemplates/SM_Template_Map_Floor.SM_Template_Map_Floor'"));
+	Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
+	Trigger->SetCollisionProfileName(TEXT("NoCollision"));
 
-	if (MeshRef.Object)
-	{
-		Mesh->SetStaticMesh(MeshRef.Object);
-	}
-
-	RootComponent = Mesh;
+	RootComponent = Trigger;
 }
 
 // Called when the game starts or when spawned
@@ -29,25 +23,34 @@ void AQLItemSpawner::BeginPlay()
 
 	if (HasAuthority()) //World 위치하기 때문에 Role로 체크
 	{
-		for (const auto& ItemBox : ItemBoxClass)
+		float MaxX = GetActorLocation().X + Trigger->GetScaledBoxExtent().X;
+		float MaxY = GetActorLocation().Y + Trigger->GetScaledBoxExtent().Y;
+
+		float MinX = GetActorLocation().X - Trigger->GetScaledBoxExtent().X;
+		float MinY = GetActorLocation().Y - Trigger->GetScaledBoxExtent().Y;
+		if (HasAuthority()) //World 위치하기 때문에 Role로 체크
 		{
-			int RandomCnt = FMath::RandRange(1.0f,ItemBox.Value); //int에 대해서 나오는 랜덤
-			
-			for (int Idx = 0; Idx < RandomCnt; Idx++)
+			for (const auto& ItemBox : ItemBoxClass)
 			{
-				FVector Location = GetActorLocation(); //Possessed Pawn Position
-				Location.Z = 100.0f;
-				FActorSpawnParameters Params;
-				Params.Owner = this;
-				AQLItemBox* Item = GetWorld()->SpawnActor<AQLItemBox>(ItemBox.Key, Location, FRotator::ZeroRotator, Params);
-				Item->Radius = 100.0f;
-				Item->Power = 100.0f;
-				Item->InitPosition();
+				int RandomCnt = FMath::RandRange(1.0f, ItemBox.Value); //int에 대해서 나오는 랜덤
+
+				for (int Idx = 0; Idx < RandomCnt; Idx++)
+				{
+					int X = FMath::RandRange(MinX, MaxX); //int에 대해서 나오는 랜덤
+					int Y = FMath::RandRange(MinY, MaxY);
+					FVector Location(X, Y, 100.0f); //Possessed Pawn Position
+					FActorSpawnParameters Params;
+					Params.Owner = this;
+
+					AQLItemBox* Item = GetWorld()->SpawnActor<AQLItemBox>(ItemBox.Key, Location, FRotator::ZeroRotator, Params);
+					Item->InitPosition(Location);
+				}
 			}
 		}
 	}
-	
-	QL_LOG(QLNetLog, Log, TEXT("aa"));
+}
 
+void AQLItemSpawner::MulticastRPCDestorySpawner_Implementation()
+{
 	SetLifeSpan(10.0f);
 }
