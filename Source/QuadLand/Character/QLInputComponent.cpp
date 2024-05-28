@@ -360,7 +360,6 @@ void UQLInputComponent::PressedCrouch()
 	{
 		CameraDownTimeline->Play();
 		Character->Crouch();
-
 		CrouchHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 		CrouchRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
 
@@ -412,17 +411,12 @@ void UQLInputComponent::PressedProne()
 		CameraDownTimeline->ReverseFromEnd();
 		Movement->RestoreProneSpeedCommand();
 
-		if (Character->bIsCrouched)
-		{
-			ProneRadius = CrouchRadius;
-			ProneHeight = CrouchHeight;
-			Character->Crouch();
-		}
-		else
+		if (!Character->bIsCrouched)
 		{
 			ProneRadius = StandRadius;
 			ProneHeight = StandHeight;
 		}
+	
 		Character->PlayAnimMontage(ToStand); //Stand
 		StandToProneTimeline->Reverse();
 		
@@ -467,17 +461,12 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 		{
 			Movement->RestoreProneSpeedCommand();
 
-			if (Character->bIsCrouched)
-			{
-				ProneRadius = CrouchRadius;
-				ProneHeight = CrouchHeight;
-				Character->Crouch();
-			}
-			else
+			if (!Character->bIsCrouched)
 			{
 				ProneRadius = StandRadius;
 				ProneHeight = StandHeight;
 			}
+
 			Character->PlayAnimMontage(ToStand); //Stand
 			StandToProneTimeline->Reverse();
 			

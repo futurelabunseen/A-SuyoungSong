@@ -46,6 +46,11 @@ void AQLItemBox::InitPosition()
 	}
 }
 
+float AQLItemBox::GetZPos()
+{
+	return Trigger->GetScaledBoxExtent().Z / 2.0f;
+}
+
 void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
 
