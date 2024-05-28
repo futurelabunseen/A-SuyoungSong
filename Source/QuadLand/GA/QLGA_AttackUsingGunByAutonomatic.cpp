@@ -58,7 +58,7 @@ void UQLGA_AttackUsingGunByAutonomatic::ActivateAbility(const FGameplayAbilitySp
 
 	if (AttackTimerHandle.IsValid() == false)
 	{
-		GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UQLGA_AttackUsingGunByAutonomatic::Attack, 0.1f, true);
+		GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UQLGA_AttackUsingGunByAutonomatic::Attack, 0.25f, true);
 	}
 
 }
@@ -89,10 +89,9 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 
 	float AnimSpeedRate = 1.5f;
 
-
 	if (AnimInstance->Montage_IsActive(AnimMontageUsingGun) == false)
 	{
-		AnimInstance->Montage_Play(AnimMontageUsingGun, 1.5f);
+		AnimInstance->Montage_Play(AnimMontageUsingGun, AnimSpeedRate);
 	}
 
 	if (IsLocallyControlled())
