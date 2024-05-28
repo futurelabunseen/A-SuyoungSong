@@ -8,3 +8,5 @@
 
 #define CCHANNEL_QLACTION ECC_GameTraceChannel1
 #define CCHANNEL_QLITEMACTION ECC_GameTraceChannel2
+
+#define CCHANNEL_QLGROUND ECC_GameTraceChannel4

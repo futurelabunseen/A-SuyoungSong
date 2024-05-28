@@ -149,6 +149,13 @@ UQLInputComponent::UQLInputComponent(const FObjectInitializer& ObjectInitializer
 	CameraDownTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("CameraDownTimeline"));
 	DownInterpFunction.BindUFunction(this, FName(TEXT("TimelineCameraUpDownFloatReturn")));
 
+	static ConstructorHelpers::FObjectFinder<UCurveFloat> ProneCurveRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/ProneCurve.ProneCurve'"));
+
+	if (ProneCurveRef.Object)
+	{
+		ProneCurve = ProneCurveRef.Object;
+	}
+	StandToProneTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("StandToProneTimeline"));
 }
 
 void UQLInputComponent::InitPlayerImputComponent(UInputComponent* InputComponent)
@@ -221,6 +228,26 @@ void UQLInputComponent::BeginPlay()
 	{
 		CameraDownTimeline->AddInterpFloat(CameraUpDownCurve, DownInterpFunction, FName{ TEXT("CameraDownAlpha") });
 	}
+	FOnTimelineFloat ProneDownCurve;
+	ProneDownCurve.BindUFunction(this, FName("ProneDownTimeline"));
+
+	if (ProneCurve)
+	{
+		StandToProneTimeline->AddInterpFloat(ProneCurve, ProneDownCurve, FName{ TEXT("ProneDownTimeline") });
+	}
+	FOnTimelineFloat ProneUpCurve;
+	ProneUpCurve.BindUFunction(this, FName("ProneUpTimeline"));
+	ACharacter* Character = GetPawn<ACharacter>();
+	
+	if (Character)
+	{
+		StartPosition = Character->GetMesh()->GetRelativeLocation();
+		TargetPosition = FVector(StartPosition.X, StartPosition.Y, -30.0f);
+		StandHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+		StandRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
+		ProneSize = 25.0f;
+	}
+
 }
 
 void UQLInputComponent::Move(const FInputActionValue& Value)
@@ -331,13 +358,40 @@ void UQLInputComponent::PressedCrouch()
 	}
 	else
 	{
-		
 		CameraDownTimeline->Play();
 		Character->Crouch();
-		
+
+		CrouchHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+		CrouchRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
+
 	}
 }
 
+void UQLInputComponent::ProneDownTimeline(float Value)
+{
+	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
+	if (Character == nullptr)
+	{
+		return;
+	}
+	FVector NewActorLoc = FMath::Lerp(StartLocation, TargetLocation, Value);
+	Character->SetActorLocation(NewActorLoc);
+	
+	FVector NewLoc = FMath::Lerp(StartPosition, TargetPosition, Value);
+	if (Character->IsLocallyControlled())
+	{
+		Character->GetMesh()->SetRelativeLocation(NewLoc);
+	}
+	else
+	{
+		Character->CacheInitialMeshOffset(NewLoc, Character->GetMesh()->GetRelativeRotation());
+	}
+	
+	float CapsuleHeight = FMath::Lerp(ProneHeight, ProneSize, Value);
+	float Radius = FMath::Lerp(ProneRadius, ProneSize, Value);
+
+	Character->GetCapsuleComponent()->SetCapsuleSize(Radius, CapsuleHeight);
+}
 void UQLInputComponent::PressedProne()
 {
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
@@ -352,44 +406,47 @@ void UQLInputComponent::PressedProne()
 	{
 		return;
 	}
+	
 	if (Character->bIsProning)
 	{
-		Character->PlayAnimMontage(ToStand); //Stand
 		CameraDownTimeline->ReverseFromEnd();
-		FVector ActorLoc = Character->GetActorLocation();
-		ActorLoc.Z = 0.0f;
-		Character->SetActorLocation(ActorLoc);
-		FVector NewLoc(0.0f, 0.0f, 0.0f);
+		Movement->RestoreProneSpeedCommand();
+
 		if (Character->bIsCrouched)
 		{
+			ProneRadius = CrouchRadius;
+			ProneHeight = CrouchHeight;
 			Character->Crouch();
-			Character->GetCapsuleComponent()->SetCapsuleHalfHeight(40.0f);
-			NewLoc.Z = -40.f;
 		}
 		else
 		{
-			Character->GetCapsuleComponent()->SetCapsuleHalfHeight(90.0f);
-			NewLoc.Z = -90.f;
+			ProneRadius = StandRadius;
+			ProneHeight = StandHeight;
 		}
-		Movement->RestoreProneSpeedCommand();
-		Character->GetMesh()->SetRelativeLocation(NewLoc);
+		Character->PlayAnimMontage(ToStand); //Stand
+		StandToProneTimeline->Reverse();
+		
 		Character->bIsProning = false;
 	}
 	else
 	{
 		CameraDownTimeline->Play();
+		Movement->ChangeProneSpeedCommand();
+
+		StartLocation = Character->GetActorLocation();
+		TargetLocation = Character->GetMesh()->GetSocketLocation(FName("ik_foot_rootSocket"));
+		
 		if (Character->bIsCrouched)
 		{
 			Character->UnCrouch();
 		}
+
 		Character->PlayAnimMontage(ToProne); //Stand
-		Movement->ChangeProneSpeedCommand();
-		FVector ActorLoc = Character->GetActorLocation();
-		ActorLoc.Z = 0.0f;
-		Character->SetActorLocation(ActorLoc);
-		Character->GetCapsuleComponent()->SetCapsuleHalfHeight(25.0f);
-		FVector NewLoc(0.0f, 0.0f, -30.0f);
-		Character->GetMesh()->SetRelativeLocation(NewLoc);
+		
+		StandToProneTimeline->Play();
+		ProneRadius = StandRadius;
+		ProneHeight = StandHeight;
+		
 		Character->bIsProning = true;
 	}
 	
@@ -406,47 +463,47 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 	if (!Character->IsLocallyControlled())
 	{
 		UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(Character->GetMovementComponent());
-
 		if (Character->bIsProning)
 		{
-			Character->PlayAnimMontage(ToStand); //Stand
+			Movement->RestoreProneSpeedCommand();
 
-			FVector ActorLoc = Character->GetActorLocation();
-			ActorLoc.Z = 0.0f;
-			FVector NewLoc(0.0f, 0.0f, 0.0f);
 			if (Character->bIsCrouched)
-			{ //ÃÊ±âÈ­ 
-				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(40.0f);
-				NewLoc.Z = -40.f;
+			{
+				ProneRadius = CrouchRadius;
+				ProneHeight = CrouchHeight;
 				Character->Crouch();
 			}
 			else
 			{
-				Character->GetCapsuleComponent()->SetCapsuleHalfHeight(90.0f);
-				NewLoc.Z = -90.f; 
+				ProneRadius = StandRadius;
+				ProneHeight = StandHeight;
 			}
-			Movement->RestoreProneSpeedCommand();
-			Character->SetActorLocation(ActorLoc);
-			Character->CacheInitialMeshOffset(NewLoc, Character->GetMesh()->GetRelativeRotation());
+			Character->PlayAnimMontage(ToStand); //Stand
+			StandToProneTimeline->Reverse();
+			
 			Character->bIsProning = false;
 			
 		}
 		else
 		{
 			Movement->ChangeProneSpeedCommand();
+
+			StartLocation = Character->GetActorLocation();
+			TargetLocation = Character->GetMesh()->GetSocketLocation(FName("ik_foot_rootSocket"));
+
 			if (Character->bIsCrouched)
 			{
 				Character->UnCrouch();
 			}
 			Character->PlayAnimMontage(ToProne); //Stand
-			FVector ActorLoc = Character->GetActorLocation();
-			ActorLoc.Z = 0.0f;
-			Character->SetActorLocation(ActorLoc);
-			Character->GetCapsuleComponent()->SetCapsuleHalfHeight(25.0f);
-			FVector NewLoc(0.0f, 0.0f, -30.0f);
-			Character->CacheInitialMeshOffset(NewLoc, Character->GetMesh()->GetRelativeRotation());
+			
+			StandToProneTimeline->Play();
+			ProneRadius = StandRadius;
+			ProneHeight = StandHeight;
 			Character->bIsProning = true;
+
 		}
+
 	}
 }
 
