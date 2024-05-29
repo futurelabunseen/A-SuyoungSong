@@ -261,8 +261,9 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	RotateBornSetting(DeltaSeconds);
 
+	RotateBornSetting(DeltaSeconds);
+	
 	if (RecoilTimeline.IsPlaying())
 	{
 		RecoilTimeline.TickTimeline(DeltaSeconds); //앞으로 진행
@@ -596,26 +597,39 @@ void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
 	float Speed = CalculateSpeed();
 	bool IsFalling = GetCharacterMovement()->IsFalling();
 
-	if (Speed == 0.f && !IsFalling)
+	if (bIsAiming == false)
 	{
-		//CurrentYaw 계산
-		FRotator CurrentRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
-		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentRotation, PreviousRotation);
-		CurrentYaw = DeltaAimRotation.Yaw;
-		if (TurningInPlace == ETurningPlaceType::ETIP_NotTurning)
+		if (Speed == 0.f && !IsFalling)
 		{
-			InterpYaw = CurrentYaw;
+			//CurrentYaw 계산
+			FRotator CurrentRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
+			FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentRotation, PreviousRotation);
+			CurrentYaw = DeltaAimRotation.Yaw;
+			if (TurningInPlace == ETurningPlaceType::ETIP_NotTurning)
+			{
+				InterpYaw = CurrentYaw;
+			}
+			bUseControllerRotationYaw = true;
+			TurnInPlace(DeltaTime);
 		}
-		bUseControllerRotationYaw = true;
-		TurnInPlace(DeltaTime);
+
+		if (Speed > 0.0f || IsFalling)
+		{
+			PreviousRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
+			CurrentYaw = 0.f;
+			bUseControllerRotationYaw = true;
+			TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
+		}
 	}
 
-	if (Speed > 0.0f || IsFalling)
+	CurrentPitch = GetBaseAimRotation().Pitch;
+
+	if (CurrentPitch > 90.f && !IsLocallyControlled())
 	{
-		PreviousRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
-		CurrentYaw = 0.f;
-		bUseControllerRotationYaw = true;
-		TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
+		FVector2D InRange(270.0f, 360.f);
+		FVector2D OutRange(-90.0f, 0.f);
+
+		CurrentPitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, CurrentPitch);
 	}
 }
 
@@ -623,7 +637,6 @@ void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 {
 	//현재 Yaw>90.0f ->오른쪽
 	//방향 외적 (+/-)
-
 
 	if (CurrentYaw > 90.0f)
 	{
@@ -633,6 +646,8 @@ void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Left;
 	}
+	 //Aim이 꺼져있을 때만 회전..!
+
 	//Yaw<-90.0f ->왼쪽
 	if (TurningInPlace != ETurningPlaceType::ETIP_NotTurning)
 	{

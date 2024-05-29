@@ -72,6 +72,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
 	float RootYawOffset;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	float PitchOffset;
+
 	/* Aim Offset*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsAiming : 1;
