@@ -14,6 +14,6 @@ void AQLWeaponItemBox::SpawnBulletsAround()
 		Params.Owner = this;
 		
 		AQLItemBox* ItemBox = GetWorld()->SpawnActor<AQLItemBox>(AmmoClass, Location, FRotator::ZeroRotator, Params);
-		ItemBox->InitPosition();
+		ItemBox->InitPosition(Location);
 	}
 }

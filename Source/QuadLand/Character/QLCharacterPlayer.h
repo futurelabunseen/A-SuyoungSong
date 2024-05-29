@@ -76,13 +76,14 @@ public:
 	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
 	FORCEINLINE bool GetPickup() const { return bPressedFarmingKey; }
 	FORCEINLINE bool GetIsProning() const { return bIsProning; }
+	FORCEINLINE bool GetIsJumping();
 	int GetInventoryCnt(EItemType ItemType);
 	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
 	FORCEINLINE void SetIsProning(bool IsProning) { bIsProning = IsProning; }
 	FORCEINLINE ETurningPlaceType GetTurningInPlaceType() const { return TurningInPlace; }
 	FORCEINLINE const class UQLWeaponComponent* GetWeapon() const { return Weapon; }
 	FORCEINLINE float GetCurrnetYaw() { return CurrentYaw; }
-
+	FORCEINLINE float GetCurrentPitch() { return CurrentPitch; }
 	UFUNCTION(Server, Unreliable)
 	void ServerRPCShooting(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
 	UFUNCTION(Server, Reliable)
@@ -157,6 +158,8 @@ protected:
 	float InterpYaw; //보간용도
 
 	float CurrentYaw;
+	float CurrentPitch;
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)

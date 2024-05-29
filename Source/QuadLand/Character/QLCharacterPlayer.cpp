@@ -122,13 +122,6 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
-	
-	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
-
-	if (PlayerController)
-	{
-		PlayerController->CreateHUD();
-	}
 }
 
 //Client Only 
@@ -261,8 +254,9 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	RotateBornSetting(DeltaSeconds);
 
+	RotateBornSetting(DeltaSeconds);
+	
 	if (RecoilTimeline.IsPlaying())
 	{
 		RecoilTimeline.TickTimeline(DeltaSeconds); //앞으로 진행
@@ -415,7 +409,6 @@ void AQLCharacterPlayer::GetAmmo(AQLItem* ItemInfo)
 {
 	UQLAmmoData* AmmoItem = Cast<UQLAmmoData>(ItemInfo->Stat);
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	QL_LOG(QLNetLog, Log, TEXT("Get Ammo"));
 	PS->SetAmmoStat(AmmoItem->AmmoCnt);
 	GetItem(ItemInfo);
 }
@@ -428,6 +421,11 @@ FVector AQLCharacterPlayer::CalPlayerLocalCameraStartPos()
 FVector AQLCharacterPlayer::GetCameraForward()
 {
 	return  Camera->GetForwardVector();
+}
+
+bool AQLCharacterPlayer::GetIsJumping()
+{
+	return GetCharacterMovement()->IsFalling();
 }
 
 int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
@@ -592,24 +590,39 @@ void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
 	float Speed = CalculateSpeed();
 	bool IsFalling = GetCharacterMovement()->IsFalling();
 
-	if (Speed == 0.f && !IsFalling)
+	if (bIsAiming == false)
 	{
-		//CurrentYaw 계산
-		FRotator CurrentRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
-		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentRotation, PreviousRotation);
-		CurrentYaw = DeltaAimRotation.Yaw;
-		if (TurningInPlace == ETurningPlaceType::ETIP_NotTurning)
+		if (Speed == 0.f && !IsFalling)
 		{
-			InterpYaw = CurrentYaw;
+			//CurrentYaw 계산
+			FRotator CurrentRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
+			FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentRotation, PreviousRotation);
+			CurrentYaw = DeltaAimRotation.Yaw;
+			if (TurningInPlace == ETurningPlaceType::ETIP_NotTurning)
+			{
+				InterpYaw = CurrentYaw;
+			}
+			bUseControllerRotationYaw = true;
+			TurnInPlace(DeltaTime);
 		}
-		TurnInPlace(DeltaTime);
+
+		if (Speed > 0.0f || IsFalling)
+		{
+			PreviousRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
+			CurrentYaw = 0.f;
+			bUseControllerRotationYaw = true;
+			TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
+		}
 	}
 
-	if (Speed > 0.0f || IsFalling)
+	CurrentPitch = GetBaseAimRotation().Pitch;
+
+	if (CurrentPitch > 90.f && !IsLocallyControlled())
 	{
-		PreviousRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
-		CurrentYaw = 0.f;
-		TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
+		FVector2D InRange(270.0f, 360.f);
+		FVector2D OutRange(-90.0f, 0.f);
+
+		CurrentPitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, CurrentPitch);
 	}
 }
 
@@ -618,22 +631,23 @@ void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
 	//현재 Yaw>90.0f ->오른쪽
 	//방향 외적 (+/-)
 
-
-	if (CurrentYaw > 55.0f)
+	if (CurrentYaw > 90.0f)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Right;
 	}
-	else if (CurrentYaw < -55.0f)
+	else if (CurrentYaw < -90.0f)
 	{
 		TurningInPlace = ETurningPlaceType::ETIP_Left;
 	}
+	 //Aim이 꺼져있을 때만 회전..!
+
 	//Yaw<-90.0f ->왼쪽
 	if (TurningInPlace != ETurningPlaceType::ETIP_NotTurning)
 	{
-		InterpYaw = FMath::FInterpTo(InterpYaw, 0.f, DeltaTime, 6.f); //도는 각도를 보간하고 있구나?
+		InterpYaw = FMath::FInterpTo(InterpYaw, 0.f, DeltaTime, 4.f); //도는 각도를 보간하고 있구나?
 		CurrentYaw = InterpYaw;
 
-		if (FMath::Abs(CurrentYaw) < 5.0f) //어느정도 적당히 돌았음을 확인
+		if (FMath::Abs(CurrentYaw) < 15.0f) //어느정도 적당히 돌았음을 확인
 		{
 			TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
 			PreviousRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f); //Turn을 재조정
@@ -718,7 +732,8 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 	Location.Y -= 30.0f;
 	FActorSpawnParameters Params;
 	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GroundWeapon, Location, FRotator::ZeroRotator, Params);
-	
+	GroundItem->GetMesh()->SetSimulatePhysics(true);
+	GroundItem->GetMesh()->AddImpulse(GetActorForwardVector() * 10.0f);
 	CurrentAttackType = ECharacterAttackType::HookAttack;
 
 	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
@@ -759,7 +774,11 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 	UQLItemData* ItemData = Cast<UQLItemData>(ItemInfo->Stat);
 
 	int32 ItemCnt = 1;
-	QLInventory->AddItem(ItemData->ItemType, ItemCnt); //Server Cnt Increase
+	
+	if (GetNetMode() != ENetMode::NM_ListenServer)
+	{
+		QLInventory->AddItem(ItemData->ItemType, ItemCnt); //Server Cnt Increase
+	}
 	QLInventory->ClientRPCAddItem(ItemData->ItemType, ItemCnt);
 
 	ItemInfo->SetLifeSpan(0.5f);

@@ -63,7 +63,6 @@ void UQLAT_TrackDrawer::OnDestroy(bool bInOwnerFinished)
 		BombPathMeshComp.Empty();
 	}
 	BombPath = nullptr;
-	UE_LOG(LogTemp, Warning, TEXT("Current? Bomb"));
 }
 
 

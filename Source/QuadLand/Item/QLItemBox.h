@@ -17,12 +17,9 @@ public:
 
 	class USkeletalMeshComponent* GetMesh() const { return Mesh; }
 
-	void InitPosition();
-	UPROPERTY(EditAnywhere, Category = Position)
-	float Radius; //ÁÂÇ¥°ªÀº cos, sin
+	void InitPosition(const FVector &Location);
+	float GetZPos();
 
-	UPROPERTY(EditAnywhere, Category = Power)
-	float Power; //ÁÂÇ¥°ªÀº cos, sin
 protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Collision)

@@ -30,12 +30,10 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo_Checked();
 	if (Source)
 	{
-		QL_GASLOG(QLNetLog, Log, TEXT("1"));
 		const UQLAS_WeaponStat* WeaponStat=Source->GetSet<UQLAS_WeaponStat>();
 		if (!WeaponStat || WeaponStat->GetMaxAmmoCnt() <= 0.0f)
 		{
 			OnCompletedCallback();
-			QL_GASLOG(QLNetLog, Log, TEXT("2"));
 			return;
 		}
 	//Reload 하는 애니메이션 동작 - Player
@@ -44,7 +42,6 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		ReloadMontage->OnCompleted.AddDynamic(this, &UQLGA_ReloadAmmo::OnCompletedCallback);
 		ReloadMontage->OnInterrupted.AddDynamic(this, &UQLGA_ReloadAmmo::OnInterruptedCallback);
 		ReloadMontage->ReadyForActivation();
-		QL_GASLOG(QLNetLog, Log, TEXT("1"));
 	//Reload 하는 애니메이션 동작 - Mesh
 
 	}
@@ -52,6 +49,7 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	if (IsLocallyControlled())
 	{
 		Player->ServerRPCReload();
+		//아마..여기서 오류가 날 수도 
 		Player->GetInventory()->ServerRPCRemoveItem(ItemType,Player->GetInventoryCnt(ItemType));
 	}
 }

@@ -21,10 +21,9 @@ UQLGA_AttackUsingGun::UQLGA_AttackUsingGun()
 void UQLGA_AttackUsingGun::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 }
-
-void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+bool UQLGA_AttackUsingGun::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, OUT FGameplayTagContainer* OptionalRelevantTags) const
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	bool Result = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 
 	//Ammo Cnt 개수를 체크한다 만약 0이라면, 어빌리티를 실행하지 않고 종료한다.
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
@@ -32,36 +31,43 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 	if (SourceASC->HasMatchingGameplayTag(CHARACTER_STATE_RUN))
 	{
-		OnCompletedCallback();
-		return;
+		return false;
 	}
-
-	QL_GASLOG(QLNetLog, Log, TEXT("Current"));
 
 	if (WeaponStat && WeaponStat->GetCurrentAmmo() <= 0.0f)
 	{
-		OnCompletedCallback();
-		return;
+		return false;
 	}
-
 
 	if (CameraShakeClass == nullptr)
 	{
-		bool bReplicateEndAbility = true;
-		bool bWasCancelled = true;
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
-		return;
+		return false;
 	}
+	//총을 쏜다면 플레이어를 회전 시킨다.
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
+
+	if (Player->GetIsJumping())
+	{
+		return false;
+	}
+
+	return Result;
+}
+
+void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+{
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	if (IsLocallyControlled())
 	{
 		APlayerCameraManager* LocalCamera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
 		LocalCamera->StartCameraShake(CameraShakeClass);
 	}
-	
-	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
 
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
 	UAnimMontage* AnimMontageUsingGun = Player->GetAnimMontage();
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
+	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
 
 	float AnimSpeedRate = 1.0f;
 
@@ -100,10 +106,6 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
 		SourceASC->TryActivateAbilitiesByTag(TargetTag,false); //Attack_HITCHECK + EQUIP 
 	}
-
-	//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
-	//SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_CHARACTER_FIREEFFECT, CueParams);
-
 	AttackUsingGunMontage->ReadyForActivation();
 }
 

@@ -14,6 +14,9 @@ class QUADLAND_API AQLPlayerLifeStone : public AQLItem
 public:	
 	// Sets default values for this actor's properties
 	AQLPlayerLifeStone();
+
+	class UStaticMeshComponent* GetMesh() const { return Mesh; }
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Mesh)
@@ -22,6 +25,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Mesh)
 	TObjectPtr<class USphereComponent> Trigger;
 
-	//UFUNCTION()
-	//void OnBeginOverllap(class UPrimitiveComponent *HitComp, class AActor *OtherActor, class UPrimitiveComponent *OtherComp, int32 OtherBodyIndex,bool bFromSweep, const FHitResult &SweepResult);
+	UFUNCTION()
+	void OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
+
 };

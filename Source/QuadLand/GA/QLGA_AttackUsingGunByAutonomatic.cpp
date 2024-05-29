@@ -14,6 +14,7 @@
 #include "GameplayTag/GamplayTags.h"
 #include "Animation/AnimInstance.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
+#include "Sound/SoundCue.h"
 #include "QuadLand.h"
 
 UQLGA_AttackUsingGunByAutonomatic::UQLGA_AttackUsingGunByAutonomatic()
@@ -38,13 +39,23 @@ bool UQLGA_AttackUsingGunByAutonomatic::CanActivateAbility(const FGameplayAbilit
 	{
 		return false;
 	}
+	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
 
 	if (WeaponStat && WeaponStat->GetCurrentAmmo() <= 0.0f)
 	{
+		if (Character)
+		{
+			UGameplayStatics::SpawnSoundAtLocation(this, EmptyAmmoSoundCue, Character->GetActorLocation(), FRotator::ZeroRotator);
+		}
 		return false;
 	}
 
 	if (CameraShakeClass == nullptr)
+	{
+		return false;
+	}
+
+	if (Character->GetIsJumping())
 	{
 		return false;
 	}
@@ -58,7 +69,7 @@ void UQLGA_AttackUsingGunByAutonomatic::ActivateAbility(const FGameplayAbilitySp
 
 	if (AttackTimerHandle.IsValid() == false)
 	{
-		GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UQLGA_AttackUsingGunByAutonomatic::Attack, 0.25f, true);
+		GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &UQLGA_AttackUsingGunByAutonomatic::Attack, 0.1f, true);
 	}
 
 }
@@ -73,8 +84,11 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 
 	if (WeaponStat && WeaponStat->GetCurrentAmmo() <= 0.0f)
 	{
+		UGameplayStatics::SpawnSoundAtLocation(this, EmptyAmmoSoundCue, Character->GetActorLocation(), FRotator::ZeroRotator);
+		QL_GASLOG(QLLog, Warning, TEXT("this???"));
 		if (IsLocallyControlled())
 		{
+			//ÂûÄ¬ ÂûÄ¬ ¼Ò¸®³ª±â
 			InputReleased(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
 		}
 		return;

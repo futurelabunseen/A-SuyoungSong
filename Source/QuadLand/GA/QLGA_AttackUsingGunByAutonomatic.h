@@ -33,6 +33,8 @@ protected:
 
 	FTimerHandle AttackTimerHandle;
 
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	TObjectPtr<class USoundCue> EmptyAmmoSoundCue;
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<class UGameplayEffect> ReduceAmmoCntEffect;

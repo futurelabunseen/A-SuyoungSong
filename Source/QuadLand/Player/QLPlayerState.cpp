@@ -7,6 +7,7 @@
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "Player/QLPlayerController.h"
 
+
 #include "AbilitySystemComponent.h"
 #include "GameplayTag/GamplayTags.h"
 #include "QuadLand.h"
@@ -256,11 +257,6 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation()
         Params
     );
 
-#if ENABLE_DRAW_DEBUG
-    FColor Color = bResult ? FColor::Green : FColor::Red;
-    DrawDebugSphere(GetWorld(), SearchLocation, SearchRange, 10.0f, Color, false, 5.0f);
-#endif
-
     if (bResult)
     {
         AQLLifestoneStorageBox* StorageBox = Cast<AQLLifestoneStorageBox>(NearbyItem.GetActor());
@@ -290,11 +286,11 @@ void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
 {
     if (bHasLifeStone)
     {
-        QL_LOG(QLNetLog, Log, TEXT("HasLifeStone"));
         FVector Location = GetPawn()->GetActorLocation(); //Possessed Pawn Position
         FActorSpawnParameters Params;
         Params.Owner = this;
         LifeStone = GetWorld()->SpawnActor<AQLPlayerLifeStone>(LifeStoneClass,Location, FRotator::ZeroRotator, Params);
+        LifeStone->GetMesh()->SetSimulatePhysics(true);
         bHasLifeStone = false;
     }
 }
