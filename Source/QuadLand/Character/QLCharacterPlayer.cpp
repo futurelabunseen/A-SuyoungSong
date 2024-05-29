@@ -122,13 +122,6 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
-	
-	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
-
-	if (PlayerController)
-	{
-		PlayerController->CreateHUD();
-	}
 }
 
 //Client Only 
@@ -781,7 +774,11 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 	UQLItemData* ItemData = Cast<UQLItemData>(ItemInfo->Stat);
 
 	int32 ItemCnt = 1;
-	QLInventory->AddItem(ItemData->ItemType, ItemCnt); //Server Cnt Increase
+	
+	if (GetNetMode() != ENetMode::NM_ListenServer)
+	{
+		QLInventory->AddItem(ItemData->ItemType, ItemCnt); //Server Cnt Increase
+	}
 	QLInventory->ClientRPCAddItem(ItemData->ItemType, ItemCnt);
 
 	ItemInfo->SetLifeSpan(0.5f);

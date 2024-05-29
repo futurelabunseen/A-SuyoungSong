@@ -33,15 +33,15 @@ void UQLAS_WeaponStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 
 	if (Data.EvaluatedData.Attribute == GetCurrentAmmoAttribute())
 	{
-		float RemainingCnt = GetMaxAmmoCnt() - GetAmmoCnt();
+		float RemainingCnt = GetMaxAmmoCnt() - FMath::Abs( GetCurrentAmmo() - GetAmmoCnt() ); // 25 - abs(20 - 25) => 20 변화..
 		//Ammo 개수가 음수 이면 리셋
-		UE_LOG(LogTemp, Log, TEXT("Current Ammo %lf"), GetAmmoCnt());
+		UE_LOG(LogTemp, Log, TEXT("Current Ammo %lf"), GetCurrentAmmo());
 		SetCurrentAmmo(FMath::Clamp(GetCurrentAmmo(), Minimum, Maximum));
 
 		//현재 태그가 Reload가 아니면 아래는 적용이 안되도록.
 		if (Data.Target.HasMatchingGameplayTag(CHARACTER_STATE_RELOAD))
 		{
-			UE_LOG(LogTemp, Log, TEXT("Reload"), GetAmmoCnt());
+			UE_LOG(LogTemp, Log, TEXT("Reload %lf"), RemainingCnt);
 
 			SetMaxAmmoCnt(FMath::Clamp(RemainingCnt, Minimum, Maximum));
 		}
