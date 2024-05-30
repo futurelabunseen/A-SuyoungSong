@@ -72,9 +72,9 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 		InputMappingContext = InputContextMappingRef.Object;
 	}
 	
-	//BombPath = CreateDefaultSubobject<USplineComponent>(TEXT("BombPath"));
-	//BombPath->SetupAttachment(GetMesh(),TEXT("head"));
-	//BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
+	BombPath = CreateDefaultSubobject<USplineComponent>(TEXT("BombPath"));
+	BombPath->SetupAttachment(GetMesh(),TEXT("head"));
+	BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
 
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::EquipWeapon)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::HasLifeStone)));
@@ -230,6 +230,7 @@ void AQLCharacterPlayer::SetCharacterControl()
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* SubSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
+
 			SubSystem->ClearAllMappings(); //모든 매핑 취소
 			UInputMappingContext* NewMappingContext = InputMappingContext;
 
@@ -421,6 +422,20 @@ FVector AQLCharacterPlayer::CalPlayerLocalCameraStartPos()
 FVector AQLCharacterPlayer::GetCameraForward()
 {
 	return  Camera->GetForwardVector();
+}
+
+void AQLCharacterPlayer::UpdateAmmoUI()
+{
+	if (IsLocallyControlled())
+	{
+		AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+		AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
+
+		UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+		UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
+		int32 ItemCnt = FMath::RoundToInt((PS->GetMaxAmmoCnt() + PS->GetCurrentAmmoCnt()) / PS->GetAmmoCnt());
+		PC->UpdateAmmoUI(ItemData, ItemCnt);
+	}
 }
 
 bool AQLCharacterPlayer::GetIsJumping()
@@ -775,10 +790,7 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 
 	int32 ItemCnt = 1;
 	
-	if (GetNetMode() != ENetMode::NM_ListenServer)
-	{
-		QLInventory->AddItem(ItemData->ItemType, ItemCnt); //Server Cnt Increase
-	}
+	QLInventory->AddItem(ItemData->ItemType, ItemCnt); //Server Cnt Increase
 	QLInventory->ClientRPCAddItem(ItemData->ItemType, ItemCnt);
 
 	ItemInfo->SetLifeSpan(0.5f);

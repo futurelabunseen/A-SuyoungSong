@@ -23,10 +23,6 @@ public:
 
 protected:
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
-	TMap<FGameplayTag,TObjectPtr<class UAnimMontage>> DamageMontage;
-	FGameplayTag Tag;
-
 	UFUNCTION()
 	void OnCompletedCallback();
 

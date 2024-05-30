@@ -16,6 +16,9 @@ class QUADLAND_API UQLInventory : public UUserWidget
 
 public:
 	UQLInventory(const FObjectInitializer& ObjectInitializer);
+
+	bool HasCurrentItem(UObject* Item);
+
 	void AddItem(UObject* Item);
 
 	UFUNCTION(BlueprintCallable)

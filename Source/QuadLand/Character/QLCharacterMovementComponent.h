@@ -6,9 +6,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "QLCharacterMovementComponent.generated.h"
 
-/**
- * 
- */
 
 class FQLSavedMove_Character : public FSavedMove_Character
 {
@@ -41,10 +38,9 @@ public:
 
 	void ChangeSprintSpeedCommand();
 	void RestoreSprintSpeedCommand();
-
 	void ChangeProneSpeedCommand();
-
 	void RestoreProneSpeedCommand();
+
 public:
 	uint8 bPressedProne : 1; //입력 전달
 
@@ -54,7 +50,6 @@ public:
 	float ProneMinSpeed;
 	UPROPERTY(EditAnywhere)
 	float SprintMaxSpeed;
-
 	UPROPERTY(EditAnywhere)
 	float SprintMinSpeed;
 

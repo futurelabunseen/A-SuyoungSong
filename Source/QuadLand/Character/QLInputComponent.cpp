@@ -299,7 +299,35 @@ void UQLInputComponent::FarmingItemPressed()
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 	if (Character)
 	{
-		Character->ServerRPCFarming();
+
+		//라인트레이스를 쏘아보고 없으면 return
+		FHitResult OutHitResult;
+
+		FVector CameraLocStart = Character->CalPlayerLocalCameraStartPos(); //카메라의 시작점 -> Spring Arm 만큼 앞으로 이동한 다음 물체가 있는지 확인
+		FVector LocEnd = CameraLocStart + (Character->GetCameraForward() * Character->FarmingTraceDist);
+
+		FCollisionQueryParams CollisionParams(SCENE_QUERY_STAT(CheckItemCollision) , false, Character); //식별자 
+
+		bool bResult =  GetWorld()->LineTraceSingleByChannel(
+			OutHitResult,
+			CameraLocStart,
+			LocEnd,
+			CCHANNEL_QLITEMACTION,
+			CollisionParams
+		);
+
+
+		AQLPlayerController* PC = GetController<AQLPlayerController>();
+
+		if (!PC)
+		{
+			return;
+		}
+
+		if (bResult)
+		{
+			Character->ServerRPCFarming();
+		}
 	}
 
 }
@@ -390,6 +418,7 @@ void UQLInputComponent::ProneDownTimeline(float Value)
 
 	Character->GetCapsuleComponent()->SetCapsuleSize(Radius, CapsuleHeight);
 }
+
 void UQLInputComponent::PressedProne()
 {
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
@@ -404,9 +433,13 @@ void UQLInputComponent::PressedProne()
 	{
 		return;
 	}
-	
+
+	StartLocation = Character->GetActorLocation();
+	TargetLocation = Character->GetMesh()->GetSocketLocation(FName("ik_foot_rootSocket"));
+
 	if (Character->bIsProning)
 	{
+		Character->PlayAnimMontage(ToStand); //Stand
 		CameraDownTimeline->ReverseFromEnd();
 		Movement->RestoreProneSpeedCommand();
 
@@ -416,29 +449,23 @@ void UQLInputComponent::PressedProne()
 			ProneHeight = StandHeight;
 		}
 	
-		Character->PlayAnimMontage(ToStand); //Stand
 		StandToProneTimeline->Reverse();
 		
 		Character->bIsProning = false;
 	}
 	else
 	{
+		Character->PlayAnimMontage(ToProne); //Stand
 		CameraDownTimeline->Play();
 		Movement->ChangeProneSpeedCommand();
-
-		StartLocation = Character->GetActorLocation();
-		TargetLocation = Character->GetMesh()->GetSocketLocation(FName("ik_foot_rootSocket"));
-		
 		if (Character->bIsCrouched)
 		{
 			Character->UnCrouch();
 		}
-
-		Character->PlayAnimMontage(ToProne); //Stand
-		
-		StandToProneTimeline->Play();
 		ProneRadius = StandRadius;
 		ProneHeight = StandHeight;
+
+		StandToProneTimeline->Play();
 		
 		Character->bIsProning = true;
 	}
@@ -456,8 +483,14 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 	if (!Character->IsLocallyControlled())
 	{
 		UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(Character->GetMovementComponent());
+
+		StartLocation = Character->GetActorLocation();
+		TargetLocation = Character->GetMesh()->GetSocketLocation(FName("ik_foot_rootSocket"));
+
 		if (Character->bIsProning)
 		{
+
+			Character->PlayAnimMontage(ToStand); //Stand
 			Movement->RestoreProneSpeedCommand();
 
 			if (!Character->bIsCrouched)
@@ -466,7 +499,6 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 				ProneHeight = StandHeight;
 			}
 
-			Character->PlayAnimMontage(ToStand); //Stand
 			StandToProneTimeline->Reverse();
 			
 			Character->bIsProning = false;
@@ -474,20 +506,19 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 		}
 		else
 		{
-			Movement->ChangeProneSpeedCommand();
 
-			StartLocation = Character->GetActorLocation();
-			TargetLocation = Character->GetMesh()->GetSocketLocation(FName("ik_foot_rootSocket"));
+			Character->PlayAnimMontage(ToProne); //Stand
+			Movement->ChangeProneSpeedCommand();
 
 			if (Character->bIsCrouched)
 			{
 				Character->UnCrouch();
 			}
-			Character->PlayAnimMontage(ToProne); //Stand
-			
-			StandToProneTimeline->Play();
+
 			ProneRadius = StandRadius;
 			ProneHeight = StandHeight;
+
+			StandToProneTimeline->Play();
 			Character->bIsProning = true;
 
 		}
@@ -648,9 +679,9 @@ void UQLInputComponent::SetInventory()
 			}
 		}
 	}
+	Character->UpdateAmmoUI();
 
 	FInputModeUIOnly UIOnlyInputMode;
-
 	PC->SetVisibilityHUD(EHUDType::Inventory);
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	PC->bShowMouseCursor = true;

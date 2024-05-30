@@ -75,7 +75,6 @@ void AQLGameMode::GameStart()
 		if (PC)
 		{
 			PC->ClientRPCGameStart();
-			QL_LOG(QLNetLog, Warning, TEXT("%s"), *PC->GetName());
 		}
 	}
 }

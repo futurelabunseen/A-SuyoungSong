@@ -117,11 +117,9 @@ void AQLPlayerController::ClientRPCGameStart_Implementation()
 
 void AQLPlayerController::ReduceDeathSec()
 {
-
 	UQLDeathTimerWidget* DeathTimerWidget = Cast<UQLDeathTimerWidget>(HUDs[EHUDType::DeathTimer]);
 	DeathTimerWidget->UpdateTimer(CurrentDeathSec);
 	CurrentDeathSec--;
-	QL_LOG(QLNetLog, Warning, TEXT("this? %d"), CurrentDeathSec);
 }
 
 void AQLPlayerController::StopDeathSec()
@@ -182,16 +180,23 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::DeathTimer);
 	SetHiddenHUD(EHUDType::Loading);
 	SetHiddenHUD(EHUDType::Blood);
-	//FInputModeUIOnly UIOnlyInputMode;
-	//SetInputMode(UIOnlyInputMode);
+
+//	FInputModeUIOnly UIOnlyInputMode;
+//	SetInputMode(UIOnlyInputMode);
 	//HUD √ ±‚»≠
 
 	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 	if (QLCharacter)
 	{
-		QL_LOG(QLNetLog, Warning, TEXT("Player is founded"));
 		QLCharacter->OnChangeShootingMethod.BindUObject(Widget, &UQLUserWidget::VisibleShootingMethodUI);
 	}
+}
+
+void AQLPlayerController::UpdateAmmoUI(UObject* Item,int32 UpdateItemCnt)
+{
+	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
+	InventoryUI->HasCurrentItem(Item);
+	
 }
 
 void AQLPlayerController::UpdateNearbyItemEntry(UObject* Item)

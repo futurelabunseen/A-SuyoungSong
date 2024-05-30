@@ -326,6 +326,11 @@ float AQLPlayerState::GetMaxAmmoCnt()
     return WeaponStatInfo->GetMaxAmmoCnt();
 }
 
+float AQLPlayerState::GetAmmoCnt()
+{
+    return WeaponStatInfo->GetAmmoCnt();
+}
+
 void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
 {
     bIsWin = !bIsWin;

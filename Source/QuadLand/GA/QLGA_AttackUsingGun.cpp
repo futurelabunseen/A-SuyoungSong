@@ -43,13 +43,6 @@ bool UQLGA_AttackUsingGun::CanActivateAbility(const FGameplayAbilitySpecHandle H
 	{
 		return false;
 	}
-	//총을 쏜다면 플레이어를 회전 시킨다.
-	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
-
-	if (Player->GetIsJumping())
-	{
-		return false;
-	}
 
 	return Result;
 }
@@ -57,6 +50,8 @@ bool UQLGA_AttackUsingGun::CanActivateAbility(const FGameplayAbilitySpecHandle H
 void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	//총을 쏜다면 플레이어를 회전 시킨다.
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
 
 	if (IsLocallyControlled())
 	{
@@ -64,7 +59,6 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		LocalCamera->StartCameraShake(CameraShakeClass);
 	}
 
-	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
 	UAnimMontage* AnimMontageUsingGun = Player->GetAnimMontage();
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
@@ -81,6 +75,7 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	{
 		if (WeaponStat->GetCurrentAmmo() <= 0.0f)
 		{
+			OnCompletedCallback();
 			return;
 		}
 		//클라이언트로부터 입력 들어옴 서버 호출

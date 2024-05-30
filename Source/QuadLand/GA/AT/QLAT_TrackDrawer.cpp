@@ -14,11 +14,11 @@
 #include "QuadLand.h"
 UQLAT_TrackDrawer::UQLAT_TrackDrawer()
 {
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DecalMaterialRef(TEXT("/Script/Engine.Material'/Engine/MapTemplates/Materials/BasicAsset01.BasicAsset01'"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MaterialRef(TEXT("/Script/Engine.Material'/Game/QuadLand/Blueprints/NoCollision/M_SplineMaterial0.M_SplineMaterial0'"));
 
-	if (DecalMaterialRef.Object)
+	if (MaterialRef.Object)
 	{
-		Material = DecalMaterialRef.Object;
+		Material = MaterialRef.Object;
 	}
 }
 
@@ -30,6 +30,8 @@ void UQLAT_TrackDrawer::Activate()
 	Character = Cast<AQLCharacterPlayer>(GetAvatarActor());
 	if (Character)
 	{
+		StaticMesh->SetMaterial(0, Material);
+
 		BombPath = Character->GetBombPath();
 		if (BombPathMeshComp.Num() > 0)
 		{
@@ -121,7 +123,6 @@ void UQLAT_TrackDrawer::Recursive()
 			USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(this, USplineMeshComponent::StaticClass());
 			SplineMeshComponent->SetForwardAxis(ESplineMeshAxis::Z);
 			SplineMeshComponent->SetStaticMesh(StaticMesh);
-			SplineMeshComponent->SetMaterial(0,Material);
 			SplineMeshComponent->SetMobility(EComponentMobility::Stationary);
 			SplineMeshComponent->CreationMethod = EComponentCreationMethod::UserConstructionScript;
 

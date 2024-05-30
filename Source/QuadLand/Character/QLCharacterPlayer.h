@@ -69,6 +69,7 @@ public:
 
 	//const class UQLWeaponStat* GetWeaponStat() const;
 
+	void UpdateAmmoUI();
 	FORCEINLINE bool GetHasGun() const { return bHasGun; }
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrouched; }
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
@@ -116,10 +117,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UQLInputComponent> QLInputComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UQLInventoryComponent> QLInventory;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPrivateAccess = "true"))
 	float SearchRange;
 
 	UFUNCTION(Server, Unreliable)
@@ -245,7 +246,7 @@ public:
 	
 protected:
 	
-	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Bomb, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USplineComponent> BombPath;
 
 	UPROPERTY()
