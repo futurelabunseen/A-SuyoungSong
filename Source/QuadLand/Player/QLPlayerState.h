@@ -41,6 +41,7 @@ public:
 	float GetMaxHealth();
 	float GetCurrentAmmoCnt();
 	float GetMaxAmmoCnt();
+	float GetAmmoCnt();
 
 	FORCEINLINE void SetHasLifeStone(bool InHasLifeStone) { bHasLifeStone = InHasLifeStone; }
 	FORCEINLINE bool GetHasLifeStone() { return bHasLifeStone; }

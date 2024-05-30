@@ -23,6 +23,12 @@ public:
 	void SwitchWeaponStyle(ECharacterAttackType AttackType);
 protected:
 
+	//UPROPERTY(BlueprintReadWrite, Transient, meta = (BindWidgetAnim))
+	//TObjectPtr<class UWidgetAnimation> WeaponFadeIn;
+
+	//UPROPERTY(BlueprintReadWrite, Transient, meta = (BindWidgetAnim))
+	//TObjectPtr<class UWidgetAnimation> BomnFadeIn;
+
 	FVector2D DeactivePunchScale;
 	FVector2D ActivePunchScale;
 

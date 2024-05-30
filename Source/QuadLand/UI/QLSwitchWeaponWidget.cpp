@@ -3,6 +3,7 @@
 
 #include "UI/QLSwitchWeaponWidget.h"
 #include "Components/Image.h"
+#include "Animation/WidgetAnimation.h"
 #include "QuadLand.h"
 
 UQLSwitchWeaponWidget::UQLSwitchWeaponWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), 

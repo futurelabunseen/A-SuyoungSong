@@ -18,18 +18,6 @@ UQLGA_TakenDamage::UQLGA_TakenDamage()
 void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
-	
-	if (SourceASC->HasMatchingGameplayTag(CHARACTER_EQUIP_NON))
-	{
-		Tag = CHARACTER_EQUIP_NON;
-	}
-	else
-	{
-		Tag = CHARACTER_EQUIP_GUNTYPEA;
-	}
-
 	ACharacter* Character = Cast< ACharacter>(ActorInfo->AvatarActor.Get());
 
 	AQLPlayerController* PC = Character->GetController<AQLPlayerController>();
@@ -39,20 +27,12 @@ void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		PC->BlinkBloodWidget();
 		QL_GASLOG(QLNetLog, Log, TEXT("this?"));
 	}
-
-	float AnimSpeedRate = 1.0f;
-	UAbilityTask_PlayMontageAndWait* AttackUsingPunchMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("TakenDamageActor"), DamageMontage[Tag], AnimSpeedRate);
-	AttackUsingPunchMontage->OnCompleted.AddDynamic(this, &UQLGA_TakenDamage::OnCompletedCallback);
-	AttackUsingPunchMontage->OnInterrupted.AddDynamic(this, &UQLGA_TakenDamage::OnInterruptedCallback);
-	AttackUsingPunchMontage->ReadyForActivation();
-
+	OnCompletedCallback();
 }
 
 void UQLGA_TakenDamage::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-	ACharacter* Character = Cast< ACharacter>(ActorInfo->AvatarActor.Get());
-	AQLPlayerController* PC = Character->GetController<AQLPlayerController>();
 }
 
 void UQLGA_TakenDamage::OnCompletedCallback()

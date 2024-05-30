@@ -54,6 +54,7 @@ void UQLCharacterMovementComponent::SpeedSetting()
 			MaxWalkSpeed = 150.0f;
 		}
 	}
+
 }
 
 void UQLCharacterMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity)
@@ -113,7 +114,6 @@ void FQLSavedMove_Character::SetInitialPosition(ACharacter* Character)
 	if (QLMovement)
 	{
 		bPressedSprint = QLMovement->bPressed;
-
 		bPressedProne = QLMovement->bPressedProne;
 	}
 

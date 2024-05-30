@@ -6,6 +6,8 @@
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffect.h"
 #include "GameplayTag/GamplayTags.h"
+#include "GameData/QLItemType.h"
+#include "Character/QLCharacterPlayer.h"
 #include "GameplayEffectAggregatorLibrary.h"
 
 //주먹의 경우 Default
@@ -21,32 +23,43 @@ void UQLAS_WeaponStat::PreAttributeChange(const FGameplayAttribute& Attribute, f
 		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
 		UE_LOG(LogTemp, Log, TEXT("NewValue %lf"), NewValue);
 	}
+
+	if (Attribute == GetCurrentAmmoAttribute())
+	{
+		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
+		UE_LOG(LogTemp, Log, TEXT("NewValue %lf"), NewValue);
+	}
+}
+
+bool UQLAS_WeaponStat::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
+{
+
+	float Minimum = 0.0f;
+	float Maximum = 1000.0f;
+	if (Data.Target.HasMatchingGameplayTag(CHARACTER_STATE_RELOAD))
+	{
+		float DeltaAmmo = GetAmmoCnt() - GetCurrentAmmo(); //25 - 17 => 8
+		float RemainingCnt = GetMaxAmmoCnt() - DeltaAmmo; // 5 - 8 => 20 변화..
+
+		RemainingCnt = (RemainingCnt >= 0.0f) ? RemainingCnt : 0.0f;
+		SetMaxAmmoCnt(FMath::Clamp(RemainingCnt, Minimum, Maximum));
+	}
+
+	return true;
 }
 
 void UQLAS_WeaponStat::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
-	float Minimum = 0.0f;
-	float Maximum = 1000.0f;
 	//실제 사용 CurrentAmmo = CurrentAmmo -1
 	// CurrentAmmo = GetAmmoCnt
 	// MaxAmmoCnt = MaxAmmoCnt - GetAmmoCnt
+		//현재 태그가 Reload가 아니면 아래는 적용이 안되도록.
 
 	if (Data.EvaluatedData.Attribute == GetCurrentAmmoAttribute())
 	{
-		float RemainingCnt = GetMaxAmmoCnt() - FMath::Abs( GetCurrentAmmo() - GetAmmoCnt() ); // 25 - abs(20 - 25) => 20 변화..
-		//Ammo 개수가 음수 이면 리셋
-		UE_LOG(LogTemp, Log, TEXT("Current Ammo %lf"), GetCurrentAmmo());
-		SetCurrentAmmo(FMath::Clamp(GetCurrentAmmo(), Minimum, Maximum));
-
-		//현재 태그가 Reload가 아니면 아래는 적용이 안되도록.
-		if (Data.Target.HasMatchingGameplayTag(CHARACTER_STATE_RELOAD))
-		{
-			UE_LOG(LogTemp, Log, TEXT("Reload %lf"), RemainingCnt);
-
-			SetMaxAmmoCnt(FMath::Clamp(RemainingCnt, Minimum, Maximum));
-		}
-		//Ammo 변경되어서 전달.. MaxAmmo - Ammo 
+		SetCurrentAmmo(FMath::Clamp(GetCurrentAmmo(), 0.0f, GetAmmoCnt()));
 	}
+	//Ammo 변경되어서 전달.. MaxAmmo - Ammo 
 }
 
 void UQLAS_WeaponStat::OnAttributeAggregatorCreated(const FGameplayAttribute& Attribute, FAggregator* NewAggregator) const

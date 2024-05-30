@@ -16,6 +16,25 @@ UQLInventory::UQLInventory(const FObjectInitializer& ObjectInitializer) : Super(
 	bIsFocusable = true;
 }
 
+bool UQLInventory::HasCurrentItem(UObject* Item)
+{
+	const TArray<UObject*> Items = ItemList->GetListItems();
+	UQLItemData* InItemInfo = Cast<UQLItemData>(Item);
+
+	for (const auto& Item : Items)
+	{
+		UQLItemData* Entry = Cast<UQLItemData>(Item);
+
+		if (Entry && Entry->ItemType == InItemInfo->ItemType)
+		{
+			ItemList->RegenerateAllEntries();
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void UQLInventory::AddItem(UObject* Item)
 {
 	ItemList->AddItem(Item);

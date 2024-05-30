@@ -13,11 +13,26 @@
 UQLGA_ReloadAmmo::UQLGA_ReloadAmmo() : ItemType(EItemType::Ammo)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	
 }
 
 void UQLGA_ReloadAmmo::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
+}
+
+bool UQLGA_ReloadAmmo::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, OUT FGameplayTagContainer* OptionalRelevantTags) const
+{
+	bool Result = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+	UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo_Checked();
+	const UQLAS_WeaponStat* WeaponStat = Source->GetSet<UQLAS_WeaponStat>();
+	if (!WeaponStat || WeaponStat->GetMaxAmmoCnt() <= 0.0f)
+	{
+		return false;
+	}
+	if (WeaponStat->GetCurrentAmmo() >= 25.0f)
+	{
+		return false;
+	}
+	return Result;
 }
 
 void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -28,14 +43,10 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	//Attribute Set 을 가져와서 GetSet으로 가져온데, Ammo 값이 만빵이면 EndAbility 종료한다. 
 	
 	UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo_Checked();
+
 	if (Source)
 	{
-		const UQLAS_WeaponStat* WeaponStat=Source->GetSet<UQLAS_WeaponStat>();
-		if (!WeaponStat || WeaponStat->GetMaxAmmoCnt() <= 0.0f)
-		{
-			OnCompletedCallback();
-			return;
-		}
+		
 	//Reload 하는 애니메이션 동작 - Player
 		float AnimSpeedRate = 1.0f;
 		UAbilityTask_PlayMontageAndWait* ReloadMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("ReloadMontage"), ReloadAnimMontage, AnimSpeedRate);
@@ -46,11 +57,10 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	}
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
-	if (IsLocallyControlled())
+	if (IsLocallyControlled()) //클라이언트에서 검사하기 때문에 이렇게..체크 근데 사실 RPC아니고 HasAuthority로 하게되면되는데...
 	{
 		Player->ServerRPCReload();
-		//아마..여기서 오류가 날 수도 
-		Player->GetInventory()->ServerRPCRemoveItem(ItemType,Player->GetInventoryCnt(ItemType));
+		//Player->GetInventory()->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType)); //( 현재 + 남은 총알 )/25 => 나머지값...! 
 	}
 }
 
@@ -67,8 +77,11 @@ void UQLGA_ReloadAmmo::OnCompletedCallback()
 	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReloadAmmoEffect);
 	if (WeaponStat->GetMaxAmmoCnt()>0.0f&&EffectSpecHandle.IsValid())
 	{
-		const float CurrentAmmoCnt = WeaponStat->GetAmmoCnt();
-		EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_AMMOCNT, CurrentAmmoCnt);
+		float CurrentAmmoCnt = CurrentAmmoCnt = WeaponStat->GetAmmoCnt() - WeaponStat->GetCurrentAmmo(); //25 - 25 - 0 -> 0..!?
+		
+		CurrentAmmoCnt = (CurrentAmmoCnt < WeaponStat->GetMaxAmmoCnt()) ? CurrentAmmoCnt : WeaponStat->GetMaxAmmoCnt();
+
+		EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_AMMOCNT, WeaponStat->GetCurrentAmmo() + CurrentAmmoCnt);
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
 	}
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());

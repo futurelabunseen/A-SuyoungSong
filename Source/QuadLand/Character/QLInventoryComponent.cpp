@@ -90,6 +90,8 @@ void UQLInventoryComponent::ServerRPCRemoveItem_Implementation(EItemType InItemI
 	{
 		return;
 	}
+	int32 ItemCnt = --InventoryItem[InItemId]; //하나 사용
+
 	if (ItemStat)
 	{
 		switch (InItemId)
@@ -107,8 +109,7 @@ void UQLInventoryComponent::ServerRPCRemoveItem_Implementation(EItemType InItemI
 			break;
 		}
 	}
-	int32 ItemCnt = --InventoryItem[InItemId]; //하나 사용
-
+	
 	UE_LOG(LogTemp, Warning, TEXT("item use %d %d"), InItemId, InventoryItem[InItemId]);
 
 	ClientRPCRemoveItem(InItemId, ItemCnt); //클라랑 서버랑 개수 일치
@@ -281,7 +282,6 @@ void UQLInventoryComponent::ServerRPCAddGroundByDraggedItem_Implementation(EItem
 	for (int i = 0; i < RemainingItemCnt; i++)
 	{
 		FVector Location = Character->GetActorLocation();
-		Location.X += 5.0f * i;
 		FActorSpawnParameters Params;
 		Params.Owner = Character;
 		AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(DataManager->GetItemBoxClass(ItemId), Location, FRotator::ZeroRotator, Params);
@@ -312,9 +312,11 @@ void UQLInventoryComponent::ClientRPCAddItem_Implementation(EItemType ItemId, in
 
 	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
 	UQLItemData* ItemData = DataManager->GetItem(ItemId);
-
-	ItemData->CurrentItemCnt = GetInventoryCnt(ItemId) + ItemCnt;
-	AddItem(ItemId, ItemCnt);
+	if (GetNetMode() == ENetMode::NM_Client)
+	{
+		ItemData->CurrentItemCnt = GetInventoryCnt(ItemId) + ItemCnt;
+		AddItem(ItemId, ItemCnt);
+	}
 	PC->UpdateItemEntry(ItemData, ItemData->CurrentItemCnt);
 }
 
