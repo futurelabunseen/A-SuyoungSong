@@ -29,6 +29,8 @@ void UQLSwitchWeaponWidget::NativeConstruct()
 		IMGBomb->SetRenderScale(DeactiveBombScale);
 	}
 
+	IMGBomb->SetVisibility(ESlateVisibility::Hidden);
+	IMGGun->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UQLSwitchWeaponWidget::SwitchWeaponStyle(ECharacterAttackType AttackType)
@@ -74,6 +76,30 @@ void UQLSwitchWeaponWidget::SwitchWeaponStyle(ECharacterAttackType AttackType)
 		IMGPunch->SetRenderScale(DeactivePunchScale);
 		UE_LOG(QLNetLog, Warning, TEXT("UQLSwitchWeaponWidget : Change Gun"));
 
+	}
+}
+
+void UQLSwitchWeaponWidget::UpdateEquipWeaponUI()
+{
+	if (IMGGun->IsVisible())
+	{
+		IMGGun->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else
+	{
+		IMGGun->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void UQLSwitchWeaponWidget::UpdateEquipBombUI()
+{
+	if (IMGBomb->IsVisible())
+	{
+		IMGBomb->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else
+	{
+		IMGBomb->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 

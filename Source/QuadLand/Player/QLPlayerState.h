@@ -85,7 +85,7 @@ protected:
 
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bIsDead : 1;
-
+			
 	//void SetHasLifeStone(bool InGetStone) { bHasLifeStone = true; }
 	//HUD Update Section
 protected:
@@ -111,7 +111,6 @@ protected:
 	virtual void OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data);
 //LifeStone Section
 protected:
-
 	void UpdateStorageWidget(FName Nickname, class AQLLifestoneStorageBox* StorageBox);
 
 	UFUNCTION(NetMulticast, Unreliable)
@@ -127,3 +126,7 @@ protected:
 	TSubclassOf<class AQLPlayerLifeStone> LifeStoneClass;
 	friend class AQLCharacterPlayer;
 };
+
+/*
+
+*/

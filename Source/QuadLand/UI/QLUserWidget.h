@@ -11,6 +11,7 @@
  * 
  */
 UCLASS()
+
 class QUADLAND_API UQLUserWidget : public UUserWidget
 {
 	GENERATED_BODY()
@@ -26,8 +27,17 @@ public:
 
 	void VisibleShootingMethodUI(bool bIsSemiAutomatic,bool Hidden);
 	void HiddenShootingMethodUI();
+
+	void BlinkBag();
+	void ConcealLifeStone();
+
+	void UpdateEquipWeaponUI();
+	void UpdateEquipBombUI();
+
 	FORCEINLINE class UQLPlayerHUDWidget* GetStatHUD() { return CharacterStat; }
 	FORCEINLINE class UQLPlayerHpBarWidget* GetHpHUD() { return HpBar; }
+
+
 protected:
 	virtual void NativeConstruct() override;
 	FTimerHandle HiddenTimer;
@@ -42,6 +52,15 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class UQLSwitchWeaponWidget> SwitchWeapon;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UImage> IMGContainer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UImage> IMGStone;
+
+	UPROPERTY(BlueprintReadWrite, Transient, meta = (BindWidgetAnim))
+	TObjectPtr<class UWidgetAnimation> Blink;
 
 	UPROPERTY()
 	TObjectPtr<class UTextBlock> TxtShootingMethod;

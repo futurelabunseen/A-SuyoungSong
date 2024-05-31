@@ -21,6 +21,8 @@ public:
 	virtual void NativeConstruct() override;
 
 	void SwitchWeaponStyle(ECharacterAttackType AttackType);
+	void UpdateEquipWeaponUI();
+	void UpdateEquipBombUI();
 protected:
 
 	//UPROPERTY(BlueprintReadWrite, Transient, meta = (BindWidgetAnim))
@@ -46,6 +48,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	TObjectPtr<class UImage> IMGBomb;
+
 	FLinearColor ActiveColor;
 	FLinearColor DiactiveColor;
 };

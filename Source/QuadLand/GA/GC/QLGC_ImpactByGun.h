@@ -14,4 +14,13 @@ class QUADLAND_API UQLGC_ImpactByGun : public UGameplayCueNotify_Static
 {
 	GENERATED_BODY()
 	
+public:
+	UQLGC_ImpactByGun();
+
+	virtual bool OnExecute_Implementation(AActor* Target, const FGameplayCueParameters& Parameters) const override;
+
+protected:
+
+	UPROPERTY(EditAnywhere, Category = "Trace")
+	TObjectPtr<class AActor> Trace;
 };

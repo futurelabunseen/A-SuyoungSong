@@ -9,6 +9,7 @@
 #include "Interface/QLGetItemStat.h"
 #include "GameData/QLItemData.h"
 #include "Physics/QLCollision.h"
+#include "UI/QLUserWidget.h"
 #include "Item/QLItemBox.h"
 #include "QuadLand.h"
 
@@ -109,9 +110,6 @@ void UQLInventoryComponent::ServerRPCRemoveItem_Implementation(EItemType InItemI
 			break;
 		}
 	}
-	
-	UE_LOG(LogTemp, Warning, TEXT("item use %d %d"), InItemId, InventoryItem[InItemId]);
-
 	ClientRPCRemoveItem(InItemId, ItemCnt); //클라랑 서버랑 개수 일치
 }
 
@@ -130,19 +128,35 @@ void UQLInventoryComponent::ClientRPCRemoveItem_Implementation(EItemType InItemI
 	InventoryItem[InItemId] = ItemCnt;
 	ItemData->CurrentItemCnt = ItemCnt;
 
+	if (InItemId == EItemType::Bomb && InventoryItem[InItemId] <= 0.0f)
+	{
+		PC->UpdateEquipBombUI();
+	}
 	PC->UpdateItemEntry(ItemData, ItemCnt);
-	UE_LOG(LogTemp, Warning, TEXT("update? %d %d"), ItemData->ItemType, InventoryItem[ItemData->ItemType]);
 }
 
 
 void UQLInventoryComponent::AddInventoryByDraggedItem(EItemType InItemId, int32 InItemCnt)
 {
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+
+	if (PC == nullptr)
+	{
+		return;
+	}
+
 	if (!HasAuthority())
 	{
 		AddItem(InItemId,InItemCnt);
 	}
 	//실제로 아이템이 있는지 검사하기 위해서 서버에게 요청해야함;
+	PC->BlinkBag();
 	ServerRPCAddInventoryByDraggedItem(InItemId, InItemCnt);
+
+	if (InItemId == EItemType::Bomb && GetInventoryCnt(InItemId) <= 1.0f)
+	{
+		PC->UpdateEquipBombUI();
+	}
 }
 
 void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EItemType ItemId, int32 ItemCnt)
@@ -318,6 +332,7 @@ void UQLInventoryComponent::ClientRPCAddItem_Implementation(EItemType ItemId, in
 		AddItem(ItemId, ItemCnt);
 	}
 	PC->UpdateItemEntry(ItemData, ItemData->CurrentItemCnt);
+	PC->BlinkBag();
 }
 
 void UQLInventoryComponent::ClientRPCRollbackInventory_Implementation(EItemType InItemId, int32 ItemCnt)

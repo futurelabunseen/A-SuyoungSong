@@ -69,7 +69,6 @@ void AQLPlayerState::BulletWaste(float DiscardedCount)
 
 void AQLPlayerState::SetWeaponStat(const UQLWeaponStat* Stat)
 {
-    //UAbilitySystemComponent *TargetASC = WeaponInfo->GetAbilitySystemComponent();
 
     if (HasAuthority()&& Stat && ASC)
     {
@@ -265,8 +264,6 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation()
         {
             if (bHasLifeStone)
             {
-                QL_LOG(QLNetLog, Log, TEXT("HasLifeStone"));
-
                 //이름을 전달해야하거든? 이것 또한, 같은 인터페이스를 사용
 
                 if (StorageBox->GetAlreadyHidden() == false)  //이미 숨겨져 있지 않다면, 연결
@@ -380,5 +377,6 @@ void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     DOREPLIFETIME(AQLPlayerState, bHasLifeStone);
 
 }
+
 
 

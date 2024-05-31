@@ -30,8 +30,6 @@ void UQLAT_TrackDrawer::Activate()
 	Character = Cast<AQLCharacterPlayer>(GetAvatarActor());
 	if (Character)
 	{
-		StaticMesh->SetMaterial(0, Material);
-
 		BombPath = Character->GetBombPath();
 		if (BombPathMeshComp.Num() > 0)
 		{
@@ -123,6 +121,7 @@ void UQLAT_TrackDrawer::Recursive()
 			USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(this, USplineMeshComponent::StaticClass());
 			SplineMeshComponent->SetForwardAxis(ESplineMeshAxis::Z);
 			SplineMeshComponent->SetStaticMesh(StaticMesh);
+			SplineMeshComponent->SetMaterial(0, Material);
 			SplineMeshComponent->SetMobility(EComponentMobility::Stationary);
 			SplineMeshComponent->CreationMethod = EComponentCreationMethod::UserConstructionScript;
 

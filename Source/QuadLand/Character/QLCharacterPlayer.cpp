@@ -443,6 +443,11 @@ bool AQLCharacterPlayer::GetIsJumping()
 	return GetCharacterMovement()->IsFalling();
 }
 
+FVector AQLCharacterPlayer::GetWeaponMuzzlePos()
+{
+	return Weapon->GetMuzzlePos();
+}
+
 int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 {
 	return QLInventory->GetInventoryCnt(ItemType);
