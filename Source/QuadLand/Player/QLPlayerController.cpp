@@ -17,6 +17,7 @@
 #include "Character/QLInventoryComponent.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "UI/QLDefeat.h"
 
 void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
 {
@@ -173,8 +174,16 @@ void AQLPlayerController::CreateHUD()
 	for (const auto &HUD : HUDClass)
 	{
 		UUserWidget *Widget = CreateWidget<UUserWidget>(this, HUD.Value);
+
 		Widget->AddToViewport();
 		Widget->SetVisibility(ESlateVisibility::Visible);
+		UQLDefeat* Defeat = Cast<UQLDefeat>(Widget);
+
+		if (Defeat)
+		{
+			Defeat->SetupDefeat();
+		}
+
 		HUDs.Add(HUD.Key, Widget);
 	}
 
@@ -190,10 +199,12 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::DeathTimer);
 	SetHiddenHUD(EHUDType::Loading);
 	SetHiddenHUD(EHUDType::Blood);
+	
 
-//	FInputModeUIOnly UIOnlyInputMode;
-//	SetInputMode(UIOnlyInputMode);
-	//HUD 초기화
+	/*FInputModeUIOnly UIOnlyInputMode;
+	SetInputMode(UIOnlyInputMode);
+	SetShowMouseCursor(true);
+	*///HUD 초기화
 
 	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 	if (QLCharacter)

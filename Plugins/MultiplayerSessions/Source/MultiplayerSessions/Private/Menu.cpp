@@ -145,6 +145,7 @@ void UMenu::OnDestroySession(bool bWasSuccessful)
 
 void UMenu::OnStartSession(bool bWasSuccessful)
 {
+
 }
 
 void UMenu::HostButtonClicked()

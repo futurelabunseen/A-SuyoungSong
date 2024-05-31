@@ -71,10 +71,6 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	{
 		InputMappingContext = InputContextMappingRef.Object;
 	}
-	
-	BombPath = CreateDefaultSubobject<USplineComponent>(TEXT("BombPath"));
-	BombPath->SetupAttachment(GetMesh(),TEXT("head"));
-	BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
 
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::EquipWeapon)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(this, &AQLCharacterPlayer::HasLifeStone)));

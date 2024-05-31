@@ -30,11 +30,20 @@ void AQLGameState::AddPlayerState(APlayerState* PlayerState)
 		QL_LOG(QLNetLog, Log, TEXT("[Iterator] : Current Player %s %d"), *PlayerStatus.Key.ToString(), PlayerStatus.Value);
 	}
 
-	AQLPlayerState* NewPlayerState = CastChecked<AQLPlayerState>(PlayerState);
-	UAbilitySystemComponent* ASC = NewPlayerState->GetAbilitySystemComponent();
+	AQLPlayerState* NewPlayerState = Cast<AQLPlayerState>(PlayerState);
+	if (NewPlayerState)
+	{
+		QL_LOG(QLNetLog, Log, TEXT("NewPlayerState Cast Checked"));
 
+		UAbilitySystemComponent* ASC = NewPlayerState->GetAbilitySystemComponent();
+		if (ASC)
+		{
+			ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLGameState::GetWinner);
+		}
+	
+	}
 	LivePlayerCount = PlayerArray.Num(); //현재 살아있는 플레이어 수 (추가될때마다 카운트)
-	ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLGameState::GetWinner);
+
 }
 
 
