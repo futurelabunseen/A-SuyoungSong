@@ -20,6 +20,7 @@ public:
 	const class USkeletalMeshComponent* GetWeaponMesh() const { return Weapon; }
 	void SpawnBomb();
 
+	FVector GetMuzzlePos();
 	void SetBombHiddenInGame(bool InHiddenInGame);
 	FOnDestoryBomb OnDestoryBomb;
 protected:

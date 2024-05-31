@@ -34,9 +34,14 @@ public:
 	void UpdateNearbyItemEntry(UObject* Item); //아이템이 생김 - Stat을 넘기자
 	void UpdateItemEntry(UObject* Item, int32 CurrentItemCnt);
 
+
+	void UpdateEquipWeaponUI();
+	void UpdateEquipBombUI();
+
 	void AddInventoryByDraggedItem(EItemType ItemIdx,int32 CurrentItemCnt);
 	void RemoveItemEntry(EItemType ItemIdx); //선택된 arr값 - id를 넘겨서 제거하자
 	void AddGroundByDraggedItem(EItemType ItemIdx, int32 CurrentItemCnt);
+	void ConcealLifeStone();
 
 	UFUNCTION(BlueprintCallable)
 	void CloseHUD(EHUDType UItype);
@@ -51,6 +56,8 @@ public:
 
 	void BlinkBloodWidget();
 	void CancelBloodWidget();
+
+	void BlinkBag();
 
 	UFUNCTION(BlueprintCallable)
 	void CloseInventroy();

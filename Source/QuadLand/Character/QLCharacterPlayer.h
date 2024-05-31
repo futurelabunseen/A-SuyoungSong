@@ -66,6 +66,7 @@ public:
 	FVector CalPlayerLocalCameraStartPos();
 	
 	FVector GetCameraForward();
+	FVector GetWeaponMuzzlePos();
 
 	//const class UQLWeaponStat* GetWeaponStat() const;
 

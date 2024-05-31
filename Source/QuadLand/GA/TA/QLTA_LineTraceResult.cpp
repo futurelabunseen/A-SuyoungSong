@@ -48,11 +48,6 @@ FGameplayAbilityTargetDataHandle AQLTA_LineTraceResult::MakeTargetData() const
 			DataHandle.Add(TargetData);
 		}
 
-	#if ENABLE_DRAW_DEBUG
-		FColor Color = bResult ? FColor::Green : FColor::Red;
-		DrawDebugLine(GetWorld(), CameraStartLocation, EndLocation, Color, false, 5.0f);
-	#endif
-
 		return DataHandle;
 
 }

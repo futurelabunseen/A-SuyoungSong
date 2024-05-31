@@ -11,6 +11,7 @@
  * 
  */
 UCLASS()
+
 class QUADLAND_API UQLInventoryComponent : public UPawnComponent
 {
 	GENERATED_BODY()

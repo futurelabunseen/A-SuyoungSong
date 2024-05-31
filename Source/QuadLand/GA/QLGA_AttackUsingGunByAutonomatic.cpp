@@ -115,9 +115,16 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 			ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
 		}
 	}
-
-	FGameplayCueParameters CueParams;
-	CueParams.SourceObject = Character;
+	//GAMEPLAYCUE_EFFECT_TRACEBYGUN
+	if (WeaponStat)
+	{
+		FGameplayCueParameters CueParams;
+		CueParams.Instigator = Character;
+		float Dist = WeaponStat->GetAttackDistance();
+		CueParams.Location = Character->CalPlayerLocalCameraStartPos() + Character->GetCameraForward() * Dist; //현재는 임시값 어트리뷰트 셋에서 가져올 예정
+		//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
+		SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_EFFECT_TRACEBYGUN, CueParams);
+	}
 	if (SourceASC)
 	{
 		//SourceASC->AddTag

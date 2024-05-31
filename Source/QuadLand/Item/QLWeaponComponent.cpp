@@ -47,6 +47,12 @@ void UQLWeaponComponent::SpawnBomb()
 	}
 }
 
+FVector UQLWeaponComponent::GetMuzzlePos()
+{
+	FVector TargetPos = Weapon->GetSocketLocation(TEXT("MuzzleFlash"));
+	return TargetPos;
+}
+
 void UQLWeaponComponent::SetBombHiddenInGame(bool InHiddenInGame)
 {
 	if (Bomb)

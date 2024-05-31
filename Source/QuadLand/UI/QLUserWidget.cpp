@@ -6,6 +6,8 @@
 #include "UI/QLPlayerHpBarWidget.h"
 #include "UI/QLPlayerHUDWidget.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
+
 #include "QuadLand.h"
 UQLUserWidget::UQLUserWidget(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -31,7 +33,6 @@ void UQLUserWidget::ChangedStaminaPercentage(float InStamina, float InMaxStamina
 
 void UQLUserWidget::SwitchWeaponStyle(ECharacterAttackType AttackType)
 {
-	UE_LOG(QLNetLog, Warning, TEXT("Current Attack Type %d"), AttackType);
 	SwitchWeapon->SwitchWeaponStyle(AttackType);
 }
 
@@ -66,6 +67,46 @@ void UQLUserWidget::HiddenShootingMethodUI()
 	TxtShootingMethod->SetVisibility(ESlateVisibility::Hidden);
 	HiddenTimer.Invalidate();
 }
+
+void UQLUserWidget::BlinkBag()
+{
+	if (IMGContainer)
+	{
+		PlayAnimation(Blink);
+	}
+}
+
+void UQLUserWidget::ConcealLifeStone()
+{
+	if (IMGStone)
+	{
+		if (IMGStone->IsVisible())
+		{
+			IMGStone->SetVisibility(ESlateVisibility::Hidden);
+		}
+		else
+		{
+			IMGStone->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+}
+
+void UQLUserWidget::UpdateEquipWeaponUI()
+{
+	if (SwitchWeapon)
+	{
+		SwitchWeapon->UpdateEquipWeaponUI();
+	}
+}
+
+void UQLUserWidget::UpdateEquipBombUI()
+{
+	if (SwitchWeapon)
+	{
+		SwitchWeapon->UpdateEquipBombUI();
+	}
+}
+
 
 void UQLUserWidget::ChangedAmmoCnt(float InAmmo)
 {

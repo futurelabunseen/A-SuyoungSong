@@ -86,6 +86,16 @@ void AQLPlayerController::CancelBloodWidget()
 
 }
 
+void AQLPlayerController::BlinkBag()
+{
+	UQLUserWidget* UserWidget = Cast< UQLUserWidget>(HUDs[EHUDType::HUD]);
+
+	if (UserWidget)
+	{
+		UserWidget->BlinkBag();
+	}
+}
+
 void AQLPlayerController::CloseInventroy()
 {
 	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
@@ -223,6 +233,26 @@ void AQLPlayerController::UpdateItemEntry(UObject* Item, int32 CurrentItemCnt)
 	}
 }
 
+void AQLPlayerController::UpdateEquipWeaponUI()
+{
+	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+	
+	if (UserWidget)
+	{
+		UserWidget->UpdateEquipWeaponUI();
+	}
+}
+
+void AQLPlayerController::UpdateEquipBombUI()
+{
+	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+
+	if (UserWidget)
+	{
+		UserWidget->UpdateEquipBombUI();
+	}
+}
+
 void AQLPlayerController::AddInventoryByDraggedItem(EItemType ItemIdx, int32 CurrentItemCnt)
 {
 	//PlayerÀü´Þ
@@ -257,5 +287,15 @@ void AQLPlayerController::AddGroundByDraggedItem(EItemType ItemIdx, int32 Curren
 	{
 		QL_LOG(QLNetLog, Warning, TEXT("Drop item %d"),CurrentItemCnt);
 		QLCharacter->GetInventory()->AddGroundByDraggedItem(ItemIdx, CurrentItemCnt);
+	}
+}
+
+void AQLPlayerController::ConcealLifeStone()
+{
+	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+
+	if (UserWidget)
+	{
+		UserWidget->ConcealLifeStone();
 	}
 }

@@ -324,8 +324,30 @@ void UQLInputComponent::FarmingItemPressed()
 			return;
 		}
 
+		AQLItem* Item = Cast<AQLItem>(OutHitResult.GetActor());
+		if (Item == nullptr || Item->Stat == nullptr)
+		{
+			return;
+		}
+		
 		if (bResult)
 		{
+
+			if (Item->Stat->ItemType == EItemType::Stone)
+			{
+				PC->ConcealLifeStone();
+			}
+
+			if (Item->Stat->ItemType == EItemType::Weapon)
+			{
+				PC->UpdateEquipWeaponUI();
+			}
+
+			if (Item->Stat->ItemType == EItemType::Bomb)
+			{
+				PC->UpdateEquipBombUI();
+			}
+
 			Character->ServerRPCFarming();
 		}
 	}
@@ -605,6 +627,13 @@ void UQLInputComponent::PutLifeStone()
 	{
 		return;
 	}
+	AQLPlayerController* PC = GetController<AQLPlayerController>(); //소유권은 PC가 가짐
+
+	if (PC && PS->GetHasLifeStone())
+	{
+		PC->ConcealLifeStone();
+	}
+
 	if (Character->bIsNearbyBox)
 	{
 		PS->ServerRPCConcealLifeStone();
@@ -621,7 +650,8 @@ void UQLInputComponent::PutWeapon()
 {
 
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
-	if (Character == nullptr)
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+	if (Character == nullptr || PC == nullptr)
 	{
 		return;
 	}
@@ -634,6 +664,8 @@ void UQLInputComponent::PutWeapon()
 	{
 		Character->CurrentAttackType = ECharacterAttackType::HookAttack;
 	}
+
+	PC->UpdateEquipWeaponUI();
 	Character->ServerRPCPuttingWeapon();
 }
 
