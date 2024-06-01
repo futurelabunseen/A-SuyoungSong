@@ -155,13 +155,6 @@ UQLInputComponent::UQLInputComponent(const FObjectInitializer& ObjectInitializer
 	CameraDownTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("CameraDownTimeline"));
 	DownInterpFunction.BindUFunction(this, FName(TEXT("TimelineCameraUpDownFloatReturn")));
 
-	static ConstructorHelpers::FObjectFinder<UCurveFloat> ProneCurveRef(TEXT("/Script/Engine.CurveFloat'/Game/QuadLand/Curve/ProneCurve.ProneCurve'"));
-
-	if (ProneCurveRef.Object)
-	{
-		ProneCurve = ProneCurveRef.Object;
-	}
-	StandToProneTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("StandToProneTimeline"));
 }
 
 void UQLInputComponent::InitPlayerImputComponent(UInputComponent* InputComponent)
@@ -182,7 +175,7 @@ void UQLInputComponent::InitPlayerImputComponent(UInputComponent* InputComponent
 
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &UQLInputComponent::PressedCrouch);
 
-		EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Triggered, this, &UQLInputComponent::ShowMenuUI);
+		EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Started, this, &UQLInputComponent::ShowMenuUI);
 
 		EnhancedInputComponent->BindAction(ProneAction, ETriggerEvent::Completed, this, &UQLInputComponent::PressedProne);
 
@@ -236,25 +229,6 @@ void UQLInputComponent::BeginPlay()
 	{
 		CameraDownTimeline->AddInterpFloat(CameraUpDownCurve, DownInterpFunction, FName{ TEXT("CameraDownAlpha") });
 	}
-	FOnTimelineFloat ProneDownCurve;
-	ProneDownCurve.BindUFunction(this, FName("ProneDownTimeline"));
-
-	if (ProneCurve)
-	{
-		StandToProneTimeline->AddInterpFloat(ProneCurve, ProneDownCurve, FName{ TEXT("ProneDownTimeline") });
-	}
-
-	ACharacter* Character = GetPawn<ACharacter>();
-	
-	if (Character)
-	{
-		StartPosition = Character->GetMesh()->GetRelativeLocation();
-		TargetPosition = FVector(StartPosition.X, StartPosition.Y, -30.0f);
-		StandHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-		StandRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
-		ProneSize = 25.0f;
-	}
-
 }
 
 void UQLInputComponent::Move(const FInputActionValue& Value)
@@ -395,7 +369,7 @@ void UQLInputComponent::PressedCrouch()
 	{
 		return;
 	}
-
+	//현재 문제 Crouch -> Prone 
 	UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(Character->GetMovementComponent());
 
 	if (Movement->IsFalling())
@@ -403,12 +377,12 @@ void UQLInputComponent::PressedCrouch()
 		return;
 	}
 
-	if (Character->bIsProning)
+	if (Character->bIsProning) //엎드려있는데 Crouch
 	{
 		PressedProne();
 	}
 
-	if (Character->bIsCrouched)
+	if (Character->bIsCrouched) //현재 Cro
 	{
 		CameraDownTimeline->ReverseFromEnd();
 		Character->UnCrouch();
@@ -417,36 +391,7 @@ void UQLInputComponent::PressedCrouch()
 	{
 		CameraDownTimeline->Play();
 		Character->Crouch();
-		CrouchHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-		CrouchRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
-
 	}
-}
-
-void UQLInputComponent::ProneDownTimeline(float Value)
-{
-	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
-	if (Character == nullptr)
-	{
-		return;
-	}
-	FVector NewActorLoc = FMath::Lerp(StartLocation, TargetLocation, Value);
-	Character->SetActorLocation(NewActorLoc);
-	
-	FVector NewLoc = FMath::Lerp(StartPosition, TargetPosition, Value);
-	if (Character->IsLocallyControlled())
-	{
-		Character->GetMesh()->SetRelativeLocation(NewLoc);
-	}
-	else
-	{
-		Character->CacheInitialMeshOffset(NewLoc, Character->GetMesh()->GetRelativeRotation());
-	}
-	
-	float CapsuleHeight = FMath::Lerp(ProneHeight, ProneSize, Value);
-	float Radius = FMath::Lerp(ProneRadius, ProneSize, Value);
-
-	Character->GetCapsuleComponent()->SetCapsuleSize(Radius, CapsuleHeight);
 }
 
 void UQLInputComponent::PressedProne()
@@ -464,39 +409,18 @@ void UQLInputComponent::PressedProne()
 		return;
 	}
 
-	StartLocation = Character->GetActorLocation();
-	TargetLocation = Character->GetMesh()->GetSocketLocation(FName("ik_foot_rootSocket"));
-
 	if (Character->bIsProning)
 	{
 		Character->PlayAnimMontage(ToStand); //Stand
-		CameraDownTimeline->ReverseFromEnd();
-		Movement->RestoreProneSpeedCommand();
-
-		if (!Character->bIsCrouched)
-		{
-			ProneRadius = StandRadius;
-			ProneHeight = StandHeight;
-		}
-	
-		StandToProneTimeline->Reverse();
-		
 		Character->bIsProning = false;
 	}
 	else
 	{
-		Character->PlayAnimMontage(ToProne); //Stand
-		CameraDownTimeline->Play();
-		Movement->ChangeProneSpeedCommand();
 		if (Character->bIsCrouched)
 		{
 			Character->UnCrouch();
 		}
-		ProneRadius = StandRadius;
-		ProneHeight = StandHeight;
-
-		StandToProneTimeline->Play();
-		
+		Character->PlayAnimMontage(ToProne);
 		Character->bIsProning = true;
 	}
 	
@@ -512,47 +436,20 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 	}
 	if (!Character->IsLocallyControlled())
 	{
-		UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(Character->GetMovementComponent());
-
-		StartLocation = Character->GetActorLocation();
-		TargetLocation = Character->GetMesh()->GetSocketLocation(FName("ik_foot_rootSocket"));
-
 		if (Character->bIsProning)
 		{
-
 			Character->PlayAnimMontage(ToStand); //Stand
-			Movement->RestoreProneSpeedCommand();
-
-			if (!Character->bIsCrouched)
-			{
-				ProneRadius = StandRadius;
-				ProneHeight = StandHeight;
-			}
-
-			StandToProneTimeline->Reverse();
-			
 			Character->bIsProning = false;
-			
 		}
 		else
 		{
-
-			Character->PlayAnimMontage(ToProne); //Stand
-			Movement->ChangeProneSpeedCommand();
-
 			if (Character->bIsCrouched)
 			{
 				Character->UnCrouch();
 			}
-
-			ProneRadius = StandRadius;
-			ProneHeight = StandHeight;
-
-			StandToProneTimeline->Play();
+			Character->PlayAnimMontage(ToProne);
 			Character->bIsProning = true;
-
 		}
-
 	}
 }
 
@@ -938,15 +835,15 @@ void UQLInputComponent::ShowMenuUI()
 		PC->SetInputMode(UIOnlyInputMode);
 		PC->SetShowMouseCursor(true);
 		PC->SetVisibilityHUD(EHUDType::Menu);
-		bShowMenuUI = true;
 	}
 	else
 	{
 		PC->CloseHUD(EHUDType::Menu);
 		PC->SetHiddenHUD(EHUDType::Menu);
-		bShowMenuUI = false;
 	}
+	bShowMenuUI = !bShowMenuUI;
 
+	QL_SUBLOG(QLLog, Warning, TEXT("!!!!! %d"), bShowMenuUI);
 }
 
 void UQLInputComponent::SetShowMenuUI()

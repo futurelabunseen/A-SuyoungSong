@@ -14,6 +14,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Abilities/GameplayAbility.h"
 #include "Components/SplineComponent.h"
+#include "Components/CapsuleComponent.h"
 
 #include "GameplayTag/GamplayTags.h"
 #include "Item/QLItemBox.h"
@@ -186,6 +187,8 @@ void AQLCharacterPlayer::BeginPlay()
 
 	RecoilTimeline.AddInterpFloat(HorizontalRecoil, XRecoilCurve);
 	RecoilTimeline.AddInterpFloat(VerticalRecoil, YRecoilCurve);
+
+	StartHeight = GetActorLocation().Z;
 }
 
 void AQLCharacterPlayer::InitializeAttributes()
@@ -751,8 +754,7 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 	Location.Y -= 30.0f;
 	FActorSpawnParameters Params;
 	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GroundWeapon, Location, FRotator::ZeroRotator, Params);
-	GroundItem->GetMesh()->SetSimulatePhysics(true);
-	GroundItem->GetMesh()->AddImpulse(GetActorForwardVector() * 10.0f);
+	GroundItem->SetPhysics();
 	CurrentAttackType = ECharacterAttackType::HookAttack;
 
 	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
@@ -814,6 +816,14 @@ void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranc
 
 	if (NotifyName == FName(TEXT("StartProneMontage")))
 	{
+		if (bIsProning) //엎드리는 중
+		{
+			StandToProne();
+		}
+		else //일어나는 중
+		{
+			ProneToStand();
+		}
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	}
 }
@@ -836,5 +846,45 @@ void AQLCharacterPlayer::StartRecoil()
 void AQLCharacterPlayer::ReverseRecoil()
 {
 	RecoilTimeline.Reverse();
+}
+
+void AQLCharacterPlayer::ProneToStand()
+{
+	UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(GetMovementComponent());
+
+	FVector CurrentLocation = GetActorLocation();
+	CurrentLocation.Z = StartHeight;
+	SetActorLocation(CurrentLocation);
+	if (IsLocallyControlled())
+	{
+		GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -100.f));
+	}
+	else
+	{
+		CacheInitialMeshOffset(FVector(0.f, 0.f, -100.f), GetMesh()->GetRelativeRotation());
+	}
+
+	GetCapsuleComponent()->SetCapsuleSize(25.f, 90.0f);
+	Movement->RestoreProneSpeedCommand();
+}
+
+void AQLCharacterPlayer::StandToProne()
+{
+	
+	UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(GetMovementComponent());
+
+	FVector TargetLocation = GetMesh()->GetSocketLocation(FName("ik_foot_rootSocket"));
+	SetActorLocation(TargetLocation);
+	if (IsLocallyControlled())
+	{
+		GetMesh()->SetRelativeLocation(FVector(0.0f, 0.f, -30.0f));
+	}
+	else
+	{
+		CacheInitialMeshOffset(FVector(0.0f, 0.f, -30.0f), GetMesh()->GetRelativeRotation());
+	}
+	GetCapsuleComponent()->SetCapsuleSize(25.f, 25.f);
+
+	Movement->ChangeProneSpeedCommand();
 }
 

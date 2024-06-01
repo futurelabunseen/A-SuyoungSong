@@ -23,7 +23,6 @@ AQLItemBox::AQLItemBox()
 	Mesh->SetRelativeLocationAndRotation(FVector(-20.0f, -10.0f, 0.f), FRotator(90.f, -90.f, 0.f)); //Mesh 기준이기 때문에 아이템에서는 변경 예정
 	Mesh->SetCollisionProfileName(CPROFILE_QLPHYSICS);
 
-	OnActorHit.AddDynamic(this, &AQLItemBox::OnActorOverlap);
 	bReplicates = true;
 	SetReplicateMovement(true);
 
@@ -65,6 +64,14 @@ void AQLItemBox::InitPosition(const FVector& Location)
 	}
 }
 
+void AQLItemBox::SetPhysics()
+{
+	Trigger->SetSimulatePhysics(true);
+	Mesh->SetSimulatePhysics(true);
+
+	OnActorHit.AddDynamic(this, &AQLItemBox::OnActorOverlap);
+}
+
 float AQLItemBox::GetZPos()
 {
 	return Trigger->GetScaledBoxExtent().Z / 2.0f;
@@ -72,6 +79,8 @@ float AQLItemBox::GetZPos()
 
 void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-	Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
+	Trigger->SetSimulatePhysics(false);
 	Mesh->SetSimulatePhysics(false);
+
+	Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
 }

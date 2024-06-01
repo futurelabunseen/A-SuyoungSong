@@ -58,30 +58,6 @@ protected:
 
 	//Jump & Crouch Section
 protected:
-	FVector StartPosition;
-	FVector TargetPosition;
-
-	float ProneRadius;
-	float ProneHeight;
-
-	float StandRadius;
-	float StandHeight;
-
-	float CrouchRadius;
-	float CrouchHeight;
-
-	float ProneSize;
-
-	FVector TargetLocation;
-	FVector StartLocation;
-
-	UPROPERTY()
-	TObjectPtr<class UTimelineComponent> StandToProneTimeline;
-	UPROPERTY()
-	TObjectPtr<class UCurveFloat> ProneCurve;
-
-	UFUNCTION()
-	void ProneDownTimeline(float Value);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> ProneAction;

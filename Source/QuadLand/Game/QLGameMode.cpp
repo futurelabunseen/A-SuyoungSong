@@ -47,17 +47,6 @@ void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-
-	AQLPlayerController* PC = Cast<AQLPlayerController>(NewPlayer);
-
-	if (PC == nullptr)
-	{
-		QL_LOG(QLNetLog, Error, TEXT("PlayerController Error %s"), *PC->GetName());
-		return;
-	}
-	
-	PC->SetVisibilityHUD(EHUDType::Loading);
-
 	if(GetNumPlayers() >= 2)
 	{
 		FTimerHandle StartTimerHandle;

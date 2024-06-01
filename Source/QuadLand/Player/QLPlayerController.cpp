@@ -141,7 +141,9 @@ void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)
 
 void AQLPlayerController::ClientRPCGameStart_Implementation()
 {
-	SetHiddenHUD(EHUDType::Loading);
+	QL_LOG(QLNetLog, Warning, TEXT("HI"));
+
+	SetVisibilityHUD(EHUDType::HUD);
 	FInputModeGameOnly GameOnlyInputMode;
 	SetInputMode(GameOnlyInputMode);
 }
@@ -207,10 +209,10 @@ void AQLPlayerController::CreateHUD()
 	Widget->ChangedHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
 	Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
 	
+	SetHiddenHUD(EHUDType::HUD);
 	SetHiddenHUD(EHUDType::Inventory);
 	SetHiddenHUD(EHUDType::Map);
 	SetHiddenHUD(EHUDType::DeathTimer);
-	SetHiddenHUD(EHUDType::Loading);
 	SetHiddenHUD(EHUDType::Blood);
 	SetHiddenHUD(EHUDType::Menu);
 	SetHiddenHUD(EHUDType::KeyGuide);

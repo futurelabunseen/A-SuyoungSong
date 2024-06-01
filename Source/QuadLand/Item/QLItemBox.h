@@ -18,6 +18,7 @@ public:
 	class USkeletalMeshComponent* GetMesh() const { return Mesh; }
 
 	void InitPosition(const FVector &Location);
+	void SetPhysics();
 	float GetZPos();
 
 protected:
