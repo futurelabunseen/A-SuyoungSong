@@ -11,13 +11,13 @@
 #include "UI/QLInventory.h"
 #include "UI/QLMap.h"
 #include "UI/QLBloodWidget.h"
+#include "UI/QLReturnToLobby.h"
 #include "UI/QLDeathTimerWidget.h"
 #include "QuadLand.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "Character/QLInventoryComponent.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
-#include "UI/QLDefeat.h"
 
 void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
 {
@@ -94,6 +94,26 @@ void AQLPlayerController::BlinkBag()
 	if (UserWidget)
 	{
 		UserWidget->BlinkBag();
+	}
+}
+
+void AQLPlayerController::Win()
+{
+	UQLReturnToLobby* UserWidget = Cast<UQLReturnToLobby>(HUDs[EHUDType::Win]);
+
+	if (UserWidget)
+	{
+		UserWidget->SetupUI();
+	}
+}
+
+void AQLPlayerController::Loose()
+{
+	UQLReturnToLobby* UserWidget = Cast<UQLReturnToLobby>(HUDs[EHUDType::Death]);
+
+	if (UserWidget)
+	{
+		UserWidget->SetupUI();
 	}
 }
 
@@ -177,13 +197,6 @@ void AQLPlayerController::CreateHUD()
 
 		Widget->AddToViewport();
 		Widget->SetVisibility(ESlateVisibility::Visible);
-		UQLDefeat* Defeat = Cast<UQLDefeat>(Widget);
-
-		if (Defeat)
-		{
-			//Defeat->SetupDefeat();
-		}
-
 		HUDs.Add(HUD.Key, Widget);
 	}
 
@@ -199,14 +212,10 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::DeathTimer);
 	SetHiddenHUD(EHUDType::Loading);
 	SetHiddenHUD(EHUDType::Blood);
-	SetHiddenHUD(EHUDType::GoToLobby);
 	SetHiddenHUD(EHUDType::Menu);
-
-
-	/*FInputModeUIOnly UIOnlyInputMode;
-	SetInputMode(UIOnlyInputMode);
-	SetShowMouseCursor(true);
-	*///HUD √ ±‚»≠
+	SetHiddenHUD(EHUDType::KeyGuide);
+	SetHiddenHUD(EHUDType::Win);
+	SetHiddenHUD(EHUDType::Death);
 
 	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 	if (QLCharacter)
@@ -273,8 +282,6 @@ void AQLPlayerController::AddInventoryByDraggedItem(EItemType ItemIdx, int32 Cur
 
 	if (QLCharacter)
 	{
-		QL_LOG(QLNetLog, Warning, TEXT("Add item %d"), CurrentItemCnt);
-
 		QLCharacter->GetInventory()->AddInventoryByDraggedItem(ItemIdx, CurrentItemCnt);
 	}
 }
@@ -298,7 +305,6 @@ void AQLPlayerController::AddGroundByDraggedItem(EItemType ItemIdx, int32 Curren
 
 	if (QLCharacter)
 	{
-		QL_LOG(QLNetLog, Warning, TEXT("Drop item %d"),CurrentItemCnt);
 		QLCharacter->GetInventory()->AddGroundByDraggedItem(ItemIdx, CurrentItemCnt);
 	}
 }

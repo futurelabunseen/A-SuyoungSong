@@ -21,7 +21,7 @@
 #include "Item/QLItemBox.h"
 #include "QuadLand.h"
 
-UQLInputComponent::UQLInputComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+UQLInputComponent::UQLInputComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), bShowMenuUI(false)
 {
 	//EnhancedInput ¿¬°á
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Move.IA_Move'"));
@@ -66,6 +66,12 @@ UQLInputComponent::UQLInputComponent(const FObjectInitializer& ObjectInitializer
 		AimAction = AimActionRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> MenuActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_Menu.IA_Menu'"));
+
+	if (MenuActionRef.Object)
+	{
+		MenuAction = MenuActionRef.Object;
+	}
 	static ConstructorHelpers::FObjectFinder<UInputAction> PutLifeStoneActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/QuadLand/Inputs/Action/IA_PutLifeStone.IA_PutLifeStone'"));
 
 	if (PutLifeStoneActionRef.Object)
@@ -175,7 +181,9 @@ void UQLInputComponent::InitPlayerImputComponent(UInputComponent* InputComponent
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &UQLInputComponent::PressedJump);
 
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &UQLInputComponent::PressedCrouch);
-		
+
+		EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Triggered, this, &UQLInputComponent::ShowMenuUI);
+
 		EnhancedInputComponent->BindAction(ProneAction, ETriggerEvent::Completed, this, &UQLInputComponent::PressedProne);
 
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &UQLInputComponent::Aim);
@@ -914,4 +922,46 @@ int8 UQLInputComponent::GetInputNumber(int32 id)
 	}
 
 	return id;
+}
+
+void UQLInputComponent::ShowMenuUI()
+{
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	if (bShowMenuUI == false)
+	{
+		FInputModeUIOnly UIOnlyInputMode;
+		PC->SetInputMode(UIOnlyInputMode);
+		PC->SetShowMouseCursor(true);
+		PC->SetVisibilityHUD(EHUDType::Menu);
+		bShowMenuUI = true;
+	}
+	else
+	{
+		PC->CloseHUD(EHUDType::Menu);
+		PC->SetHiddenHUD(EHUDType::Menu);
+		bShowMenuUI = false;
+	}
+
+}
+
+void UQLInputComponent::SetShowMenuUI()
+{
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	if (bShowMenuUI)
+	{
+		PC->CloseHUD(EHUDType::Menu);
+		PC->SetHiddenHUD(EHUDType::Menu);
+		bShowMenuUI = false;
+	}
+
 }

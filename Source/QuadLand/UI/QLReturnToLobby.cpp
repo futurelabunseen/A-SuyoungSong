@@ -1,13 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/QLDefeat.h"
+#include "UI/QLReturnToLobby.h"
 #include "MultiplayerSessionsSubsystem.h"
 #include "Components/Button.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/GameMode.h"
 
-void UQLDefeat::SetupDefeat()
+void UQLReturnToLobby::SetupUI()
 {
 	AddToViewport();
 	SetVisibility(ESlateVisibility::Visible);
@@ -19,7 +19,8 @@ void UQLDefeat::SetupDefeat()
 	{
 		PlayerController = PlayerController == nullptr ? World->GetFirstPlayerController() : PlayerController;
 		if (PlayerController)
-		{	FInputModeUIOnly UIOnlyInputMode;
+		{
+			FInputModeUIOnly UIOnlyInputMode;
 			FInputModeGameAndUI InputModeData;
 			InputModeData.SetWidgetToFocus(TakeWidget());
 			PlayerController->SetInputMode(UIOnlyInputMode);
@@ -30,7 +31,7 @@ void UQLDefeat::SetupDefeat()
 
 	if (ReturnLobbyButton)
 	{
-		ReturnLobbyButton->OnClicked.AddDynamic(this, &UQLDefeat::ReturnButtonClicked);
+		ReturnLobbyButton->OnClicked.AddDynamic(this, &UQLReturnToLobby::ReturnButtonClicked);
 	}
 
 	UGameInstance* GameInstance = GetGameInstance();
@@ -41,13 +42,13 @@ void UQLDefeat::SetupDefeat()
 
 		if (MultiplayerSessionSubsystem)
 		{
-			MultiplayerSessionSubsystem->MultiplayerOnDestroySessionComplete.AddDynamic(this, &UQLDefeat::OnDestorySession);
+			MultiplayerSessionSubsystem->MultiplayerOnDestroySessionComplete.AddDynamic(this, &UQLReturnToLobby::OnDestorySession);
 		}
 
 	}
 }
 
-void UQLDefeat::OnDestorySession(bool bWasSuccessful)
+void UQLReturnToLobby::OnDestorySession(bool bWasSuccessful)
 {
 	if (!bWasSuccessful)
 	{
@@ -59,37 +60,31 @@ void UQLDefeat::OnDestorySession(bool bWasSuccessful)
 
 	if (World)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnDestorySession()"));
-		AGameModeBase *GameMode = World->GetAuthGameMode<AGameModeBase>();
+		AGameModeBase* GameMode = World->GetAuthGameMode<AGameModeBase>();
 
 		if (GameMode)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("OnDestorySession() Server"));
 			//서버
-			
 			GameMode->ReturnToMainMenuHost();
 		}
 		else
 		{
 			//클라이언트는 그냥 나가면된다
-			UE_LOG(LogTemp, Warning, TEXT("OnDestorySession() Client"));
 			PlayerController = PlayerController == nullptr ? World->GetFirstPlayerController() : PlayerController;
 
 			PlayerController->ClientReturnToMainMenuWithTextReason(FText());
-			
+
 		}
 	}
-	
+
 }
 
-void UQLDefeat::ReturnButtonClicked()
+void UQLReturnToLobby::ReturnButtonClicked()
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnPlayerLeftGame()"));
 	ReturnLobbyButton->SetIsEnabled(false);
 
 	if (MultiplayerSessionSubsystem)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("MultiplayerSessionsSubsystem valid"));
 		MultiplayerSessionSubsystem->DestroySession();
 
 	}

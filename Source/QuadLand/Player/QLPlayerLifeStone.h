@@ -17,6 +17,7 @@ public:
 
 	class UStaticMeshComponent* GetMesh() const { return Mesh; }
 
+	void InitPosition();
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Mesh)
@@ -24,7 +25,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Mesh)
 	TObjectPtr<class USphereComponent> Trigger;
-
+	float GetZPos();
 	UFUNCTION()
 	void OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
 

@@ -52,11 +52,38 @@ AQLPlayerLifeStone::AQLPlayerLifeStone()
 	NetCullDistanceSquared = 4000000.0f;
 }
 
+void AQLPlayerLifeStone::InitPosition()
+{
+	FCollisionQueryParams CollisionParams(SCENE_QUERY_STAT(GroundCheckLineTrace), false, this); //½Äº°ÀÚ 
+
+	FHitResult OutHitResult;
+
+	FVector StartLocation = GetActorLocation();
+
+	FVector EndLocation = StartLocation + 150.0f * GetActorUpVector() * -1;
+	bool bResult = GetWorld()->LineTraceSingleByChannel(
+		OutHitResult,
+		StartLocation,
+		EndLocation,
+		CCHANNEL_QLGROUND,
+		CollisionParams
+	);
+
+	if (bResult)
+	{
+		OutHitResult.Location.Z += GetZPos();
+		SetActorLocation(OutHitResult.Location);
+	}
+}
+
+float AQLPlayerLifeStone::GetZPos()
+{
+	return Trigger->GetScaledSphereRadius() / 2.0f - 10.0f;
+}
+
 
 void AQLPlayerLifeStone::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (HasAuthority())
-	{
-		Mesh->SetSimulatePhysics(false);
-	}
+	Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
+	Mesh->SetSimulatePhysics(false);
 }

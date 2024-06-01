@@ -72,7 +72,6 @@ void AQLGameState::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 			}
 			PlayerDieStatus[PlayerName] = true;
 		}
-		//ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLGameMode::GetWinner);
 	}
 
 	for (const auto& Player : PlayerArray)

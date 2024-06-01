@@ -236,7 +236,10 @@ void AQLCharacterPlayer::SetCharacterControl()
 			}
 		}
 
-		PlayerController->CreateHUD();
+		if (HasAuthority())
+		{
+			PlayerController->CreateHUD();
+		}
 	}
 
 }

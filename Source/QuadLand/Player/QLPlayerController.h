@@ -62,6 +62,10 @@ public:
 
 	void BlinkBag();
 
+
+	void Win();
+	void Loose();
+
 	UFUNCTION(BlueprintCallable)
 	void CloseInventroy();
 

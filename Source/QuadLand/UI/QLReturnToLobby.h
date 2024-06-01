@@ -4,19 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "QLDefeat.generated.h"
+#include "QLReturnToLobby.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class QUADLAND_API UQLDefeat : public UUserWidget
+class QUADLAND_API UQLReturnToLobby : public UUserWidget
 {
 	GENERATED_BODY()
-	
 public:
 	UFUNCTION()
-	void SetupDefeat();
+	void SetupUI();
 
 	UFUNCTION()
 	void OnDestorySession(bool bWasSuccessful);

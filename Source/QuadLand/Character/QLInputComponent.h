@@ -15,14 +15,14 @@ class QUADLAND_API UQLInputComponent : public UPawnComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	// Sets default values for this component's properties
 	UQLInputComponent(const FObjectInitializer& ObjectInitializer);
 
 	void InitPlayerImputComponent(class UInputComponent* InputComponent);
 	void InitGASInputComponent(class UInputComponent* InputComponent);
 	virtual void BeginPlay() override;
-	
+
 protected:
 	//Look & Move Section
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
@@ -106,7 +106,7 @@ protected:
 
 	//몽타주를 가지고 있는다
 	//Mesh Section
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category=AnimMontage)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AnimMontage)
 	TObjectPtr<class UAnimMontage> ToProne;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AnimMontage)
@@ -128,9 +128,9 @@ protected:
 	float MaxCameraHeight = 48.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmHeight, Meta = (AllowPrivateAccess = "true"))
 	float MinCameraHeight = 28.0f;
-	
+
 	//AimSection
-protected: 
+protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> AimAction;
@@ -205,5 +205,17 @@ protected:
 	int8 GetInputNumber(int32 id);
 
 
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> MenuAction;
 
+	uint8 bShowMenuUI : 1;
+
+	UFUNCTION(BlueprintCallable)
+	void ShowMenuUI();
+
+public:
+
+	UFUNCTION(BlueprintCallable)
+	void SetShowMenuUI();
 };
