@@ -22,7 +22,10 @@ class QUADLAND_API AQLPlayerController : public APlayerController
 	
 public:
 
+	UFUNCTION(BlueprintCallable)
 	void SetVisibilityHUD(EHUDType UItype);
+
+	UFUNCTION(BlueprintCallable)
 	void SetHiddenHUD(EHUDType UItype);
 
 	const class UUserWidget* GetCrossHairUIWidget() const { return HUDs[EHUDType::CrossHair]; }

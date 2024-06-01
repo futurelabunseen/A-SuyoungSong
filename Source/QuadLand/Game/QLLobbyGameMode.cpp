@@ -20,7 +20,3 @@ AQLLobbyGameMode::AQLLobbyGameMode()
 
 }
 
-void AQLLobbyGameMode::PostLogin(APlayerController* NewPlayer)
-{
-	Super::PostLogin(NewPlayer);
-}

@@ -11,5 +11,6 @@ enum class EHUDType : uint8
 	DeathTimer,
 	Loading,
 	Blood,
-	GoToLobby
+	GoToLobby,
+	Menu
 };

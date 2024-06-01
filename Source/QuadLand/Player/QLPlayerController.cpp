@@ -181,7 +181,7 @@ void AQLPlayerController::CreateHUD()
 
 		if (Defeat)
 		{
-			Defeat->SetupDefeat();
+			//Defeat->SetupDefeat();
 		}
 
 		HUDs.Add(HUD.Key, Widget);
@@ -199,7 +199,9 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::DeathTimer);
 	SetHiddenHUD(EHUDType::Loading);
 	SetHiddenHUD(EHUDType::Blood);
-	
+	SetHiddenHUD(EHUDType::GoToLobby);
+	SetHiddenHUD(EHUDType::Menu);
+
 
 	/*FInputModeUIOnly UIOnlyInputMode;
 	SetInputMode(UIOnlyInputMode);

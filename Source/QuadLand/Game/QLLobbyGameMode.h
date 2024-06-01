@@ -17,6 +17,5 @@ class QUADLAND_API AQLLobbyGameMode : public AGameMode
 public:
 	AQLLobbyGameMode();
 
-	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 };

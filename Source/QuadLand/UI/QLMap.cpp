@@ -8,10 +8,14 @@
 #include "Gimmick/QLMapBoundary.h"
 #include "Components/Image.h"
 #include "Widgets/SWidget.h"
+#include "LocationVolume.h"
+#include "Components/BrushComponent.h"
+#include "GameFramework/Character.h"
 
 UQLMap::UQLMap(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
+
 	SetKeyboardFocus();
 }
 
@@ -73,18 +77,6 @@ void UQLMap::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
-	for (int i = 1; i <= 4; i++)
-	{
-		FString WidgetName = FString::Printf(TEXT("RatioCalculatorUI_%d"), i);
-		UImage* Widget = Cast<UImage>(GetWidgetFromName(FName(WidgetName)));
-
-		if (Widget)
-		{
-			UE_LOG(LogTemp, Log, TEXT("Widget Name %s"), *WidgetName);
-			RatioCalculatorUI.Add(WidgetName, Widget);
-		}
-	}
-
 	UWorld* CurrentWorld = GetWorld();
 
 	int32 Index = 1;
@@ -106,34 +98,34 @@ void UQLMap::NativeConstruct()
 			Index++;
 		}
 
-		AQLMapBoundary* Boundary = Cast<AQLMapBoundary>(Entry);
-		if (Boundary)
+
+		ALocationVolume* Location = Cast<ALocationVolume>(Entry);
+		if (Location)
 		{
-			if (RatioCalculatorUI.Find(Boundary->RatioCalculatorUI))
-			{
-				UImage* WidgetBoundary = RatioCalculatorUI[Boundary->RatioCalculatorUI];
-
-				FVector2D WidgetLocation = WidgetBoundary->GetRenderTransform().Translation;
-				FVector BoundaryLocation = Boundary->GetLocation();
-
-				float WorldX = BoundaryLocation.Y;
-				float WorldY = BoundaryLocation.X;
-
-				float X = 1000.0f - WidgetLocation.X;
-				float Y = WidgetLocation.Y;
-				//둘다 있으면 비율 체크 
-				UE_LOG(LogTemp, Log, TEXT("%s Map (%s) Widget (X=%f Y=%f)"),*Boundary->GetName(), *Boundary->GetLocation().ToString(), X,Y);
-
-				UE_LOG(LogTemp, Log, TEXT("Cal %f %f"), WorldX/X, WorldY/Y);
-
-			}
-			
+			LocationVolume = Location;
 		}
+
 	}
-
-
+	Player = Cast<ACharacter>(GetOwningPlayerPawn());
 }
 
+void UQLMap::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
 
-// 아이템을 사용할 때 StorageBoxes 를 확인하고 차있다면 그 Index는 깜빡깜빡하도록 하기
-// 델리게이트로 연결 or PlayerController 지시 
+	if (LocationVolume && Player)
+	{
+		FVector LocationPivot=LocationVolume->GetActorLocation();
+		FVector2D VolumeScale(13500.0f, 9000.0f);
+
+		LocationPivot.X = LocationPivot.X - (VolumeScale.X / 2.f); //202
+		LocationPivot.Y = LocationPivot.Y - (VolumeScale.Y / 2.f);
+		
+		FVector PlayerPivot = Player->GetActorLocation();
+
+		float MagnitudeX= (PlayerPivot.X - LocationPivot.X) * (1000.0f/VolumeScale.X);
+		float MagnitudeY = (PlayerPivot.Y - LocationPivot.Y) * (600.0f/VolumeScale.Y);
+
+		IMGPlayer->SetRenderTranslation(FVector2D(MagnitudeX, MagnitudeY));
+	}
+}

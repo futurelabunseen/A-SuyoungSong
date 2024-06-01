@@ -20,16 +20,26 @@ public:
 
 	void ShowLifestoneBox(float Timer);
 	
-	virtual void NativeConstruct(); //AddToViewport 함수가 외부에서 호출될 때 수행.
+	virtual void NativeConstruct() override; //AddToViewport 함수가 외부에서 호출될 때 수행.
+
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
 protected:
 	
 	FTimerHandle ShowTimerHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	TObjectPtr<class UOverlay> MapOverlay;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (BindWidget))
+	TObjectPtr<class UImage> IMGPlayer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TMap<FString,TObjectPtr<class UImage>> RatioCalculatorUI;
+	TObjectPtr<class ACharacter> Player;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<class ALocationVolume> LocationVolume;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UUserWidget> StoageIcon;
