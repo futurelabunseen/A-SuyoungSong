@@ -287,7 +287,7 @@ void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
         FActorSpawnParameters Params;
         Params.Owner = this;
         LifeStone = GetWorld()->SpawnActor<AQLPlayerLifeStone>(LifeStoneClass,Location, FRotator::ZeroRotator, Params);
-        LifeStone->GetMesh()->SetSimulatePhysics(true);
+        LifeStone->InitPosition();
         bHasLifeStone = false;
     }
 }

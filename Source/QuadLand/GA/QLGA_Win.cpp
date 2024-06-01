@@ -5,6 +5,7 @@
 #include "Player/QLPlayerState.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Character.h"
+#include "Player/QLPlayerController.h"
 #include "QuadLand.h"
 UQLGA_Win::UQLGA_Win()
 {
@@ -13,12 +14,15 @@ UQLGA_Win::UQLGA_Win()
 
 void UQLGA_Win::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	QL_GASLOG(QLNetLog, Warning, TEXT("Current Win"));
-
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
+
+	if (PC)
+	{
+		PC->Win();
+	}
 
 	OnCompleted();
 }

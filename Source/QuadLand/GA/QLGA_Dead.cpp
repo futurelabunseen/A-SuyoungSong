@@ -52,7 +52,7 @@ void UQLGA_Dead::OnCompleted()
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
 
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-	//Character->SetActorEnableCollision(false);
+	Character->SetActorEnableCollision(false);
 	Character->bUseControllerRotationYaw = false;
 	Character->SetLifeSpan(3.0f);
 
@@ -61,6 +61,13 @@ void UQLGA_Dead::OnCompleted()
 	if (ASC)
 	{
 		ASC->AddLooseGameplayTag(CHARACTER_STATE_DEAD);
+	}
+
+	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
+
+	if (PC)
+	{
+		PC->Loose();
 	}
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

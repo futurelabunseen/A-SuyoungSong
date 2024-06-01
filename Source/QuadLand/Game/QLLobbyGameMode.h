@@ -3,18 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameMode.h"
 #include "QLLobbyGameMode.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class QUADLAND_API AQLLobbyGameMode : public AGameModeBase
+class QUADLAND_API AQLLobbyGameMode : public AGameMode
 {
 	GENERATED_BODY()
 
 public:
-		AQLLobbyGameMode();
+	AQLLobbyGameMode();
+
 
 };

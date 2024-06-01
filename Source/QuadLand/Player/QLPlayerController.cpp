@@ -11,6 +11,7 @@
 #include "UI/QLInventory.h"
 #include "UI/QLMap.h"
 #include "UI/QLBloodWidget.h"
+#include "UI/QLReturnToLobby.h"
 #include "UI/QLDeathTimerWidget.h"
 #include "QuadLand.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
@@ -96,6 +97,26 @@ void AQLPlayerController::BlinkBag()
 	}
 }
 
+void AQLPlayerController::Win()
+{
+	UQLReturnToLobby* UserWidget = Cast<UQLReturnToLobby>(HUDs[EHUDType::Win]);
+
+	if (UserWidget)
+	{
+		UserWidget->SetupUI();
+	}
+}
+
+void AQLPlayerController::Loose()
+{
+	UQLReturnToLobby* UserWidget = Cast<UQLReturnToLobby>(HUDs[EHUDType::Death]);
+
+	if (UserWidget)
+	{
+		UserWidget->SetupUI();
+	}
+}
+
 void AQLPlayerController::CloseInventroy()
 {
 	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
@@ -173,6 +194,7 @@ void AQLPlayerController::CreateHUD()
 	for (const auto &HUD : HUDClass)
 	{
 		UUserWidget *Widget = CreateWidget<UUserWidget>(this, HUD.Value);
+
 		Widget->AddToViewport();
 		Widget->SetVisibility(ESlateVisibility::Visible);
 		HUDs.Add(HUD.Key, Widget);
@@ -190,10 +212,10 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::DeathTimer);
 	SetHiddenHUD(EHUDType::Loading);
 	SetHiddenHUD(EHUDType::Blood);
-
-//	FInputModeUIOnly UIOnlyInputMode;
-//	SetInputMode(UIOnlyInputMode);
-	//HUD √ ±‚»≠
+	SetHiddenHUD(EHUDType::Menu);
+	SetHiddenHUD(EHUDType::KeyGuide);
+	SetHiddenHUD(EHUDType::Win);
+	SetHiddenHUD(EHUDType::Death);
 
 	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 	if (QLCharacter)
@@ -260,8 +282,6 @@ void AQLPlayerController::AddInventoryByDraggedItem(EItemType ItemIdx, int32 Cur
 
 	if (QLCharacter)
 	{
-		QL_LOG(QLNetLog, Warning, TEXT("Add item %d"), CurrentItemCnt);
-
 		QLCharacter->GetInventory()->AddInventoryByDraggedItem(ItemIdx, CurrentItemCnt);
 	}
 }
@@ -285,7 +305,6 @@ void AQLPlayerController::AddGroundByDraggedItem(EItemType ItemIdx, int32 Curren
 
 	if (QLCharacter)
 	{
-		QL_LOG(QLNetLog, Warning, TEXT("Drop item %d"),CurrentItemCnt);
 		QLCharacter->GetInventory()->AddGroundByDraggedItem(ItemIdx, CurrentItemCnt);
 	}
 }

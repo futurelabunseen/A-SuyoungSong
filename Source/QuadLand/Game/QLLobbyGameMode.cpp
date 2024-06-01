@@ -2,7 +2,7 @@
 
 
 #include "Game/QLLobbyGameMode.h"
-
+#include "GameFramework/GameState.h"
 AQLLobbyGameMode::AQLLobbyGameMode()
 {
 	static ConstructorHelpers::FClassFinder<APawn> DefaultPawnClassRef(TEXT("/Game/QuadLand/Blueprints/BPQL_LobbyPlayer.BPQL_LobbyPlayer_C"));
@@ -19,3 +19,4 @@ AQLLobbyGameMode::AQLLobbyGameMode()
 	}
 
 }
+

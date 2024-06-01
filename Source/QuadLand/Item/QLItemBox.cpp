@@ -72,8 +72,6 @@ float AQLItemBox::GetZPos()
 
 void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (HasAuthority())
-	{
-		Mesh->SetSimulatePhysics(false);
-	}
+	Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
+	Mesh->SetSimulatePhysics(false);
 }
