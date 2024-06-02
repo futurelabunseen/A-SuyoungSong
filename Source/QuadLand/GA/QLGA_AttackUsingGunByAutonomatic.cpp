@@ -165,6 +165,12 @@ void UQLGA_AttackUsingGunByAutonomatic::InputReleased(const FGameplayAbilitySpec
 	QL_GASLOG(QLLog, Warning, TEXT("Released"));
 }
 
+void UQLGA_AttackUsingGunByAutonomatic::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+	InputReleased(Handle, ActorInfo, ActivationInfo);
+}
+
 
 void UQLGA_AttackUsingGunByAutonomatic::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {

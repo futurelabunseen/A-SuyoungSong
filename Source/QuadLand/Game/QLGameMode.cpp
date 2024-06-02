@@ -40,18 +40,34 @@ void AQLGameMode::PreLogin(const FString& Options, const FString& Address, const
 		ErrorMessage = TEXT("All players are participating.");
 		return;
 	}
-	
 }
 
 void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
+	
+	AQLPlayerController* PC = Cast<AQLPlayerController>(NewPlayer);
+
+	if (PC == nullptr)
+	{
+		QL_LOG(QLNetLog, Error, TEXT("PlayerController Error %s"), *PC->GetName());
+		return;
+	}
+
+	PC->SetVisibilityHUD(EHUDType::Loading);
 
 	if(GetNumPlayers() >= 2)
 	{
 		FTimerHandle StartTimerHandle;
 
-		GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 3.0f, false);
+		if (HasAuthority())
+		{
+			GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 4.0f, false);
+		}
+		else
+		{
+			GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 3.0f, false);
+		}
 	}
 }
 

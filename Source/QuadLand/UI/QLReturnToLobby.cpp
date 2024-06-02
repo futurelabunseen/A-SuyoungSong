@@ -6,7 +6,7 @@
 #include "Components/Button.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/GameMode.h"
-
+#include "QuadLand.h"
 void UQLReturnToLobby::SetupUI()
 {
 	bIsFocusable = true;
@@ -39,11 +39,9 @@ void UQLReturnToLobby::OnDestorySession(bool bWasSuccessful)
 	}
 
 	UWorld* World = GetWorld();
-
 	if (World)
 	{
 		AGameModeBase* GameMode = World->GetAuthGameMode<AGameModeBase>();
-
 		if (GameMode)
 		{
 			//¼­¹ö
@@ -68,6 +66,13 @@ void UQLReturnToLobby::ReturnButtonClicked()
 	if (MultiplayerSessionSubsystem)
 	{
 		MultiplayerSessionSubsystem->DestroySession();
+	}
+}
 
+void UQLReturnToLobby::NativeConstruct()
+{
+	if (ReturnLobbyButton == nullptr)
+	{
+		ReturnLobbyButton = Cast<UButton>(GetWidgetFromName(TEXT("ReturnLobbyButton")));
 	}
 }
