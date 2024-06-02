@@ -845,7 +845,6 @@ void UQLInputComponent::ShowMenuUI()
 	}
 	bShowMenuUI = !bShowMenuUI;
 
-	QL_SUBLOG(QLLog, Warning, TEXT("!!!!! %d"), bShowMenuUI);
 }
 
 void UQLInputComponent::SetShowMenuUI()
@@ -860,6 +859,9 @@ void UQLInputComponent::SetShowMenuUI()
 	{
 		PC->CloseHUD(EHUDType::Menu);
 		PC->SetHiddenHUD(EHUDType::Menu);
+		FInputModeUIOnly UIOnlyInputMode;
+		PC->SetInputMode(UIOnlyInputMode);
+		PC->SetShowMouseCursor(true);
 		bShowMenuUI = false;
 	}
 
