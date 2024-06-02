@@ -86,7 +86,13 @@ void AQLGameState::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 			if (PlayerDieStatus[PlayerName] == false)
 			{
 				QL_LOG(QLNetLog, Log, TEXT("Player Win %s"), *PlayerName.ToString());
-				ASC->AddLooseGameplayTag(CHARACTER_STATE_WIN); //제거는 RemoveLooseGameplayTag
+				//ASC->AddLooseGameplayTag(CHARACTER_STATE_WIN); //제거는 RemoveLooseGameplayTag
+				
+				FGameplayTagContainer TargetTag(CHARACTER_STATE_WIN);
+				ASC->TryActivateAbilitiesByTag(TargetTag);
+				//GameMode 에게 전달해야함.
+
+				//ServerRPC를 사용해서 승리자 플레이어 전달
 			}
 		}
 	}

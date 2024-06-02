@@ -10,7 +10,7 @@
 #include "Player/QLPlayerController.h"
 #include "GameplayTag/GamplayTags.h"
 
-UQLGA_Dead::UQLGA_Dead() : Time(10.0f)
+UQLGA_Dead::UQLGA_Dead() 
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
@@ -29,35 +29,13 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
 
-	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
-
-	if (PC)
-	{
-		PC->OnDeathCheckDelegate.BindUObject(this, &UQLGA_Dead::OnCompleted);
-		PC->ActivateDeathTimer(Time);
-	}
-	//플레이어 스테이트도 제거해야할듯! (하지만 나중에 해보자)
-}
-
-void UQLGA_Dead::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
-{
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
-void UQLGA_Dead::OnCompleted()
-{
-	bool bReplicateEndAbility = true;
-	bool bWasCancelled = true;
-
-	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
-
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	Character->SetActorEnableCollision(false);
 	Character->bUseControllerRotationYaw = false;
 	Character->SetLifeSpan(3.0f);
 
-	UAbilitySystemComponent *ASC = GetAbilitySystemComponentFromActorInfo();
-	
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+
 	if (ASC)
 	{
 		ASC->AddLooseGameplayTag(CHARACTER_STATE_DEAD);
@@ -69,6 +47,24 @@ void UQLGA_Dead::OnCompleted()
 	{
 		PC->Loose();
 	}
+	OnCompleted();
+}
+
+void UQLGA_Dead::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+
+	if (ASC)
+	{
+		ASC->CancelAllAbilities();
+	}
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UQLGA_Dead::OnCompleted()
+{
+	bool bReplicateEndAbility = true;
+	bool bWasCancelled = true;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 

@@ -9,25 +9,7 @@
 
 void UQLReturnToLobby::SetupUI()
 {
-	AddToViewport();
-	SetVisibility(ESlateVisibility::Visible);
 	bIsFocusable = true;
-
-	UWorld* World = GetWorld();
-
-	if (World)
-	{
-		PlayerController = PlayerController == nullptr ? World->GetFirstPlayerController() : PlayerController;
-		if (PlayerController)
-		{
-			FInputModeUIOnly UIOnlyInputMode;
-			FInputModeGameAndUI InputModeData;
-			InputModeData.SetWidgetToFocus(TakeWidget());
-			PlayerController->SetInputMode(UIOnlyInputMode);
-			PlayerController->SetShowMouseCursor(true);
-		}
-	}
-
 
 	if (ReturnLobbyButton)
 	{

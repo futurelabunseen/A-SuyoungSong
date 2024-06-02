@@ -5,6 +5,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+#include "Physics/QLCollision.h"
 
 UQLGC_FireWall::UQLGC_FireWall()
 {
@@ -26,8 +27,6 @@ bool UQLGC_FireWall::OnExecute_Implementation(AActor* Target, const FGameplayCue
 {
 
 	UGameplayStatics::SpawnEmitterAtLocation(Target, ParticleSystem, Parameters.Location, FRotator::ZeroRotator, true);
-	
 	UGameplayStatics::SpawnSoundAtLocation(Target, FirewallSound, Parameters.Location, FRotator::ZeroRotator);
-
 	return false;
 }

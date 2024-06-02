@@ -289,4 +289,11 @@ public:
 	void StartRecoil();
 
 	void ReverseRecoil();
+
+protected:
+	float StartHeight;
+	void ProneToStand();
+
+	void StandToProne();
+
 };

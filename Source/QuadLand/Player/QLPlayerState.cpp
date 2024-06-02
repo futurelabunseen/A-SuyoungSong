@@ -94,7 +94,6 @@ void AQLPlayerState::AddStaminaStat(float Stamina)
 {
     if (HasAuthority() && ASC)
     {
-        QL_LOG(QLNetLog, Warning, TEXT("this?"));
         //원래 Base값.. -> 일단 이렇게 두고 수정하는 방향으로 갈 예정 
         FGameplayTagContainer Tag(STAT_STAMINA_STATUS_REDUCE);
         ASC->RemoveActiveEffectsWithTags(Tag);

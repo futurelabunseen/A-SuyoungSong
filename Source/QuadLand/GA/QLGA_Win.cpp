@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Character.h"
 #include "Player/QLPlayerController.h"
+#include "AbilitySystemComponent.h"
 #include "QuadLand.h"
 UQLGA_Win::UQLGA_Win()
 {
@@ -19,6 +20,8 @@ void UQLGA_Win::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
 
+
+	QL_GASLOG(QLLog, Log, TEXT("begin"));
 	if (PC)
 	{
 		PC->Win();
@@ -30,6 +33,13 @@ void UQLGA_Win::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 void UQLGA_Win::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+
+	if (ASC)
+	{
+		ASC->CancelAllAbilities();
+	}
 }
 
 void UQLGA_Win::OnCompleted()
