@@ -24,6 +24,6 @@ public:
 
 protected:
 	int LivePlayerCount; //PlayerDieStatus.Num 값이랑 동일
-
 	TMap<FName, bool> PlayerDieStatus;
+
 };

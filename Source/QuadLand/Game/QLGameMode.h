@@ -25,4 +25,6 @@ private:
 
 	void GameStart();
 
+	//질때마다 GameMode 에게 전달해서 죽은 시간을 측정한다.
+	void GameEnd();
 };

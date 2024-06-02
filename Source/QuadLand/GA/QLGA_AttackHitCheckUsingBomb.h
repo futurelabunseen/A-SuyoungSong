@@ -33,4 +33,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Bomb)
 	TWeakObjectPtr<class AQLBomb> Bomb;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Bomb)
+	TSubclassOf<class AQLFirewall> Fire;
+
+	void SpawnFire();
 };

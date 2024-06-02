@@ -379,7 +379,7 @@ void UQLInputComponent::PressedCrouch()
 
 	if (Character->bIsProning) //엎드려있는데 Crouch
 	{
-		PressedProne();
+		return;
 	}
 
 	if (Character->bIsCrouched) //현재 Cro
@@ -409,6 +409,11 @@ void UQLInputComponent::PressedProne()
 		return;
 	}
 
+	if (Character->bIsCrouched)
+	{
+		Character->UnCrouch();
+	}
+
 	if (Character->bIsProning)
 	{
 		Character->PlayAnimMontage(ToStand); //Stand
@@ -416,10 +421,6 @@ void UQLInputComponent::PressedProne()
 	}
 	else
 	{
-		if (Character->bIsCrouched)
-		{
-			Character->UnCrouch();
-		}
 		Character->PlayAnimMontage(ToProne);
 		Character->bIsProning = true;
 	}
@@ -436,6 +437,11 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 	}
 	if (!Character->IsLocallyControlled())
 	{
+		if (Character->bIsCrouched)
+		{
+			Character->UnCrouch();
+		}
+
 		if (Character->bIsProning)
 		{
 			Character->PlayAnimMontage(ToStand); //Stand
@@ -443,10 +449,6 @@ void UQLInputComponent::MulticastRPCPressedProne_Implementation()
 		}
 		else
 		{
-			if (Character->bIsCrouched)
-			{
-				Character->UnCrouch();
-			}
 			Character->PlayAnimMontage(ToProne);
 			Character->bIsProning = true;
 		}

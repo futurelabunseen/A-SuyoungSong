@@ -68,4 +68,8 @@ void AQLGameMode::GameStart()
 	}
 }
 
+void AQLGameMode::GameEnd() //게임이 끝날때마다 호출 죽거나 or 승리하거나
+{
+}
+
 

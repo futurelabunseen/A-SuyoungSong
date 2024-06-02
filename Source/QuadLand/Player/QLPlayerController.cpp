@@ -99,20 +99,29 @@ void AQLPlayerController::BlinkBag()
 
 void AQLPlayerController::Win()
 {
+	SetVisibilityHUD(EHUDType::Win);
 	UQLReturnToLobby* UserWidget = Cast<UQLReturnToLobby>(HUDs[EHUDType::Win]);
 
 	if (UserWidget)
 	{
+		FInputModeUIOnly UIOnlyInputMode;
+		SetInputMode(UIOnlyInputMode);
+		SetShowMouseCursor(true);
 		UserWidget->SetupUI();
 	}
 }
 
 void AQLPlayerController::Loose()
 {
+
+	SetVisibilityHUD(EHUDType::Death);
 	UQLReturnToLobby* UserWidget = Cast<UQLReturnToLobby>(HUDs[EHUDType::Death]);
 
 	if (UserWidget)
 	{
+		FInputModeUIOnly UIOnlyInputMode;
+		SetInputMode(UIOnlyInputMode);
+		SetShowMouseCursor(true);
 		UserWidget->SetupUI();
 	}
 }

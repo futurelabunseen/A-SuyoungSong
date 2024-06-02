@@ -14,6 +14,7 @@
 #include "Physics/QLCollision.h"
 #include "GameplayTag/GamplayTags.h"
 #include "AbilitySystemComponent.h"
+#include "Item/QLFirewall.h"
 #include "QuadLand.h"
 UQLGA_AttackHitCheckUsingBomb::UQLGA_AttackHitCheckUsingBomb()
 {
@@ -118,9 +119,54 @@ void UQLGA_AttackHitCheckUsingBomb::MulticastRPCShowGameplayCue_Implementation()
 	{
 		FGameplayCueParameters CueParam;
 		CueParam.Location = Bomb->GetActorLocation();
-
+		SpawnFire();
 		//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
 		SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_EFFECT_FIREWALL, CueParam);
 	}
 
+}
+
+void UQLGA_AttackHitCheckUsingBomb::SpawnFire()
+{
+	if (HasAuthority(&CurrentActivationInfo))
+	{
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(FireCollision), false);
+		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
+		const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
+
+		TArray<FHitResult> NearbyActors;
+		//ItemDetectionSocket
+		bool bResult = GetWorld()->SweepMultiByChannel(
+			NearbyActors,
+			Bomb->GetActorLocation(),
+			Bomb->GetActorLocation(),
+			FQuat::Identity,
+			CCHANNEL_QLFIRE,
+			FCollisionShape::MakeSphere(WeaponStat->GetAttackDistance()),
+			Params
+		);
+
+		if (bResult)
+		{
+
+			for (const auto& NearbyActor : NearbyActors)
+			{
+				//Actor라면.. 움직일 수 있음..
+				AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(NearbyActor.GetActor());
+				FActorSpawnParameters SpawnParams;
+				FVector Location = NearbyActor.GetActor()->GetActorLocation();
+
+				if (Character)
+				{
+					AQLFirewall *FireActor = GetWorld()->SpawnActor<AQLFirewall>(Fire, Location, FRotator::ZeroRotator, SpawnParams);
+					FireActor->AttachToActor(Character,FAttachmentTransformRules::KeepWorldTransform);
+				}
+				else
+				{
+					GetWorld()->SpawnActor<AQLFirewall>(Fire, Location, FRotator::ZeroRotator, SpawnParams);
+				}
+			}
+
+		}
+	}
 }
