@@ -300,8 +300,8 @@ void UQLInputComponent::FarmingItemPressed()
 
 
 		AQLPlayerController* PC = GetController<AQLPlayerController>();
-
-		if (!PC)
+		AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+		if (!PC && !PS)
 		{
 			return;
 		}
@@ -317,7 +317,7 @@ void UQLInputComponent::FarmingItemPressed()
 
 			if (Item->Stat->ItemType == EItemType::Stone)
 			{
-				PC->ConcealLifeStone();
+				PC->ConcealLifeStone(); //만약.. 없다면 
 			}
 
 			if (Item->Stat->ItemType == EItemType::Weapon)
@@ -533,12 +533,6 @@ void UQLInputComponent::PutLifeStone()
 	if (PS == nullptr || Character == nullptr)
 	{
 		return;
-	}
-	AQLPlayerController* PC = GetController<AQLPlayerController>(); //소유권은 PC가 가짐
-
-	if (PC && PS->GetHasLifeStone())
-	{
-		PC->ConcealLifeStone();
 	}
 
 	if (Character->bIsNearbyBox)

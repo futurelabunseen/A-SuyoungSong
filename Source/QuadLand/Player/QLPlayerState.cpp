@@ -232,6 +232,16 @@ void AQLPlayerState::MulticastRPCUpdateStorageWidget_Implementation(FName Nickna
     StorageBox->UpdateAlertPanel(Nickname);
 }
 
+void AQLPlayerState::ClientRPCConcealLifeStoneUI_Implementation()
+{
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+
+    if (PC && bHasLifeStone)
+    {
+        PC->ConcealLifeStone();
+    }
+}
+
 void AQLPlayerState::ServerRPCConcealLifeStone_Implementation()
 {
    
@@ -273,6 +283,8 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation()
                 }
             }
             StorageBox->ConcealLifeStone(FName(GetName()));
+          
+            //ClientRPC 전달해서 Client UI 업데이트
         }
     }
 
@@ -287,6 +299,7 @@ void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
         Params.Owner = this;
         LifeStone = GetWorld()->SpawnActor<AQLPlayerLifeStone>(LifeStoneClass,Location, FRotator::ZeroRotator, Params);
         LifeStone->InitPosition();
+        ClientRPCConcealLifeStoneUI();
         bHasLifeStone = false;
     }
 }
@@ -330,7 +343,6 @@ float AQLPlayerState::GetAmmoCnt()
 void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
 {
     bIsWin = !bIsWin;
-    QL_LOG(QLNetLog, Log, TEXT("Current Win %d"),bIsWin);
 }
 
 void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
@@ -363,8 +375,6 @@ void AQLPlayerState::SetDead()
         FGameplayTagContainer TargetTag(CHARACTER_STATE_DANGER);
         ASC->TryActivateAbilitiesByTag(TargetTag);
     }
-    
-    QL_LOG(QLNetLog, Log, TEXT("Current Dead %d %s"), bIsDead, *GetName());
 }
 
 void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -374,7 +384,6 @@ void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     DOREPLIFETIME(AQLPlayerState, bIsDead);
     DOREPLIFETIME(AQLPlayerState, bIsWin);
     DOREPLIFETIME(AQLPlayerState, bHasLifeStone);
-
 }
 
 

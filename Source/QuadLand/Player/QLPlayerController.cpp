@@ -51,7 +51,6 @@ void AQLPlayerController::ActivateDeathTimer(float Time)
 		if (DeathTimerHandle.IsValid() == false)
 		{
 			CurrentDeathSec = Time;
-			QL_LOG(QLNetLog, Warning, TEXT("this? %d"), CurrentDeathSec);
 
 			GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &AQLPlayerController::ReduceDeathSec, 1.0f, true, 0.0f);
 		}
