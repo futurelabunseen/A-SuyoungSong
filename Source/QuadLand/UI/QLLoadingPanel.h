@@ -14,4 +14,11 @@ class QUADLAND_API UQLLoadingPanel : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	void SetTxtRemainingTime(uint32 Time);
+
+protected:
+	virtual void NativeConstruct() override;
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<class UTextBlock> TxtRemainingTime;
 };

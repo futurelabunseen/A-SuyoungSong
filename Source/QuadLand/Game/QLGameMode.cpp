@@ -40,19 +40,33 @@ void AQLGameMode::PreLogin(const FString& Options, const FString& Address, const
 		ErrorMessage = TEXT("All players are participating.");
 		return;
 	}
-	
 }
 
 void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
+	
+	AQLPlayerController* PC = Cast<AQLPlayerController>(NewPlayer);
 
-	if(GetNumPlayers() >= 2)
+	if (PC == nullptr)
 	{
-		FTimerHandle StartTimerHandle;
-
-		GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 3.0f, false);
+		QL_LOG(QLNetLog, Error, TEXT("PlayerController Error %s"), *PC->GetName());
+		return;
 	}
+
+	if (GetNumPlayers() >= 4) 
+	{
+		PC->bReadyGame = true;
+	}
+
+	FTimerHandle StartTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 10.0f, false);
+
+}
+
+void AQLGameMode::StartPlay()
+{
+	Super::StartPlay();
 }
 
 void AQLGameMode::GameStart()
@@ -70,6 +84,7 @@ void AQLGameMode::GameStart()
 
 void AQLGameMode::GameEnd() //게임이 끝날때마다 호출 죽거나 or 승리하거나
 {
+
 }
 
 

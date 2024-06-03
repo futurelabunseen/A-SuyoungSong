@@ -13,11 +13,19 @@
 #include "UI/QLBloodWidget.h"
 #include "UI/QLReturnToLobby.h"
 #include "UI/QLDeathTimerWidget.h"
+#include "UI/QLLoadingPanel.h"
 #include "QuadLand.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "Character/QLInventoryComponent.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Net/UnrealNetwork.h"
+
+AQLPlayerController::AQLPlayerController()
+{
+	bStartGame = false;
+	bReadyGame = false;
+}
 
 void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
 {
@@ -51,7 +59,6 @@ void AQLPlayerController::ActivateDeathTimer(float Time)
 		if (DeathTimerHandle.IsValid() == false)
 		{
 			CurrentDeathSec = Time;
-			QL_LOG(QLNetLog, Warning, TEXT("this? %d"), CurrentDeathSec);
 
 			GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &AQLPlayerController::ReduceDeathSec, 1.0f, true, 0.0f);
 		}
@@ -150,11 +157,7 @@ void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)
 
 void AQLPlayerController::ClientRPCGameStart_Implementation()
 {
-	QL_LOG(QLNetLog, Warning, TEXT("HI"));
-
-	SetVisibilityHUD(EHUDType::HUD);
-	FInputModeGameOnly GameOnlyInputMode;
-	SetInputMode(GameOnlyInputMode);
+	bReadyGame = true;
 }
 
 void AQLPlayerController::ReduceDeathSec()
@@ -174,6 +177,7 @@ void AQLPlayerController::StopDeathSec()
 	//Delegate호출
 	OnDeathCheckDelegate.ExecuteIfBound(); 
 }
+
 
 void AQLPlayerController::ClientRPCShowLifestoneWidget_Implementation(float Timer)
 {
@@ -218,7 +222,6 @@ void AQLPlayerController::CreateHUD()
 	Widget->ChangedHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
 	Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
 	
-	SetHiddenHUD(EHUDType::HUD);
 	SetHiddenHUD(EHUDType::Inventory);
 	SetHiddenHUD(EHUDType::Map);
 	SetHiddenHUD(EHUDType::DeathTimer);
@@ -328,4 +331,90 @@ void AQLPlayerController::ConcealLifeStone()
 	{
 		UserWidget->ConcealLifeStone();
 	}
+}
+void AQLPlayerController::ServerRPCRequestServerTime_Implementation(float TimeOfClientRequest)
+{
+	float ServerTimeOfReceipt = GetWorld()->GetTimeSeconds(); //현재 받은시간
+
+	ClientRPCReportServerTime(TimeOfClientRequest, ServerTimeOfReceipt);
+}
+
+void AQLPlayerController::ClientRPCReportServerTime_Implementation(float TimeOfClientRequest, float TimeServerReceivedClientRequest)
+{
+	float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
+	float CurrentServerTime = TimeServerReceivedClientRequest + (0.5*RoundTripTime); //왕복시간이니까 /2
+
+	ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
+}
+
+//플레이어를 재정의 하면, 서버에서 시간을 얻을 수 있는 가장 빠른 시간.
+void AQLPlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+
+	if (IsLocalController())
+	{
+		ServerRPCRequestServerTime(GetWorld()->GetTimeSeconds());
+	}
+
+}
+void AQLPlayerController::ServerTimeCheck(float DeltaTime)
+{
+	TimeSyncRunningTime += DeltaTime;
+
+	if (IsLocalController() && TimeSyncFrequency < TimeSyncRunningTime)
+	{
+		ServerRPCRequestServerTime(GetWorld()->GetTimeSeconds());
+		TimeSyncRunningTime = 0.0f;
+	}
+}
+
+float AQLPlayerController::GetServerTime()
+{
+	if (HasAuthority())
+	{
+		return GetWorld()->GetTimeSeconds();
+	}
+
+	return GetWorld()->GetTimeSeconds() + ClientServerDelta;
+}
+void AQLPlayerController::Tick(float DeltaTime)
+{
+
+	Super::Tick(DeltaTime);
+
+	if (bReadyGame)
+	{
+		SetHUDTime();
+	}
+	ServerTimeCheck(DeltaTime);
+}
+
+void AQLPlayerController::SetHUDTime()
+{
+	//10 
+	if (bStartGame == false)
+	{
+		int32 SecondsLeft = FMath::CeilToInt(MatchTime - GetServerTime());
+
+		if (SecondsLeft >= 0 && CountDownInt != SecondsLeft)
+		{
+			if (HUDs.Find(EHUDType::Loading) != nullptr)
+			{
+				UQLLoadingPanel* UserWidget = Cast<UQLLoadingPanel>(HUDs[EHUDType::Loading]);
+				if (UserWidget)
+				{
+					UserWidget->SetTxtRemainingTime(SecondsLeft);
+
+					if (SecondsLeft == 0)
+					{
+						SetHiddenHUD(EHUDType::Loading);
+						bStartGame = true;
+					}
+				}
+			}
+		}
+		CountDownInt = SecondsLeft;
+	}
+	
 }

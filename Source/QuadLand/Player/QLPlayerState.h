@@ -43,7 +43,11 @@ public:
 	float GetMaxAmmoCnt();
 	float GetAmmoCnt();
 
-	FORCEINLINE void SetHasLifeStone(bool InHasLifeStone) { bHasLifeStone = InHasLifeStone; }
+	FORCEINLINE void SetHasLifeStone(bool InHasLifeStone) 
+	{
+		ClientRPCConcealLifeStoneUI();
+		bHasLifeStone = InHasLifeStone; 
+	}
 	FORCEINLINE bool GetHasLifeStone() { return bHasLifeStone; }
 
 	UFUNCTION()
@@ -63,6 +67,9 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCConcealLifeStone();
+
+	UFUNCTION(Client,Unreliable)
+	void ClientRPCConcealLifeStoneUI();
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCPutLifeStone(); //서버에게 눌렀음을 전달

@@ -18,11 +18,11 @@ void UQLGA_Win::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	Character->bUseControllerRotationYaw = false;
 	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
+	
 
-
-	QL_GASLOG(QLLog, Log, TEXT("begin"));
-	if (PC)
+	if (IsLocallyControlled()&&PC)
 	{
 		PC->Win();
 	}
@@ -33,13 +33,6 @@ void UQLGA_Win::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 void UQLGA_Win::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-
-	if (ASC)
-	{
-		ASC->CancelAllAbilities();
-	}
 }
 
 void UQLGA_Win::OnCompleted()

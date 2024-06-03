@@ -33,17 +33,9 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	Character->SetActorEnableCollision(false);
 	Character->bUseControllerRotationYaw = false;
 	Character->SetLifeSpan(3.0f);
-
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-
-	if (ASC)
-	{
-		ASC->AddLooseGameplayTag(CHARACTER_STATE_DEAD);
-	}
-
 	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
 
-	if (PC)
+	if (IsLocallyControlled()&&PC)
 	{
 		PC->Loose();
 	}
@@ -52,12 +44,6 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 void UQLGA_Dead::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-
-	if (ASC)
-	{
-		ASC->CancelAllAbilities();
-	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 

@@ -37,5 +37,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class AQLBomb> Bomb;
 	
+	friend class AQLCharacterBase;
 	friend class AQLCharacterPlayer;
+	friend class AQLCharacterNonPlayer;
+
 };

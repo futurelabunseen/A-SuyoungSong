@@ -59,9 +59,6 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	CameraSpringArm->SetRelativeLocation(FVector(0.0f, 30.0f, 0.0f));
 	CameraSpringArm->SocketOffset = FVector(0.0f, 15.0f, 48.0f);
 
-	// Mesh Component
-	Weapon = CreateDefaultSubobject<UQLWeaponComponent>(TEXT("Weapon"));
-	Weapon->Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
 	QLInputComponent = CreateDefaultSubobject<UQLInputComponent>(TEXT("Input"));
 	QLInventory = CreateDefaultSubobject<UQLInventoryComponent>(TEXT("Inventory"));
 
@@ -97,6 +94,13 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	if (VerticalRecoilRef.Object)
 	{
 		VerticalRecoil = VerticalRecoilRef.Object;
+	}
+	//AnimInstance
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimInstanceRef(TEXT("/Game/QuadLand/Animations/Blueprint/ABQL_Character.ABQL_Character_C"));
+
+	if (AnimInstanceRef.Class)
+	{
+		GetMesh()->SetAnimClass(AnimInstanceRef.Class);
 	}
 }
 
@@ -256,9 +260,6 @@ UAbilitySystemComponent* AQLCharacterPlayer::GetAbilitySystemComponent() const
 void AQLCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-
-	RotateBornSetting(DeltaSeconds);
 	
 	if (RecoilTimeline.IsPlaying())
 	{
@@ -595,88 +596,6 @@ void AQLCharacterPlayer::ResetBomb(const FGameplayTag CallbackTag, int32 NewCoun
 			PC->SwitchWeaponStyle(CurrentAttackType);
 		}
 	}
-}
-
-float AQLCharacterPlayer::CalculateSpeed()
-{
-	FVector Velocity = GetVelocity();
-	Velocity.Z = 0; //Z는 점프축
-	return Velocity.Size2D();
-}
-
-void AQLCharacterPlayer::RotateBornSetting(float DeltaTime)
-{
-	if (bUseControllerRotationYaw == false) return; //죽으면 Yaw 동작을 껐기 때문에 해당 함수 실행 안되도록 수행한다.
-
-	//플레이어가 살아있으면 동작한다. -> 즉, 플레이어가 죽었으면 Yaw 동작을 끔
-	float Speed = CalculateSpeed();
-	bool IsFalling = GetCharacterMovement()->IsFalling();
-
-	if (bIsAiming == false)
-	{
-		if (Speed == 0.f && !IsFalling)
-		{
-			//CurrentYaw 계산
-			FRotator CurrentRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
-			FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentRotation, PreviousRotation);
-			CurrentYaw = DeltaAimRotation.Yaw;
-			if (TurningInPlace == ETurningPlaceType::ETIP_NotTurning)
-			{
-				InterpYaw = CurrentYaw;
-			}
-			bUseControllerRotationYaw = true;
-			TurnInPlace(DeltaTime);
-		}
-
-		if (Speed > 0.0f || IsFalling)
-		{
-			PreviousRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
-			CurrentYaw = 0.f;
-			bUseControllerRotationYaw = true;
-			TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
-		}
-	}
-
-	CurrentPitch = GetBaseAimRotation().Pitch;
-
-	if (CurrentPitch > 90.f && !IsLocallyControlled())
-	{
-		FVector2D InRange(270.0f, 360.f);
-		FVector2D OutRange(-90.0f, 0.f);
-
-		CurrentPitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, CurrentPitch);
-	}
-}
-
-void AQLCharacterPlayer::TurnInPlace(float DeltaTime)
-{
-	//현재 Yaw>90.0f ->오른쪽
-	//방향 외적 (+/-)
-
-	if (CurrentYaw > 90.0f)
-	{
-		TurningInPlace = ETurningPlaceType::ETIP_Right;
-	}
-	else if (CurrentYaw < -90.0f)
-	{
-		TurningInPlace = ETurningPlaceType::ETIP_Left;
-	}
-	 //Aim이 꺼져있을 때만 회전..!
-
-	//Yaw<-90.0f ->왼쪽
-	if (TurningInPlace != ETurningPlaceType::ETIP_NotTurning)
-	{
-		InterpYaw = FMath::FInterpTo(InterpYaw, 0.f, DeltaTime, 4.f); //도는 각도를 보간하고 있구나?
-		CurrentYaw = InterpYaw;
-
-		if (FMath::Abs(CurrentYaw) < 15.0f) //어느정도 적당히 돌았음을 확인
-		{
-			TurningInPlace = ETurningPlaceType::ETIP_NotTurning;
-			PreviousRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f); //Turn을 재조정
-		}
-	}	
-
-	
 }
 
 void AQLCharacterPlayer::SetupStartAbilities()

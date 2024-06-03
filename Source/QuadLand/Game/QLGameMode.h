@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameMode.h"
 #include "QLGameMode.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class QUADLAND_API AQLGameMode : public AGameModeBase
+class QUADLAND_API AQLGameMode : public AGameMode
 {
 	GENERATED_BODY()
 	
@@ -20,11 +20,14 @@ public:
 
 	/** Called after a successful login.  This is the first place it is safe to call replicated functions on the PlayerController. */
 	virtual void PostLogin(APlayerController* NewPlayer) override;
-
+	
+	virtual void StartPlay() override;
 private:
 
 	void GameStart();
 
 	//질때마다 GameMode 에게 전달해서 죽은 시간을 측정한다.
 	void GameEnd();
+
+	TObjectPtr<class AQLPlayerController> ServerPC;
 };
