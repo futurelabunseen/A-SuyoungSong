@@ -5,9 +5,8 @@
 #include "QuadLand.h"
 #include "Player/QLPlayerController.h"
 #include "Player/QLPlayerState.h"
-#include "AbilitySystemComponent.h"
 #include "Game/QLGameState.h"
-#include "UI/QLUIType.h"
+#include "Gimmick/QLAISpawner.h"
 #include "QuadLand.h"
 
 AQLGameMode::AQLGameMode()
@@ -67,6 +66,18 @@ void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 void AQLGameMode::StartPlay()
 {
 	Super::StartPlay();
+}
+
+void AQLGameMode::SpawnAI()
+{
+	AQLAISpawner *AISpawner = GetWorld()->SpawnActor<AQLAISpawner>(AISpawnerClass);
+
+	QL_LOG(QLNetLog, Error, TEXT("Spawn AI Spawner"));
+	if (AISpawner)
+	{
+		AISpawner->SetLifeSpan(5.0f);
+
+	}
 }
 
 void AQLGameMode::GameStart()

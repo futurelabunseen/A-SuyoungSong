@@ -23,7 +23,4 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Collision)
 	TObjectPtr<class UBoxComponent> Trigger;
 
-	UPROPERTY()
-	TSubclassOf<class AQLCharacterNonPlayer> NonPlayer;
-
 };
