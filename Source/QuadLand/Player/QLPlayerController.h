@@ -21,6 +21,7 @@ class QUADLAND_API AQLPlayerController : public APlayerController
 	GENERATED_BODY()
 	
 public:
+	AQLPlayerController();
 
 	UFUNCTION(BlueprintCallable)
 	void SetVisibilityHUD(EHUDType UItype);
@@ -72,6 +73,8 @@ public:
 	void SwitchWeaponStyle(ECharacterAttackType AttackType);
 
 	FOnDeathCheckDelegate OnDeathCheckDelegate;
+
+	uint8 bReadyGame : 1;
 protected:
 
 	uint8 bIsBlinkWidget;
@@ -87,4 +90,37 @@ protected:
 	int CurrentDeathSec;
 	void ReduceDeathSec();
 	void StopDeathSec();
+
+protected:
+	//Client - Server Time Sync
+
+	//Client가 서버에게 요청한 시간을 전달.
+	UFUNCTION(Server,Reliable)
+	void ServerRPCRequestServerTime(float TimeOfClientRequest); //Client 요청한 시간
+
+	//클라이언트에게 전달받은 시간, 서버가 요청받은 시간을 전달 해서 계산
+	UFUNCTION(Client,Reliable)
+	void ClientRPCReportServerTime(float TimeOfClientRequest, float TimeServerReceivedClientRequest);
+
+	float ClientServerDelta = 0.f;
+	UPROPERTY(EditAnywhere, Category = Time)
+	float TimeSyncFrequency = 5.0f;
+
+	float TimeSyncRunningTime = 0.f;
+
+	void ServerTimeCheck(float DeltaTime);
+public:
+
+	virtual float GetServerTime();
+	virtual void ReceivedPlayer() override;
+
+	virtual void Tick(float DeltaTime) override;
+private:
+	float MatchTime = 20.0f;
+
+	uint32 CountDownInt = 0;
+
+	void SetHUDTime();
+	uint8 bStartGame : 1;
+
 };

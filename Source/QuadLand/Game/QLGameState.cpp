@@ -9,6 +9,7 @@
 #include "AbilitySystemComponent.h"
 #include "Player/QLPlayerState.h"
 #include "GameData/QLItemDataset.h"
+
 AQLGameState::AQLGameState()
 {
 	LivePlayerCount = 0;
