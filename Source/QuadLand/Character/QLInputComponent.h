@@ -103,7 +103,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmHeight, Meta = (AllowPrivateAccess = "true"))
 	float MaxCameraHeight = 48.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmHeight, Meta = (AllowPrivateAccess = "true"))
-	float MinCameraHeight = 28.0f;
+	float MinCameraHeight = 18.0f;
 
 	//AimSection
 protected:

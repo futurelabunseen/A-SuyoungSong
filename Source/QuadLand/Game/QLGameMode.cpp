@@ -54,21 +54,26 @@ void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 		return;
 	}
 
-	PC->SetVisibilityHUD(EHUDType::Loading);
+	//PC->SetVisibilityHUD(EHUDType::Loading);
 
-	if(GetNumPlayers() >= 2)
-	{
-		FTimerHandle StartTimerHandle;
+	//if(GetNumPlayers() >= 2)
+	//{
+	//	FTimerHandle StartTimerHandle;
 
-		if (HasAuthority())
-		{
-			GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 4.0f, false);
-		}
-		else
-		{
-			GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 3.0f, false);
-		}
-	}
+	//	if (HasAuthority())
+	//	{
+	//		GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 4.0f, false);
+	//	}
+	//	else
+	//	{
+	//		GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 3.0f, false);
+	//	}
+	//}
+}
+
+void AQLGameMode::StartPlay()
+{
+	Super::StartPlay();
 }
 
 void AQLGameMode::GameStart()
@@ -82,10 +87,12 @@ void AQLGameMode::GameStart()
 			PC->ClientRPCGameStart();
 		}
 	}
+
 }
 
 void AQLGameMode::GameEnd() //게임이 끝날때마다 호출 죽거나 or 승리하거나
 {
+
 }
 
 

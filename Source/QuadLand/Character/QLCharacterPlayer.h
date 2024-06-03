@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Character/QLCharacterBase.h"
 #include "AbilitySystemInterface.h"
-#include "GameData/QLTurningInPlaceType.h"
 #include "GameData/QLItemType.h"
 #include "GameplayEffectTypes.h"
 #include "Components/TimelineComponent.h"
@@ -73,7 +72,6 @@ public:
 	void UpdateAmmoUI();
 	FORCEINLINE bool GetHasGun() const { return bHasGun; }
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrouched; }
-	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 	FORCEINLINE bool GetIsReload() const { return bIsReload; }
 	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
 	FORCEINLINE bool GetPickup() const { return bPressedFarmingKey; }
@@ -82,10 +80,7 @@ public:
 	int GetInventoryCnt(EItemType ItemType);
 	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
 	FORCEINLINE void SetIsProning(bool IsProning) { bIsProning = IsProning; }
-	FORCEINLINE ETurningPlaceType GetTurningInPlaceType() const { return TurningInPlace; }
-	FORCEINLINE const class UQLWeaponComponent* GetWeapon() const { return Weapon; }
-	FORCEINLINE float GetCurrnetYaw() { return CurrentYaw; }
-	FORCEINLINE float GetCurrentPitch() { return CurrentPitch; }
+	
 	UFUNCTION(Server, Unreliable)
 	void ServerRPCShooting(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
 	UFUNCTION(Server, Reliable)
@@ -99,7 +94,6 @@ protected:
 	virtual FVector GetVelocity() const override;
 
 	float MovingThreshold;
-	uint8 bIsAiming : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ArmLength, Meta = (AllowPrivateAccess = "true"))
 	float MaxArmLength;
@@ -142,25 +136,6 @@ protected:
 	void SetupStartAbilities();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	//Movement Section
-protected:
-	FORCEINLINE float CalculateSpeed();
-	FRotator PreviousRotation;
-
-	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<class UGameplayEffect> DefaultAttributes;
-
-	//Turning in Place Section
-protected:
-	ETurningPlaceType TurningInPlace;
-	
-	void RotateBornSetting(float DeltaTime);
-	void TurnInPlace(float DeltaTime);
-
-	float InterpYaw; //보간용도
-
-	float CurrentYaw;
-	float CurrentPitch;
 
 protected:
 
@@ -179,18 +154,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<class UAbilitySystemComponent> ASC;
 
-	UPROPERTY(EditAnywhere, Category = GAS)
-	TArray<TSubclassOf<class UGameplayAbility>> StartAbilities;
-
 	//GAS - Input Abilities
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TMap<int32, TSubclassOf<class UGameplayAbility>> InputAbilities;
 
 //파밍 시스템을 위한 변수
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UQLWeaponComponent> Weapon;
-	
 	UFUNCTION(Server, Reliable)
 	void ServerRPCFarming();
 

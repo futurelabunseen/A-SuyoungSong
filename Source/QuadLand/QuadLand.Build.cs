@@ -9,7 +9,7 @@ public class QuadLand : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicIncludePaths.AddRange(new string[] { "QuadLand" });
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG","ModularGameplay", "OnlineSubsystemSteam", "OnlineSubsystem", "MultiplayerSessions"  });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG","ModularGameplay", "OnlineSubsystemSteam", "OnlineSubsystem", "MultiplayerSessions","NavigationSystem","AIModule"  });
 
         PrivateDependencyModuleNames.AddRange(new string[] {
             "GameFeatures",

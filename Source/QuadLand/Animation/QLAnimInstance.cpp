@@ -9,7 +9,6 @@
 
 UQLAnimInstance::UQLAnimInstance()
 {
-	MovingThreshold = 3.0f; //변경하면서 확인해보자.
 	JumpingThreshold = 50.0f;
 	AimSpeedRate = 1.7f;
 	TurningInPlaceType = ETurningPlaceType::ETIP_NotTurning;
@@ -18,38 +17,24 @@ UQLAnimInstance::UQLAnimInstance()
 void UQLAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
-
-	Owner = Cast<ACharacter>(GetOwningActor());
-	Player = Cast<AQLCharacterPlayer>(GetOwningActor());
-	if (Owner)
-	{
-		Movement = Owner->GetCharacterMovement();
-	}
 }
 
 void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	if (Player)
-	{
-		bHasGun = Player->bIsUsingGun();
-	}
-
 	if (Movement)
 	{
-		Velocity = Movement->Velocity;
-		GroundSpeed = Velocity.Size2D(); //Z값을 제외한 X/Y에 대한 크기
-		bisIdle = GroundSpeed < MovingThreshold; //x-y에 대한 크기가 3.0보다 작을 시 Idle로 판정
-		bIsFalling = Movement->IsFalling();
-		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshold);
-		bIsCrunching = Player->GetIsCrunching();
-		Direction = CalculateDirection(Velocity, Owner->GetActorRotation()); //Locomotion Angle
-		bIsAiming = Player->GetIsAiming();
-		TurningInPlaceType = Player->GetTurningInPlaceType();
-		bIsPickup = Player->GetPickup();
-		RootYawOffset = Player->GetCurrnetYaw();
-		PitchOffset = Player->GetCurrentPitch();
-		bIsProning = Player->GetIsProning();
+		AQLCharacterPlayer *CurrentPlayer = Cast<AQLCharacterPlayer>(GetOwningActor());
+		if (CurrentPlayer)
+		{
+			bIsFalling = Movement->IsFalling();
+			bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshold);
+			bIsCrunching = CurrentPlayer->GetIsCrunching();
+			bIsAiming = CurrentPlayer->GetIsAiming();
+			TurningInPlaceType = CurrentPlayer->GetTurningInPlaceType();
+			bIsPickup = CurrentPlayer->GetPickup();
+			bIsProning = CurrentPlayer->GetIsProning();
+		}
 	}
 }

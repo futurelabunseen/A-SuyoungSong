@@ -218,6 +218,7 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::Inventory);
 	SetHiddenHUD(EHUDType::Map);
 	SetHiddenHUD(EHUDType::DeathTimer);
+	SetHiddenHUD(EHUDType::Loading);
 	SetHiddenHUD(EHUDType::Blood);
 	SetHiddenHUD(EHUDType::Menu);
 	SetHiddenHUD(EHUDType::KeyGuide);
