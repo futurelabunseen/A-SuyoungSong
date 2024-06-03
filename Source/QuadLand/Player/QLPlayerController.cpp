@@ -19,6 +19,7 @@
 #include "Character/QLInventoryComponent.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Interface/QLAISpawnerInterface.h"
 #include "Net/UnrealNetwork.h"
 
 AQLPlayerController::AQLPlayerController()
@@ -230,6 +231,7 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::KeyGuide);
 	SetHiddenHUD(EHUDType::Win);
 	SetHiddenHUD(EHUDType::Death);
+	//SetHiddenHUD(EHUDType::Loading);
 
 	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 	if (QLCharacter)
@@ -408,6 +410,13 @@ void AQLPlayerController::SetHUDTime()
 
 					if (SecondsLeft == 0)
 					{
+						IQLAISpawnerInterface* AISpawnerInterface = GetWorld()->GetAuthGameMode<IQLAISpawnerInterface>();
+						
+						if (AISpawnerInterface)
+						{
+							AISpawnerInterface->SpawnAI();
+						}
+
 						SetHiddenHUD(EHUDType::Loading);
 						bStartGame = true;
 					}

@@ -7,9 +7,6 @@
 #include "Item/QLItemBox.h"
 #include "Net/UnrealNetwork.h"
 #include "QuadLand.h"
-#include "EngineUtils.h"
-#include "GameFramework/PlayerStart.h"
-#include "Character/QLCharacterNonPlayer.h"
 
 // Sets default values
 AQLItemSpawner::AQLItemSpawner()
@@ -46,21 +43,6 @@ void AQLItemSpawner::BeginPlay()
 
 				AQLItemBox* Item = GetWorld()->SpawnActor<AQLItemBox>(ItemBox.Key, Location, FRotator::ZeroRotator, Params);
 				Item->InitPosition(Location);
-			}
-		}
-
-		UWorld* CurrentWorld = GetWorld();
-
-		for (const auto& Entry : FActorRange(CurrentWorld))
-		{
-			APlayerStart* PlayerStart = Cast<APlayerStart>(Entry);
-
-			if (PlayerStart)
-			{
-				//FActorSpawnParameters Params;
-
-				//AQLCharacterNonPlayer* NonPlayer = GetWorld()->SpawnActor<AQLCharacterNonPlayer>(NonPlayer, PlayerStart->GetActorTransform(), Params);
-
 			}
 		}
 	}
