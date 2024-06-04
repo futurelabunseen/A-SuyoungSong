@@ -47,11 +47,14 @@ void AQLAISpawner::BeginPlay()
 
 				if (bResult == false)
 				{
+					const FTransform SpawnTransform(StartLocation + FVector::UpVector * 88.0f);
 					
-					FActorSpawnParameters Params;
-
-					AQLCharacterNonPlayer* NonPlayer = GetWorld()->SpawnActor<AQLCharacterNonPlayer>(NonPlayerClass, StartLocation,FRotator::ZeroRotator, Params);
+					AQLCharacterNonPlayer* NonPlayer = GetWorld()->SpawnActorDeferred<AQLCharacterNonPlayer>(NonPlayerClass, SpawnTransform);
 					
+					if (NonPlayer)
+					{
+						NonPlayer->FinishSpawning(SpawnTransform);
+					}
 				}
 				
 			}
