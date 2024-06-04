@@ -18,5 +18,6 @@ public:
 	virtual void NativeInitializeAnimation() override; //지정된 변수 초기화
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override; //변수를 업데이트 
 
+protected:
 
 };

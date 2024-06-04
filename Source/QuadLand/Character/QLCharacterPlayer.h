@@ -5,10 +5,11 @@
 #include "CoreMinimal.h"
 #include "Character/QLCharacterBase.h"
 #include "AbilitySystemInterface.h"
+#include "Interface/QLLifestoneContainerInterface.h"
 #include "GameData/QLItemType.h"
 #include "GameplayEffectTypes.h"
 #include "Components/TimelineComponent.h"
-#include "Interface/QLLifestoneContainerInterface.h"
+
 #include "QLCharacterPlayer.generated.h"
 
 /**
@@ -47,11 +48,6 @@ public:
 	//ASC
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	//FORCEINLINE
-	 class UAnimMontage* GetAnimMontage() const 
-	 {
-		 return AttackAnimMontage[CurrentAttackType]; 
-	 }
 
 	 const ECharacterAttackType& GetCurrentAttackType() const { return CurrentAttackType; }
 
@@ -72,24 +68,17 @@ public:
 	void UpdateAmmoUI();
 	FORCEINLINE bool GetHasGun() const { return bHasGun; }
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrouched; }
-	FORCEINLINE bool GetIsReload() const { return bIsReload; }
-	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
 	FORCEINLINE bool GetPickup() const { return bPressedFarmingKey; }
 	FORCEINLINE bool GetIsProning() const { return bIsProning; }
 	FORCEINLINE bool GetIsJumping();
 	int GetInventoryCnt(EItemType ItemType);
-	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
 	FORCEINLINE void SetIsProning(bool IsProning) { bIsProning = IsProning; }
-	
-	UFUNCTION(Server, Unreliable)
-	void ServerRPCShooting(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
-	UFUNCTION(Server, Reliable)
-	void ServerRPCReload(); //Reload 행위는 Reliable
+	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
+
 	class UQLInventoryComponent* GetInventory() { return QLInventory; }
-
 protected:
-	uint8 bIsProning : 1;
 
+	uint8 bIsProning : 1;
 protected:
 	virtual FVector GetVelocity() const override;
 
@@ -186,14 +175,7 @@ protected:
 	UFUNCTION()
 	void DestoryItem(class AQLItemBox* Item);
 
-
 protected:
-	
-	UPROPERTY(Replicated)
-	uint8 bIsReload : 1;
-
-	UPROPERTY(Replicated)
-	uint8 bIsShooting : 1;
 
 	UFUNCTION()
 	void InitializeAttributes();

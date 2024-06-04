@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "Interface/QLAIAttackInterface.h"
 #include "QLAIController.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class QUADLAND_API AQLAIController : public AAIController
+class QUADLAND_API AQLAIController : public AAIController, public IQLAIAttackInterface
 {
 	GENERATED_BODY()
 	
@@ -20,6 +21,7 @@ public:
 	void RunAI();
 	void StopAI();
 
+	virtual const APawn* GetTarget() override;
 protected:
 
 	virtual void OnPossess(APawn* InPawn) override;

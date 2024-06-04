@@ -21,16 +21,39 @@ public:
 
 	/*AI와 같이 사용, InputAction*/
 	bool bIsUsingGun();
-	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 	FORCEINLINE float GetCurrnetYaw() { return CurrentYaw; }
 	FORCEINLINE float GetCurrentPitch() { return CurrentPitch; }
 	FORCEINLINE const class UQLWeaponComponent* GetWeapon() const { return Weapon; }
 	FORCEINLINE ETurningPlaceType GetTurningInPlaceType() const { return TurningInPlace; }
+	virtual FGameplayTag GetCurrentAttackTag() const override;
+	//FORCEINLINE
+	class UAnimMontage* GetAnimMontage() const
+	{
+		return AttackAnimMontage[CurrentAttackType];
+	}
+	UFUNCTION(Server, Unreliable)
+	void ServerRPCShooting(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
 
+	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
+
+	FORCEINLINE bool GetIsReload() const { return bIsReload; }
+	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCReload(); //Reload 행위는 Reliable
+protected:
+
+	UPROPERTY(Replicated)
+	uint8 bIsShooting : 1;
+
+	UPROPERTY(Replicated)
+	uint8 bIsReload : 1;
+
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadOnly, Category = Aim)
+	uint8 bIsAiming : 1;
 protected:
 	UPROPERTY(Replicated)
 	ECharacterAttackType CurrentAttackType; //Server로부터 복제되어야함.
-	virtual FGameplayTag GetCurrentAttackTag() const override;
 
 	virtual void Tick(float DeltaSeconds) override;
 	//Attack
@@ -51,8 +74,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UQLWeaponComponent> Weapon;
 
-	//Movement Section
 protected:
+	//Movement Section
 	FRotator PreviousRotation;
 
 	//Turning in Place Section
@@ -67,8 +90,6 @@ protected:
 	float CurrentPitch;
 
 protected:
-
-	uint8 bIsAiming : 1;
 
 	FORCEINLINE float CalculateSpeed();
 };

@@ -11,6 +11,7 @@
 #include "Camera/CameraShakeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameplayTag/GamplayTags.h"
+#include "Interface/QLAIAttackInterface.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "QuadLand.h"
 
@@ -29,35 +30,32 @@ bool UQLGA_AttackUsingGun::CanActivateAbility(const FGameplayAbilitySpecHandle H
 	//Ammo Cnt 개수를 체크한다 만약 0이라면, 어빌리티를 실행하지 않고 종료한다.
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
-
 	if (SourceASC->HasMatchingGameplayTag(CHARACTER_STATE_RUN))
 	{
 		return false;
 	}
-
 	if (WeaponStat && WeaponStat->GetCurrentAmmo() <= 0.0f)
 	{
 		return false;
 	}
-
-	if (CameraShakeClass == nullptr)
-	{
-		return false;
-	}
-
 	return Result;
 }
 
 void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
 	//총을 쏜다면 플레이어를 회전 시킨다.
-	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(Character);
 
 	if (IsLocallyControlled())
 	{
-		APlayerCameraManager* LocalCamera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
-		LocalCamera->StartCameraShake(CameraShakeClass);
+		if (Player)
+		{
+			APlayerCameraManager* LocalCamera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+			LocalCamera->StartCameraShake(CameraShakeClass);
+		}
 	}
 
 	UAnimMontage* AnimMontageUsingGun = Character->GetAnimMontage();
@@ -70,7 +68,7 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	UAbilityTask_PlayMontageAndWait* AttackUsingGunMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("GunAnimMontage"), AnimMontageUsingGun, AnimSpeedRate);
 	AttackUsingGunMontage->OnCompleted.AddDynamic(this, &UQLGA_AttackUsingGun::OnCompletedCallback);
 	AttackUsingGunMontage->OnInterrupted.AddDynamic(this, &UQLGA_AttackUsingGun::OnInterruptedCallback);
-	
+
 	if (IsLocallyControlled())
 	{
 		if (WeaponStat->GetCurrentAmmo() <= 0.0f)
@@ -82,10 +80,10 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		Character->ServerRPCShooting();
 	}
 
-	/*
-	여기서 발동 -> 총알 횟수 주는 Effect수행
-	*/
-	//Gameplay Effect를 실행한다.
+	///*
+	//여기서 발동 -> 총알 횟수 주는 Effect수행
+	//*/
+	////Gameplay Effect를 실행한다.
 	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReduceAmmoCntEffect);
 
 	if (EffectSpecHandle.IsValid())
@@ -98,12 +96,28 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 			FGameplayCueParameters CueParams;
 			CueParams.Instigator = Character;
 			float Dist = WeaponStat->GetAttackDistance();
-			CueParams.Location = Character->CalPlayerLocalCameraStartPos() + Character->GetCameraForward() * Dist; //현재는 임시값 어트리뷰트 셋에서 가져올 예정
+			if (Player)
+			{
+				CueParams.Location = Player->CalPlayerLocalCameraStartPos() + Player->GetCameraForward() * Dist; //현재는 임시값 어트리뷰트 셋에서 가져올 예정
+			}
+			else
+			{
+				IQLAIAttackInterface* AI = Cast<IQLAIAttackInterface>(Character->GetController());
+				if (AI)
+				{
+					const APawn* Target = AI->GetTarget();
+					if (Target)
+					{
+						CueParams.Location = Target->GetActorLocation();
+					}
+				}
+			}
 			//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
 			SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_EFFECT_TRACEBYGUN, CueParams);
-		}
 
+		}
 	}
+
 	if (SourceASC)
 	{
 		//SourceASC->AddTag
@@ -122,7 +136,8 @@ void UQLGA_AttackUsingGun::OnCompletedCallback()
 {
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = true;
-	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
+
 	if (IsLocallyControlled())
 	{
 		if (Character->GetIsShooting())

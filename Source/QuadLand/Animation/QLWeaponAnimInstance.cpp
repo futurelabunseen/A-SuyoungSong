@@ -3,7 +3,7 @@
 
 #include "Animation/QLWeaponAnimInstance.h"
 #include "Item/QLWeaponComponent.h"
-#include "Character/QLCharacterPlayer.h"
+#include "Character/QLCharacterBase.h"
 
 UQLWeaponAnimInstance::UQLWeaponAnimInstance()
 {
@@ -13,7 +13,7 @@ void UQLWeaponAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	Owner = Cast<AQLCharacterPlayer>(GetOwningActor());
+	Owner = Cast<AQLCharacterBase>(GetOwningActor());
 	bIsReload = false;
 	bIsShooting = false;
 }

@@ -65,5 +65,4 @@ protected:
 	/* Aim Offset*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsAiming : 1;
-
 };

@@ -260,7 +260,7 @@ UAbilitySystemComponent* AQLCharacterPlayer::GetAbilitySystemComponent() const
 void AQLCharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	
+
 	if (RecoilTimeline.IsPlaying())
 	{
 		RecoilTimeline.TickTimeline(DeltaSeconds); //앞으로 진행
@@ -272,6 +272,7 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 	}
 	
 }
+
 
 void AQLCharacterPlayer::FarmingItem()
 {
@@ -634,8 +635,6 @@ void AQLCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AQLCharacterPlayer, bPressedFarmingKey);
-	DOREPLIFETIME(AQLCharacterPlayer, bIsShooting);
-	DOREPLIFETIME(AQLCharacterPlayer, bIsReload);
 }
 
 void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
@@ -695,17 +694,6 @@ void AQLCharacterPlayer::MulticastRPCPuttingWeapon_Implementation()
 	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON); //이것도 변경되어야할사항...
 	Weapon->Weapon->SetSkeletalMesh(nullptr);
 	bHasGun = false;
-}
-
-void AQLCharacterPlayer::ServerRPCShooting_Implementation()
-{
-	//만약 Stat없으면 리턴 시켜
-	bIsShooting = !bIsShooting;
-}
-void AQLCharacterPlayer::ServerRPCReload_Implementation()
-{	//MaxAmmo 없으면 실행 불가능 
-
-	bIsReload = !bIsReload;
 }
 
 //Server Section

@@ -47,6 +47,17 @@ void AQLAIController::StopAI()
 	}
 }
 
+const APawn* AQLAIController::GetTarget()
+{
+	UBlackboardComponent* BC = Blackboard.Get();
+	if (BC)
+	{
+		return Cast<APawn>(BC->GetValueAsObject(TEXT("TargetActor")));
+	}
+
+	return nullptr;
+}
+
 void AQLAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);

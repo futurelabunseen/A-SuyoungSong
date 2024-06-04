@@ -7,7 +7,7 @@
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "Item/QLWeaponComponent.h"
 #include "AI/QLAIController.h"
-#include "Perception/AIPerceptionComponent.h"
+#include "GameplayTag/GamplayTags.h"
 
 AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -29,7 +29,7 @@ AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectIni
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
-UAbilitySystemComponent* AQLCharacterNonPlayer::GetAbilitySystemComponent()
+UAbilitySystemComponent* AQLCharacterNonPlayer::GetAbilitySystemComponent() const
 {
 	return ASC;
 }
@@ -67,10 +67,15 @@ void AQLCharacterNonPlayer::PossessedBy(AController* NewController)
 	}
 
 	CurrentAttackType = ECharacterAttackType::GunAttack;
+	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
 }
 
 void AQLCharacterNonPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+}
+
+void AQLCharacterNonPlayer::CheckBoxOverlap()
+{
 }

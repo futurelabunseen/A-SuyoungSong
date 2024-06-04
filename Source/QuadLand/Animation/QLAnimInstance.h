@@ -46,5 +46,4 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
 	uint8 bIsPickup : 1;
-
 };

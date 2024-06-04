@@ -46,8 +46,6 @@ AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) 
 	// Mesh Component
 	Weapon = CreateDefaultSubobject<UQLWeaponComponent>(TEXT("Weapon"));
 	Weapon->Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
-
-	bIsAiming = false;
 }
 
 bool AQLCharacterBase::bIsUsingGun()
@@ -72,22 +70,8 @@ void AQLCharacterBase::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	RotateBornSetting(DeltaSeconds);
+
 }
-
-void AQLCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AQLCharacterBase, CurrentAttackType);
-}
-
-float AQLCharacterBase::CalculateSpeed()
-{
-	FVector Velocity = GetVelocity();
-	Velocity.Z = 0; //Z는 점프축
-	return Velocity.Size2D();
-}
-
 void AQLCharacterBase::RotateBornSetting(float DeltaTime)
 {
 	if (bUseControllerRotationYaw == false) return; //죽으면 Yaw 동작을 껐기 때문에 해당 함수 실행 안되도록 수행한다.
@@ -160,4 +144,32 @@ void AQLCharacterBase::TurnInPlace(float DeltaTime)
 		}
 	}
 
+}
+float AQLCharacterBase::CalculateSpeed()
+{
+	FVector Velocity = GetVelocity();
+	Velocity.Z = 0; //Z는 점프축
+	return Velocity.Size2D();
+}
+
+void AQLCharacterBase::ServerRPCReload_Implementation()
+{	//MaxAmmo 없으면 실행 불가능 
+
+	bIsReload = !bIsReload;
+}
+void AQLCharacterBase::ServerRPCShooting_Implementation()
+{
+	//만약 Stat없으면 리턴 시켜
+	bIsShooting = !bIsShooting;
+}
+
+
+void AQLCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AQLCharacterBase, CurrentAttackType);
+	DOREPLIFETIME(AQLCharacterBase, bIsShooting);
+	DOREPLIFETIME(AQLCharacterBase, bIsReload); 
+	DOREPLIFETIME(AQLCharacterBase, bIsAiming);
 }

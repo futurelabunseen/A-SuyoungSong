@@ -4,24 +4,25 @@
 
 #include "CoreMinimal.h"
 #include "Character/QLCharacterBase.h"
+#include "AbilitySystemInterface.h"
+#include "Interface/QLLifestoneContainerInterface.h"
 #include "QLCharacterNonPlayer.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class QUADLAND_API AQLCharacterNonPlayer : public AQLCharacterBase
+class QUADLAND_API AQLCharacterNonPlayer : public AQLCharacterBase, public IQLLifestoneContainerInterface,  public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
-
 public:
 
 	AQLCharacterNonPlayer(const FObjectInitializer& ObjectInitializer);
-	class UAbilitySystemComponent* GetAbilitySystemComponent();
+	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void BeginPlay() override;
-
+	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 	void SetAiming(bool InAiming) { bIsAiming = InAiming; }
 protected:
 
@@ -36,5 +37,5 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	TObjectPtr<class USkeletalMesh> GunMesh;
-
+	virtual void CheckBoxOverlap() override;
 };

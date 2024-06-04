@@ -12,7 +12,7 @@
 #include "Components/AudioComponent.h"
 UQLGC_DamageEffect::UQLGC_DamageEffect()
 {
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DecalMaterialRef(TEXT("/Script/Engine.Material'/Game/QuadLand/Materials/blood_Mat.blood_Mat'"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DecalMaterialRef(TEXT("/Script/Engine.Material'/Game/Vefects/Blood_VFX/VFX/Decals/M_VFX_Blood_Decal.M_VFX_Blood_Decal'"));
 
 	if (DecalMaterialRef.Object)
 	{
