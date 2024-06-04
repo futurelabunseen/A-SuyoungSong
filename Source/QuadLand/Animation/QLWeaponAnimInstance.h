@@ -27,5 +27,5 @@ protected:
 	uint8 bIsReload : 1;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
-	TObjectPtr<class AQLCharacterPlayer> Owner;
+	TObjectPtr<class AQLCharacterBase> Owner;
 };

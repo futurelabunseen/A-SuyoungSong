@@ -21,6 +21,6 @@ public:
 
 protected:
 
-	UPROPERTY(EditAnywhere, Category = "Trace")
-	TObjectPtr<class AActor> Trace;
+	UPROPERTY(EditAnywhere, Category = Equipment)
+	TSubclassOf<class AQLBullet> BulletClass;
 };

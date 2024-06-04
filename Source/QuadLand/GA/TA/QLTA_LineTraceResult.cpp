@@ -1,53 +1,70 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GA/TA/QLTA_LineTraceResult.h"
+#include "Character/QLCharacterBase.h"
 #include "Character/QLCharacterPlayer.h"
+#include "Interface/QLAIAttackInterface.h"
 #include "Physics/QLCollision.h"
 #include "Camera/CameraComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
-
+#include "Item/QLWeaponComponent.h"
 #include "DrawDebugHelpers.h"
 #include "QuadLand.h"
 
 FGameplayAbilityTargetDataHandle AQLTA_LineTraceResult::MakeTargetData() const
 {
+	FGameplayAbilityTargetDataHandle DataHandle;
+	//Super은 안해도된다. 대체할 예정 
+	AQLCharacterBase* Character = CastChecked<AQLCharacterBase>(SourceActor);
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SourceActor);
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(Character);
 
-		//Super은 안해도된다. 대체할 예정 
-		AQLCharacterPlayer* Character = CastChecked<AQLCharacterPlayer>(SourceActor);
-
-		UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SourceActor);
-		FVector CameraStartLocation = Character->CalPlayerLocalCameraStartPos();
-
-		float Dist = 1000.0f;
-		if (ASC != nullptr)
-		{
-			const UQLAS_WeaponStat* WeaponStat = ASC->GetSet<UQLAS_WeaponStat>();
-
-			Dist = WeaponStat->GetAttackDistance();
-		
-			UE_LOG(LogTemp, Log, TEXT("changed distance %lf"), Dist);
-		}
-		FVector EndLocation = CameraStartLocation + Character->GetCameraForward() * Dist; //현재는 임시값 어트리뷰트 셋에서 가져올 예정
-		FCollisionQueryParams Params(SCENE_QUERY_STAT(LineTraceResult), false, Character); //식별자 
-
-		FHitResult OutHitResult;
-
-		bool bResult = GetWorld()->LineTraceSingleByChannel(
-			OutHitResult,
-			CameraStartLocation,
-			EndLocation,
-			CCHANNEL_QLACTION,
-			Params
-		);
-
-		FGameplayAbilityTargetDataHandle DataHandle;
-		if (bResult)
-		{
-			FGameplayAbilityTargetData_SingleTargetHit* TargetData = new FGameplayAbilityTargetData_SingleTargetHit(OutHitResult);
-			DataHandle.Add(TargetData);
-		}
-
+	if (ASC == nullptr)
+	{
 		return DataHandle;
+	}
+	const UQLAS_WeaponStat* WeaponStat = ASC->GetSet<UQLAS_WeaponStat>();
+	float Dist = WeaponStat->GetAttackDistance();
+	FVector AttackStartLocation;
+	FVector AttackEndLocation;
+	if (Player)
+	{
+		AttackStartLocation = Player->CalPlayerLocalCameraStartPos();
+		AttackEndLocation = AttackStartLocation + Player->GetCameraForward() * Dist; //현재는 임시값 어트리뷰트 셋에서 가져올 예정
+	}
+	else
+	{
+		IQLAIAttackInterface* AI = Cast<IQLAIAttackInterface>(Character->GetController());
+		if (AI)
+		{
+			const APawn* Target = AI->GetTarget();
+			if (Target)
+			{
+				AttackEndLocation = Target->GetActorLocation();
+			}
+		}
+	}
+
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(LineTraceResult), false, Character); //식별자 
+
+	FHitResult OutHitResult;
+
+	bool bResult = GetWorld()->LineTraceSingleByChannel(
+		OutHitResult,
+		AttackStartLocation,
+		AttackEndLocation,
+		CCHANNEL_QLACTION,
+		Params
+	);
+
+
+	if (bResult)
+	{
+		FGameplayAbilityTargetData_SingleTargetHit* TargetData = new FGameplayAbilityTargetData_SingleTargetHit(OutHitResult);
+		DataHandle.Add(TargetData);
+	}
+
+	return DataHandle;
 
 }

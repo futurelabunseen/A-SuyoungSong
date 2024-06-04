@@ -61,11 +61,11 @@ void AQLPlayerController::ActivateDeathTimer(float Time)
 		{
 			CurrentDeathSec = Time;
 
-			GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &AQLPlayerController::ReduceDeathSec, 1.0f, true, 0.0f);
+			GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &AQLPlayerController::ReduceDeathSec, 1.0f, true);
 		}
 	}
 	FTimerHandle StopTimer;
-	GetWorld()->GetTimerManager().SetTimer(StopTimer, this, &AQLPlayerController::StopDeathSec, Time, true, -1.0f);
+	GetWorld()->GetTimerManager().SetTimer(StopTimer, this, &AQLPlayerController::StopDeathSec, Time + 1.0f);
 }
 
 void AQLPlayerController::BlinkBloodWidget()
@@ -231,7 +231,7 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::KeyGuide);
 	SetHiddenHUD(EHUDType::Win);
 	SetHiddenHUD(EHUDType::Death);
-	//SetHiddenHUD(EHUDType::Loading);
+	SetHiddenHUD(EHUDType::Loading);
 
 	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 	if (QLCharacter)

@@ -38,7 +38,6 @@ void AQLBomb::ThrowBomb(FVector Velocity)
 
 void AQLBomb::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-	UE_LOG(LogTemp, Log, TEXT("???"));
 	Collision->SetSimulatePhysics(false);
 	Mesh->SetSimulatePhysics(false);
 

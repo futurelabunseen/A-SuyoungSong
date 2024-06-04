@@ -56,7 +56,6 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 				FVector DeltaVector = UKismetMathLibrary::GetDirectionUnitVector(ControllingPawn->GetActorLocation(), Pawn->GetActorLocation());
 				float JugmentVal=FVector::DotProduct(ControllingPawn->GetActorForwardVector(), DeltaVector);
 				
-				UE_LOG(LogTemp, Log, TEXT("%lf this? BTService_Detect"), JugmentVal);
 				if (JugmentVal >= 0)
 				{
 					//앞을 의미한다.

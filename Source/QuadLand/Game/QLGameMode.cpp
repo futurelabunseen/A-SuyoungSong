@@ -24,7 +24,6 @@ AQLGameMode::AQLGameMode()
 		PlayerControllerClass = PlayerControllerClassRef.Class;
 	}
 
-	
 	PlayerStateClass = AQLPlayerState::StaticClass();
 
 	GameStateClass = AQLGameState::StaticClass();
@@ -59,7 +58,7 @@ void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 
 	FTimerHandle StartTimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 10.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 1.0f, false);
 
 }
 
@@ -76,7 +75,6 @@ void AQLGameMode::SpawnAI()
 	if (AISpawner)
 	{
 		AISpawner->SetLifeSpan(5.0f);
-
 	}
 }
 
