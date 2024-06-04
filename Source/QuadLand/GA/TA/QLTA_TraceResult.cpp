@@ -58,10 +58,10 @@ FGameplayAbilityTargetDataHandle AQLTA_TraceResult::MakeTargetData() const
 		DataHandle.Add(TargetData);
 	}
 
-#if ENABLE_DRAW_DEBUG
-	FColor Color = bResult ? FColor::Green : FColor::Red;
-	DrawDebugSphere(GetWorld(), SocketLocation, AttackRadius, 10.0f, Color, false, 5.0f);
-#endif
+//#if ENABLE_DRAW_DEBUG
+//	FColor Color = bResult ? FColor::Green : FColor::Red;
+//	DrawDebugSphere(GetWorld(), SocketLocation, AttackRadius, 10.0f, Color, false, 5.0f);
+//#endif
 
 	return DataHandle;
 }

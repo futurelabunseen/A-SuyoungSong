@@ -52,7 +52,7 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	//총을 쏜다면 플레이어를 회전 시킨다.
-	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
+	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
 
 	if (IsLocallyControlled())
 	{
@@ -60,7 +60,7 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		LocalCamera->StartCameraShake(CameraShakeClass);
 	}
 
-	UAnimMontage* AnimMontageUsingGun = Player->GetAnimMontage();
+	UAnimMontage* AnimMontageUsingGun = Character->GetAnimMontage();
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
 
@@ -71,7 +71,6 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	AttackUsingGunMontage->OnCompleted.AddDynamic(this, &UQLGA_AttackUsingGun::OnCompletedCallback);
 	AttackUsingGunMontage->OnInterrupted.AddDynamic(this, &UQLGA_AttackUsingGun::OnInterruptedCallback);
 	
-	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
 	if (IsLocallyControlled())
 	{
 		if (WeaponStat->GetCurrentAmmo() <= 0.0f)

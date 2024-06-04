@@ -41,7 +41,7 @@ void UQLReturnToLobby::OnDestorySession(bool bWasSuccessful)
 	UWorld* World = GetWorld();
 	if (World)
 	{
-		AGameModeBase* GameMode = World->GetAuthGameMode<AGameModeBase>();
+		AGameMode* GameMode = World->GetAuthGameMode<AGameMode>();
 		if (GameMode)
 		{
 			//¼­¹ö

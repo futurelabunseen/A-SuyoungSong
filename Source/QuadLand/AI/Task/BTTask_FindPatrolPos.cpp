@@ -45,7 +45,7 @@ EBTNodeResult::Type UBTTask_FindPatrolPos::ExecuteTask(UBehaviorTreeComponent& O
 
 	FNavLocation NextPatrolPos;
 
-	if (NavSystem->GetRandomPointInNavigableRadius(PrePosition, 500.0f ,NextPatrolPos))
+	if (NavSystem->GetRandomPointInNavigableRadius(PrePosition, 250.0f ,NextPatrolPos))
 	{
 		OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("PatrolPosition"), NextPatrolPos.Location);
 		

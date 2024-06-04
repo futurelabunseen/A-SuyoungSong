@@ -24,7 +24,6 @@ AQLGameMode::AQLGameMode()
 		PlayerControllerClass = PlayerControllerClassRef.Class;
 	}
 
-	
 	PlayerStateClass = AQLPlayerState::StaticClass();
 
 	GameStateClass = AQLGameState::StaticClass();

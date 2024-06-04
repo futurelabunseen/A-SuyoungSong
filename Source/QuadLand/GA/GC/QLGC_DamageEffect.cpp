@@ -63,7 +63,7 @@ bool UQLGC_DamageEffect::OnExecute_Implementation(AActor* MyTarget, const FGamep
 			SpawnedBulletDecal->AttachToComponent(HitResult->GetComponent(), FAttachmentTransformRules::KeepWorldTransform);
 		}
 
-		UGameplayStatics::SpawnEmitterAtLocation(HitResult->GetActor(), ParticleSystem, Parameters.Location, FRotator::ZeroRotator, true);
+		UGameplayStatics::SpawnEmitterAtLocation(HitResult->GetActor(), ParticleSystem, HitResult->Location, FRotator::ZeroRotator, true);
 
 	}
 	//ÃÑÀÚ±¹ Decal Spawn 
