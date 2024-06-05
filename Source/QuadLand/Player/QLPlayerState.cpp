@@ -16,7 +16,7 @@
 #include "UI/QLUserWidget.h"
 #include "Physics/QLCollision.h"
 #include "Gimmick/QLLifestoneStorageBox.h"
-
+#include "Character/QLCharacterBase.h"
 
 AQLPlayerState::AQLPlayerState()
 {
@@ -305,6 +305,13 @@ void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
 }
 
 
+bool AQLPlayerState::GetbIsDead()
+{
+    AQLCharacterBase* Player = Cast<AQLCharacterBase>(GetPawn());
+    
+    return  Player->GetIsDead();
+}
+
 float AQLPlayerState::GetStamina()
 {
     return PlayerStatInfo->GetStamina();
@@ -347,12 +354,13 @@ void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
 
 void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 {
-    if (bIsDead == false)
+    AQLCharacterBase* Player = Cast<AQLCharacterBase>(GetPawn());
+    if (Player->GetIsDead() == false)
     {
         FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
         ASC->TryActivateAbilitiesByTag(TargetTag);
     }
-    bIsDead = !bIsDead;
+    Player->SetIsDead(!Player->GetIsDead());
 }
 
 void AQLPlayerState::CoolTimeStamina(const FGameplayTag CallbackTag, int32 NewCount)
@@ -370,7 +378,8 @@ void AQLPlayerState::CoolTimeStamina(const FGameplayTag CallbackTag, int32 NewCo
 
 void AQLPlayerState::SetDead()
 {
-    if (bIsDead == false)
+    AQLCharacterBase* Player = Cast<AQLCharacterBase>(GetPawn());
+    if (Player->GetIsDead() == false)
     {
         FGameplayTagContainer TargetTag(CHARACTER_STATE_DANGER);
         ASC->TryActivateAbilitiesByTag(TargetTag);
@@ -381,7 +390,6 @@ void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    DOREPLIFETIME(AQLPlayerState, bIsDead);
     DOREPLIFETIME(AQLPlayerState, bIsWin);
     DOREPLIFETIME(AQLPlayerState, bHasLifeStone);
 }

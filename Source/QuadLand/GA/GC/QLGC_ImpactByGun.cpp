@@ -67,7 +67,7 @@ bool UQLGC_ImpactByGun::OnExecute_Implementation(AActor* Target, const FGameplay
 				FQuat Quat = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetPos).Quaternion();
 				BulletTransform.SetRotation(Quat);
 				GetWorld()->SpawnActor<AQLBullet>(BulletClass, BulletTransform);
-			}	
+			}
 		}
 	}
 

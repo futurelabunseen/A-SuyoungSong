@@ -58,6 +58,16 @@ const APawn* AQLAIController::GetTarget()
 	return nullptr;
 }
 
+FVector AQLAIController::GetTargetPos()
+{
+	return FVector();
+}
+
+void AQLAIController::SetTargetPos(FVector InPos)
+{
+	TargetPos = GetTarget()->GetActorLocation() + InPos;
+}
+
 void AQLAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);

@@ -71,7 +71,6 @@ void AQLGameMode::SpawnAI()
 {
 	AQLAISpawner *AISpawner = GetWorld()->SpawnActor<AQLAISpawner>(AISpawnerClass);
 
-	QL_LOG(QLNetLog, Error, TEXT("Spawn AI Spawner"));
 	if (AISpawner)
 	{
 		AISpawner->SetLifeSpan(5.0f);

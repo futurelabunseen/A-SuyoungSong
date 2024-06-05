@@ -44,28 +44,50 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 		CollisionQueryParams
 	);
 
+	bool bReset = false;
+	//Pawn 과의
 	if (bResult)
 	{
 
 		for (const auto& OverlapResult : OverlapResults)
 		{
 			APawn* Pawn = Cast<APawn>(OverlapResult.GetActor());
-
+			
 			if (Pawn)
 			{
-				FVector DeltaVector = UKismetMathLibrary::GetDirectionUnitVector(ControllingPawn->GetActorLocation(), Pawn->GetActorLocation());
+				FVector TargetVector = Pawn->GetActorLocation();
+				TargetVector.Z = 0.f;
+
+				FVector OriginVector = ControllingPawn->GetActorLocation();
+				OriginVector.Z = 0.f;
+
+				FVector DeltaVector = UKismetMathLibrary::GetDirectionUnitVector(OriginVector, TargetVector);
 				float JugmentVal=FVector::DotProduct(ControllingPawn->GetActorForwardVector(), DeltaVector);
 				
 				if (JugmentVal >= 0)
 				{
+					UE_LOG(LogTemp, Log, TEXT("%s %s = %s"), *TargetVector.ToString(), *OriginVector.ToString(), *DeltaVector.ToString());
 					//앞을 의미한다.
 					OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), Pawn);
-					DrawDebugLine(World, ControllingPawn->GetActorLocation(), Pawn->GetActorLocation(), FColor::Green, false, 1.f);
 					return;
 				}
 			}
+
+			float Dist = FVector::Dist(Pawn->GetActorLocation(), ControllingPawn->GetActorLocation());
+			
+			bReset = bReset || Dist <= 200.f;
 		}
+
+		//Pawn간의 거리가 200.이상이면 nullptr설정
+		if (bReset)
+		{
+			OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), nullptr);
+		}
+
+	}
+	else
+	{
+		OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), nullptr);
 	}
 
-	OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), nullptr);
 }

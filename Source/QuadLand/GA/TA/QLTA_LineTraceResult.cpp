@@ -41,7 +41,8 @@ FGameplayAbilityTargetDataHandle AQLTA_LineTraceResult::MakeTargetData() const
 			const APawn* Target = AI->GetTarget();
 			if (Target)
 			{
-				AttackEndLocation = Target->GetActorLocation();
+				AttackStartLocation = Character->GetWeapon()->GetWeaponMesh()->GetSocketLocation(FName("MuzzleFlash"));
+				AttackEndLocation = AI->GetTarget()->GetActorLocation();
 			}
 		}
 	}
@@ -58,7 +59,7 @@ FGameplayAbilityTargetDataHandle AQLTA_LineTraceResult::MakeTargetData() const
 		Params
 	);
 
-
+	DrawDebugLine(GetWorld(), AttackStartLocation, AttackEndLocation, FColor::Green, false, 1.f);
 	if (bResult)
 	{
 		FGameplayAbilityTargetData_SingleTargetHit* TargetData = new FGameplayAbilityTargetData_SingleTargetHit(OutHitResult);

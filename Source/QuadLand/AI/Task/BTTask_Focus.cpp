@@ -29,13 +29,14 @@ EBTNodeResult::Type UBTTask_Focus::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	if (Target)
 	{
 		AIController->SetFocus(Target);
-		NonPlayer->SetAiming(true);
+		//Rotation Yaw => Target쪽으로 돌린다..?
+		//NonPlayer->SetAiming(true);
 		//Aim True로
 	}
 	else
 	{
-		NonPlayer->SetAiming(false);
 		AIController->SetFocalPoint(GetRandomPointInViewCone(ControllingPawn));
+		//NonPlayer->SetAiming(false);
 	}
 	
 	return Type;

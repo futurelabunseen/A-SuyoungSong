@@ -22,11 +22,15 @@ public:
 	void StopAI();
 
 	virtual const APawn* GetTarget() override;
+	virtual FVector GetTargetPos() override;
+	virtual void SetTargetPos(FVector InPos) override;
 protected:
 
 	virtual void OnPossess(APawn* InPawn) override;
 
 protected:
+
+	FVector TargetPos;
 
 	UPROPERTY()
 	TObjectPtr<class UBlackboardData> BBAsset;

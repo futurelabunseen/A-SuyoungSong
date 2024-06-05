@@ -50,9 +50,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
 	uint8 bIsDead : 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
-	uint8 bIsWin : 1;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
 	float RootYawOffset;
 
