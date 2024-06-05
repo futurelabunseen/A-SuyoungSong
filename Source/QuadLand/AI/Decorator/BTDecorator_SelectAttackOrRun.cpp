@@ -20,7 +20,7 @@ bool UBTDecorator_SelectAttackOrRun::CalculateRawConditionValue(UBehaviorTreeCom
 	}
 	//Random으로정한다.
 	float Value = FMath::RandRange(0, 100);
-
-	UE_LOG(LogTemp, Log, TEXT("UBTDecorator_SelectAttackOrRun %d"), Value >= 50.f);
+	
+	UE_LOG(LogTemp, Warning, TEXT("UBTDecorator_SelectAttackOrRun %d"), Value>=50.f);
 	return Value>=50.f;
 }

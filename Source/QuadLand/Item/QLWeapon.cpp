@@ -17,5 +17,7 @@ AQLWeapon::AQLWeapon()
 	{
 		Weapon->SetAnimClass(AnimInstanceRef.Class);
 	}
+
+	RootComponent = Weapon;
 }
 

@@ -121,7 +121,6 @@ void AQLPlayerController::Win()
 
 void AQLPlayerController::Loose()
 {
-
 	SetVisibilityHUD(EHUDType::Death);
 	UQLReturnToLobby* UserWidget = Cast<UQLReturnToLobby>(HUDs[EHUDType::Death]);
 
@@ -151,7 +150,6 @@ void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)
 
 	if (UserWidget)
 	{
-		QL_LOG(QLNetLog, Warning, TEXT("Current Attack Type %d"), AttackType);
 		UserWidget->SwitchWeaponStyle(AttackType);
 	}
 }
@@ -186,7 +184,6 @@ void AQLPlayerController::ClientRPCShowLifestoneWidget_Implementation(float Time
 
 	if (Map)
 	{
-		QL_LOG(QLNetLog, Warning, TEXT("this?"));
 		Map->ShowLifestoneBox(Timer);
 	}
 }

@@ -46,4 +46,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
 	uint8 bIsPickup : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
+	uint8 bIsWin : 1;
 };

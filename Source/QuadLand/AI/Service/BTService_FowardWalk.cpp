@@ -31,7 +31,7 @@ void UBTService_FowardWalk::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 	
 	if (TargetActor)
 	{
-		FVector Location = ControllingPawn->GetActorLocation() + ControllingPawn->GetActorForwardVector() * 400.0f;
+		FVector Location = ControllingPawn->GetActorLocation() + ControllingPawn->GetActorForwardVector() * 100.0f;
 		AIController->MoveToLocation(Location);
 	}
 	//ControllingPawn->AddMovementInput(ControllingPawn->GetActorForwardVector(), 1.f);

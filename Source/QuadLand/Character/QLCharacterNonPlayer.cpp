@@ -85,6 +85,7 @@ void AQLCharacterNonPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 	ASC->RegisterGameplayTagEvent(CHARACTER_ATTACK_TAKENDAMAGE, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterNonPlayer::AQLCharacterNonPlayer::AttachTakeDamageTag);
+	ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterNonPlayer::Dead);
 }
 
 
@@ -112,10 +113,16 @@ void AQLCharacterNonPlayer::AttachTakeDamageTag(const FGameplayTag CallbackTag, 
 	{
 		bTakeDamage = true;
 	}
-	else
+}
+
+void AQLCharacterNonPlayer::Dead(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (bIsDead == false)
 	{
-		bTakeDamage = false;
+		FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
+		ASC->TryActivateAbilitiesByTag(TargetTag);
 	}
+	bIsDead = true;
 }
 
 bool AQLCharacterNonPlayer::CanTakeDamage()
@@ -123,6 +130,10 @@ bool AQLCharacterNonPlayer::CanTakeDamage()
 	return bTakeDamage; //false ´Â µµ¸ÁÄ£´Ù. 
 }
 
+void AQLCharacterNonPlayer::StopDamage()
+{
+	bTakeDamage = false;
+}
 
 void AQLCharacterNonPlayer::CheckBoxOverlap()
 {

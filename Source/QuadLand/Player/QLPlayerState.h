@@ -33,7 +33,7 @@ public:
 	FORCEINLINE bool GetbIsWin() { return bIsWin; }
 
 	UFUNCTION(BlueprintCallable)
-	FORCEINLINE bool GetbIsDead() { return bIsDead; }
+	FORCEINLINE bool GetbIsDead();
 
 	float GetStamina();
 	float GetMaxStamina();
@@ -89,9 +89,6 @@ protected:
 
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bIsWin : 1;
-
-	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
-	uint8 bIsDead : 1;
 			
 	//void SetHasLifeStone(bool InGetStone) { bHasLifeStone = true; }
 	//HUD Update Section

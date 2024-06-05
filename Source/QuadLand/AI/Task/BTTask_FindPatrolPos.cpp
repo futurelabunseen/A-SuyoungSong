@@ -35,8 +35,8 @@ EBTNodeResult::Type UBTTask_FindPatrolPos::ExecuteTask(UBehaviorTreeComponent& O
 	{
 		return EBTNodeResult::Failed;
 	}
+
 	FVector Origin = OwnerComp.GetBlackboardComponent()->GetValueAsVector(TEXT("HomePosition"));
-	
 	if (PrePosition == FVector(0.f, 0.f, 0.f))
 	{
 		PrePosition = Origin;
@@ -44,10 +44,10 @@ EBTNodeResult::Type UBTTask_FindPatrolPos::ExecuteTask(UBehaviorTreeComponent& O
 
 	FNavLocation NextPatrolPos;
 
-	if (NavSystem->GetRandomPointInNavigableRadius(PrePosition, 250.0f ,NextPatrolPos))
+	if (NavSystem->GetRandomPointInNavigableRadius(PrePosition, 250.0f, NextPatrolPos))
 	{
 		OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("PatrolPosition"), NextPatrolPos.Location);
-		
+
 		PrePosition = NextPatrolPos.Location;
 		return Type;
 	}

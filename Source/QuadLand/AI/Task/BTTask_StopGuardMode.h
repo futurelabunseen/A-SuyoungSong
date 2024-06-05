@@ -4,21 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "BTTask_RunAway.generated.h"
+#include "BTTask_StopGuardMode.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class QUADLAND_API UBTTask_RunAway : public UBTTaskNode
+class QUADLAND_API UBTTask_StopGuardMode : public UBTTaskNode
 {
 	GENERATED_BODY()
+
 protected:
-
-	UBTTask_RunAway();
-
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-	bool IsLocationFreeOfObjects(const APawn* ThisCharacter,const FVector& Location);
 
-	int32 MaxAttempts;
 };
