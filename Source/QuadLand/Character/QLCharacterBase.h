@@ -41,6 +41,7 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCReload(); //Reload 행위는 Reliable
+
 protected:
 
 	UPROPERTY(Replicated)
@@ -51,6 +52,7 @@ protected:
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadOnly, Category = Aim)
 	uint8 bIsAiming : 1;
+
 protected:
 	UPROPERTY(Replicated)
 	ECharacterAttackType CurrentAttackType; //Server로부터 복제되어야함.

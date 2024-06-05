@@ -40,7 +40,6 @@ EBTNodeResult::Type UBTTask_FindPatrolPos::ExecuteTask(UBehaviorTreeComponent& O
 	if (PrePosition == FVector(0.f, 0.f, 0.f))
 	{
 		PrePosition = Origin;
-		UE_LOG(LogTemp, Log, TEXT("Init"));
 	}
 
 	FNavLocation NextPatrolPos;

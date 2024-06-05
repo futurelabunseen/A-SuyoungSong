@@ -23,11 +23,19 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void BeginPlay() override;
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
-	void SetAiming(bool InAiming) { bIsAiming = InAiming; }
+	virtual FRotator GetBaseAimRotation() const override;
+
+	void AttachTakeDamageTag(const FGameplayTag CallbackTag, int32 NewCount);
+	bool CanTakeDamage();
 protected:
 
+	uint8 bTakeDamage : 1;
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<class UAbilitySystemComponent> ASC;
+
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = AI)
+	TObjectPtr<class UAIPerceptionComponent> AIPerception;
 
 	UPROPERTY()
 	TObjectPtr<class UQLAS_WeaponStat> WeaponStat; //TypeA
@@ -37,5 +45,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	TObjectPtr<class USkeletalMesh> GunMesh;
+
 	virtual void CheckBoxOverlap() override;
+
+	UFUNCTION()
+	void UpdateTargetPerception(AActor* Actor, FAIStimulus Stimulus);
 };

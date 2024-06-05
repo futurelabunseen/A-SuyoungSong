@@ -8,6 +8,10 @@
 #include "Item/QLWeaponComponent.h"
 #include "AI/QLAIController.h"
 #include "GameplayTag/GamplayTags.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISenseConfig_Hearing.h"
+#include "QuadLand.h"
 
 AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -23,7 +27,14 @@ AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectIni
 	{
 		GunMesh = GunMeshRef.Object;
 	}
+
+	AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
+	UAISenseConfig_Hearing *HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearConfig"));
+	AIPerception->ConfigureSense(*HearingConfig);
+
 	Weapon->Weapon->SetSkeletalMesh(GunMesh);
+
+	AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AQLCharacterNonPlayer::UpdateTargetPerception);
 
 	AIControllerClass = AQLAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -73,9 +84,62 @@ void AQLCharacterNonPlayer::PossessedBy(AController* NewController)
 void AQLCharacterNonPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-
+	ASC->RegisterGameplayTagEvent(CHARACTER_ATTACK_TAKENDAMAGE, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterNonPlayer::AQLCharacterNonPlayer::AttachTakeDamageTag);
 }
+
+
+FRotator AQLCharacterNonPlayer::GetBaseAimRotation() const
+{
+	FRotator PreRotator = Super::GetBaseAimRotation();
+	AQLAIController* AIController = GetController<AQLAIController>();
+
+	if (AIController)
+	{
+		const APawn* Pawn = AIController->GetTarget(); //상대방
+
+		if (Pawn)
+		{
+			FVector Dir = (Pawn->GetActorLocation() - GetActorLocation()); //상대방의 Pitch값, 나.Pitch - 상대방.Pitch
+			PreRotator.Pitch = Dir.Rotation().Pitch;
+		}
+	}
+	return PreRotator;
+}
+
+void AQLCharacterNonPlayer::AttachTakeDamageTag(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (NewCount >= 1)
+	{
+		bTakeDamage = true;
+	}
+	else
+	{
+		bTakeDamage = false;
+	}
+}
+
+bool AQLCharacterNonPlayer::CanTakeDamage()
+{
+	return bTakeDamage; //false 는 도망친다. 
+}
+
 
 void AQLCharacterNonPlayer::CheckBoxOverlap()
 {
+}
+
+void AQLCharacterNonPlayer::UpdateTargetPerception(AActor* Actor, FAIStimulus Stimulus)
+{
+	AQLAIController* AIController = GetController<AQLAIController>();
+
+	if (AIController)
+	{
+		UBlackboardComponent* BC = AIController->GetBlackboardComponent();
+
+		if (BC)
+		{
+			QL_LOG(QLLog, Warning, TEXT("PatrolPosition %s"), *Stimulus.StimulusLocation.ToString());
+			BC->SetValueAsVector(TEXT("PatrolPosition"), Stimulus.StimulusLocation);
+		}
+	}
 }

@@ -114,7 +114,6 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 			}
 			//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
 			SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_EFFECT_TRACEBYGUN, CueParams);
-
 		}
 	}
 

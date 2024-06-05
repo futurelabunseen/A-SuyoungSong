@@ -10,6 +10,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Item/QLWeaponComponent.h"
 
+#include "QuadLand.h"
 AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), CurrentAttackType(ECharacterAttackType::GunAttack)
 {
 	//Pawn 
@@ -72,6 +73,7 @@ void AQLCharacterBase::Tick(float DeltaSeconds)
 	RotateBornSetting(DeltaSeconds);
 
 }
+
 void AQLCharacterBase::RotateBornSetting(float DeltaTime)
 {
 	if (bUseControllerRotationYaw == false) return; //죽으면 Yaw 동작을 껐기 때문에 해당 함수 실행 안되도록 수행한다.
@@ -106,7 +108,7 @@ void AQLCharacterBase::RotateBornSetting(float DeltaTime)
 	}
 
 	CurrentPitch = GetBaseAimRotation().Pitch;
-
+	
 	if (CurrentPitch > 90.f && !IsLocallyControlled())
 	{
 		FVector2D InRange(270.0f, 360.f);

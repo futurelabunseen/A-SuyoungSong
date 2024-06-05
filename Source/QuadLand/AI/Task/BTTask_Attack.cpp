@@ -17,7 +17,7 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	EBTNodeResult::Type Type = Super::ExecuteTask(OwnerComp, NodeMemory);
 
 	//NavigationMeshVolume의 값을 가져온다.
-	AQLCharacterNonPlayer* ControllingPawn =Cast<AQLCharacterNonPlayer>(OwnerComp.GetAIOwner()->GetPawn());
+	AQLCharacterNonPlayer* ControllingPawn = Cast<AQLCharacterNonPlayer>(OwnerComp.GetAIOwner()->GetPawn());
 
 	if (ControllingPawn == nullptr)
 	{
@@ -30,7 +30,6 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	{
 		return EBTNodeResult::Failed;
 	}
-
 	FGameplayTagContainer TagContainer(ControllingPawn->GetCurrentAttackTag());
 	ASC->TryActivateAbilitiesByTag(TagContainer);
 
