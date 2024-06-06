@@ -53,7 +53,6 @@ void UQLReturnToLobby::OnDestorySession(bool bWasSuccessful)
 			PlayerController = PlayerController == nullptr ? World->GetFirstPlayerController() : PlayerController;
 
 			PlayerController->ClientReturnToMainMenuWithTextReason(FText());
-
 		}
 	}
 

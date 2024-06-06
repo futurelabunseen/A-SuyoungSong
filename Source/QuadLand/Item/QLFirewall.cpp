@@ -4,6 +4,7 @@
 #include "Item/QLFirewall.h"
 #include "Character/QLCharacterPlayer.h"
 #include "AbilitySystemComponent.h"
+#include "QuadLand.h"
 // Sets default values
 AQLFirewall::AQLFirewall()
 {
@@ -37,4 +38,20 @@ void AQLFirewall::TakenDamage(AActor* Target)
 			}
 		}
 	}
+
+	QL_LOG(QLLog, Warning, TEXT("Fire"));
+}
+
+void AQLFirewall::StopDamage(AActor* Target)
+{
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(Target);
+	if (Player)
+	{
+		UAbilitySystemComponent* TargetASC = Cast<UAbilitySystemComponent>(Player->GetAbilitySystemComponent());
+
+		TargetASC->RemoveActiveGameplayEffectBySourceEffect(DotDamageGameplayEffectClass,TargetASC);
+	}
+
+
+	QL_LOG(QLLog, Warning, TEXT("Stop"));
 }

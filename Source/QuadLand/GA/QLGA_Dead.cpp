@@ -32,12 +32,14 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	Character->SetActorEnableCollision(false);
 	Character->bUseControllerRotationYaw = false;
-	Character->SetLifeSpan(3.0f);
+	Character->SetLifeSpan(5.0f);
 	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
 
 	if (IsLocallyControlled()&&PC)
 	{
 		PC->Loose();
+	
+		//관전 카메라 Possess
 	}
 	OnCompleted();
 }

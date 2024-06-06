@@ -174,6 +174,7 @@ void AQLCharacterPlayer::BeginPlay()
 	{
 		BombPath = NewObject<USplineComponent>(this, TEXT("BombPath"));
 		BombPath->SetupAttachment(GetMesh(), TEXT("Bomb"));
+		BombPath->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 		BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
 	}
 
@@ -183,6 +184,7 @@ void AQLCharacterPlayer::BeginPlay()
 	{
 		return;
 	}
+
 	FOnTimelineFloat XRecoilCurve;
 	//델리게이트 연결
 	XRecoilCurve.BindUFunction(this, FName("StartHorizontalRecoil"));
@@ -325,7 +327,7 @@ void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 
 	if (InItem == nullptr) return;
 	if (bHasGun) return; 
-	QL_LOG(QLLog, Warning, TEXT("Equip Weapon"));
+
 	AQLItemBox* Item = Cast<AQLItemBox>(InItem);
 	UQLItemData* InItemInfo = Item->Stat;
 	//Mesh 위치는 소켓 

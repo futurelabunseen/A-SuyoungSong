@@ -60,7 +60,7 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 	//Attack
 protected:
-	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
+	UPROPERTY(Replicated, EditAnywhere,BlueprintReadOnly, Category = Battle)
 	uint8 bIsDead : 1;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

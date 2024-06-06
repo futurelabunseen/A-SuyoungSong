@@ -25,6 +25,15 @@ public:
 	virtual void StartPlay() override;
 
 	virtual void SpawnAI() override;
+
+	UFUNCTION()
+	void DeadNonPlayer(FName NonPlayerName);
+
+	UFUNCTION()
+	void GetWinner(const FGameplayTag CallbackTag, int32 NewCount);
+
+	UFUNCTION()
+	void AddPlayer(FName PlayerName);
 private:
 
 	void GameStart();
@@ -34,4 +43,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Classes)
 	TSubclassOf<class AQLAISpawner> AISpawnerClass;
+
+	TMap<FName, bool> PlayerDieStatus;
+
+	int32 LivePlayerCount;
+
 };

@@ -24,6 +24,7 @@ AQLBomb::AQLBomb()
 	Mesh->SetCollisionProfileName(CPROFILE_QLPHYSICS);
 	//초기값은 BombThrower 설정
 	OnActorHit.AddDynamic(this, &AQLBomb::OnActorOverlap);
+
 	bReplicates = true;
 	SetReplicateMovement(true);
 }
@@ -32,7 +33,6 @@ AQLBomb::AQLBomb()
 void AQLBomb::ThrowBomb(FVector Velocity)
 {
 	Collision->SetSimulatePhysics(true);
-
 	Collision->SetPhysicsLinearVelocity(Velocity);
 }
 
@@ -40,7 +40,6 @@ void AQLBomb::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector Norm
 {
 	Collision->SetSimulatePhysics(false);
 	Mesh->SetSimulatePhysics(false);
-
 
 	Collision->SetWorldLocation(Mesh->GetComponentLocation());
 	OnActorOverlapDelegate.ExecuteIfBound();

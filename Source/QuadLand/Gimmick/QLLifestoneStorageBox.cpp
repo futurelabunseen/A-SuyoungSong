@@ -54,8 +54,7 @@ void AQLLifestoneStorageBox::OnComponentBeginOverlap(UPrimitiveComponent* Overla
 {
 	AlertComponent->SetHiddenInGame(false);
 	IQLLifestoneContainerInterface* LifeStoneInterface = Cast<IQLLifestoneContainerInterface>(OtherActor);
-	QL_LOG(QLNetLog, Log, TEXT("Begin"));
-
+	
 	if (LifeStoneInterface)
 	{
 		LifeStoneInterface->CheckBoxOverlap();
@@ -66,7 +65,6 @@ void AQLLifestoneStorageBox::OnComponentEndOverlap(UPrimitiveComponent* Overlapp
 {
 	AlertComponent->SetHiddenInGame(true);
 
-	QL_LOG(QLNetLog, Log, TEXT("End"));
 	IQLLifestoneContainerInterface* LifeStoneInterface = Cast<IQLLifestoneContainerInterface>(OtherActor);
 	if (LifeStoneInterface)
 	{
@@ -103,8 +101,6 @@ void AQLLifestoneStorageBox::ConcealLifeStone(FName InPlayerStateName)
 	{
 		if (InPlayerStateName != TEXT("") && InPlayerStateName != PlayerStateName)
 		{
-			QL_LOG(QLLog, Warning, TEXT("%s %s"), *PlayerStateName.ToString(), *InPlayerStateName.ToString());
-			QL_LOG(QLNetLog, Log, TEXT("to be confiscated"));
 			//죽음 태그 부착한다. -> 태그를 부착하고 Dead 어빌리티에서 10초가량 시간을 제공해주는 걸로 변경
 			if (OnLifespanDelegate.IsBound())
 			{

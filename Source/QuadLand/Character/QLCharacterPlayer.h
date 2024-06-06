@@ -72,7 +72,7 @@ public:
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrouched; }
 	FORCEINLINE bool GetPickup() const { return bPressedFarmingKey; }
 	FORCEINLINE bool GetIsProning() const { return bIsProning; }
-	FORCEINLINE bool GetIsJumping();
+	bool GetIsJumping();
 	FORCEINLINE void SetIsProning(bool IsProning) { bIsProning = IsProning; }
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 

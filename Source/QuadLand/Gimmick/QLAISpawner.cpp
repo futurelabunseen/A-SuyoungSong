@@ -5,6 +5,7 @@
 #include "GameFramework/PlayerStart.h"
 #include "Character/QLCharacterNonPlayer.h"
 #include "EngineUtils.h"
+#include "Game/QLGameMode.h"
 #include "Physics/QLCollision.h"
 
 // Sets default values
@@ -21,6 +22,7 @@ void AQLAISpawner::BeginPlay()
 	if (HasAuthority())
 	{
 		UWorld* CurrentWorld = GetWorld();
+		AQLGameMode* GameMode = Cast<AQLGameMode>(CurrentWorld->GetAuthGameMode());
 
 		for (const auto& Entry : FActorRange(CurrentWorld))
 		{
@@ -55,9 +57,17 @@ void AQLAISpawner::BeginPlay()
 					{
 						NonPlayer->FinishSpawning(SpawnTransform);
 					}
+
+					if (GameMode)
+					{
+						GameMode->AddPlayer(FName(NonPlayer->GetName()));
+					}
 				}
 				
 			}
 		}
+
+		//게임모드를 가져온다.
+		
 	}
 }

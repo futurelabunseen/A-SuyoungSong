@@ -59,7 +59,6 @@ FGameplayAbilityTargetDataHandle AQLTA_LineTraceResult::MakeTargetData() const
 		Params
 	);
 
-	DrawDebugLine(GetWorld(), AttackStartLocation, AttackEndLocation, FColor::Green, false, 1.f);
 	if (bResult)
 	{
 		FGameplayAbilityTargetData_SingleTargetHit* TargetData = new FGameplayAbilityTargetData_SingleTargetHit(OutHitResult);

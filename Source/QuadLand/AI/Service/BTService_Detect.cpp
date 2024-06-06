@@ -69,7 +69,7 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 				}
 				float Dist = FVector::Dist(Pawn->GetActorLocation(), ControllingPawn->GetActorLocation());
 
-				bReset = bReset || Dist <= 200.f;
+				bReset = bReset || Dist <= 100.f;
 			}
 		}
 

@@ -246,6 +246,12 @@ void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId, int32 ItemC
 			return;
 		}
 	}
+	//UI변경
+	// 
+	if (ItemId == EItemType::Bomb)
+	{
+
+	}
 	//Server RPC 전송 -> Server 아이템 생성 및 아이템 조정 
 	ServerRPCAddGroundByDraggedItem(ItemId, ItemCnt);
 }
