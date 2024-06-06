@@ -26,6 +26,7 @@ EBTNodeResult::Type UBTTask_Dead::ExecuteTask(UBehaviorTreeComponent& OwnerComp,
 	{
 		return EBTNodeResult::Failed;
 	}
+
 	FGameplayTagContainer TagContainer(CHARACTER_STATE_DEAD);
 	ASC->TryActivateAbilitiesByTag(TagContainer);
 

@@ -237,13 +237,6 @@ void AQLPlayerController::CreateHUD()
 	}
 }
 
-void AQLPlayerController::UpdateAmmoUI(UObject* Item,int32 UpdateItemCnt)
-{
-	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
-	InventoryUI->HasCurrentItem(Item);
-	
-}
-
 void AQLPlayerController::UpdateNearbyItemEntry(UObject* Item)
 {
 	if (IsLocalController())

@@ -612,7 +612,7 @@ void UQLInputComponent::SetInventory()
 			}
 		}
 	}
-	Character->UpdateAmmoUI();
+	Character->UpdateAmmo();
 
 	FInputModeUIOnly UIOnlyInputMode;
 	PC->SetVisibilityHUD(EHUDType::Inventory);

@@ -326,12 +326,18 @@ void UQLInventoryComponent::ClientRPCAddItem_Implementation(EItemType ItemId, in
 
 	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
 	UQLItemData* ItemData = DataManager->GetItem(ItemId);
+
 	if (GetNetMode() == ENetMode::NM_Client)
 	{
 		ItemData->CurrentItemCnt = GetInventoryCnt(ItemId) + ItemCnt;
 		AddItem(ItemId, ItemCnt);
 	}
+	else
+	{
+		ItemData->CurrentItemCnt = GetInventoryCnt(ItemId); //서버는 이미 이전에 증가되었음.
+	}
 	PC->UpdateItemEntry(ItemData, ItemData->CurrentItemCnt);
+
 	PC->BlinkBag();
 }
 

@@ -33,7 +33,6 @@ public:
 	class UUserWidget* GetPlayerUIWidget() const { return HUDs[EHUDType::HUD]; }
 
 	void CreateHUD();
-	void UpdateAmmoUI(UObject* Item,int32 UpdateItemCnt);
 	/* 인벤토리 */
 	void UpdateNearbyItemEntry(UObject* Item); //아이템이 생김 - Stat을 넘기자
 	void UpdateItemEntry(UObject* Item, int32 CurrentItemCnt);

@@ -65,17 +65,20 @@ public:
 
 	//const class UQLWeaponStat* GetWeaponStat() const;
 
-	void UpdateAmmoUI();
+	void UpdateAmmo();
+	UFUNCTION(Server,Unreliable)
+	void ServerRPCUpdateAmmo(uint32 ItemCnt);
 	FORCEINLINE bool GetHasGun() const { return bHasGun; }
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrouched; }
 	FORCEINLINE bool GetPickup() const { return bPressedFarmingKey; }
 	FORCEINLINE bool GetIsProning() const { return bIsProning; }
 	FORCEINLINE bool GetIsJumping();
-	int GetInventoryCnt(EItemType ItemType);
 	FORCEINLINE void SetIsProning(bool IsProning) { bIsProning = IsProning; }
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 
 	class UQLInventoryComponent* GetInventory() { return QLInventory; }
+
+	int GetInventoryCnt(EItemType ItemType);
 protected:
 
 	uint8 bIsProning : 1;
