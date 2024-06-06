@@ -24,8 +24,8 @@ public:
 	virtual void BeginPlay() override;
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 	virtual FRotator GetBaseAimRotation() const override;
-
 	void AttachTakeDamageTag(const FGameplayTag CallbackTag, int32 NewCount);
+	
 	void Dead(const FGameplayTag CallbackTag, int32 NewCount);
 	bool CanTakeDamage();
 	void StopDamage();

@@ -45,10 +45,8 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 	);
 
 	bool bReset = false;
-	//Pawn 과의
 	if (bResult)
 	{
-
 		for (const auto& OverlapResult : OverlapResults)
 		{
 			APawn* Pawn = Cast<APawn>(OverlapResult.GetActor());
@@ -66,19 +64,15 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 				
 				if (JugmentVal >= 0)
 				{
-					UE_LOG(LogTemp, Log, TEXT("%s %s = %s"), *TargetVector.ToString(), *OriginVector.ToString(), *DeltaVector.ToString());
-					//앞을 의미한다.
 					OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), Pawn);
 					return;
 				}
-			}
+				float Dist = FVector::Dist(Pawn->GetActorLocation(), ControllingPawn->GetActorLocation());
 
-			float Dist = FVector::Dist(Pawn->GetActorLocation(), ControllingPawn->GetActorLocation());
-			
-			bReset = bReset || Dist <= 200.f;
+				bReset = bReset || Dist <= 100.f;
+			}
 		}
 
-		//Pawn간의 거리가 200.이상이면 nullptr설정
 		if (bReset)
 		{
 			OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), nullptr);

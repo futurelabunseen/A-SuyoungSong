@@ -246,6 +246,12 @@ void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId, int32 ItemC
 			return;
 		}
 	}
+	//UI변경
+	// 
+	if (ItemId == EItemType::Bomb)
+	{
+
+	}
 	//Server RPC 전송 -> Server 아이템 생성 및 아이템 조정 
 	ServerRPCAddGroundByDraggedItem(ItemId, ItemCnt);
 }
@@ -326,12 +332,18 @@ void UQLInventoryComponent::ClientRPCAddItem_Implementation(EItemType ItemId, in
 
 	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
 	UQLItemData* ItemData = DataManager->GetItem(ItemId);
+
 	if (GetNetMode() == ENetMode::NM_Client)
 	{
 		ItemData->CurrentItemCnt = GetInventoryCnt(ItemId) + ItemCnt;
 		AddItem(ItemId, ItemCnt);
 	}
+	else
+	{
+		ItemData->CurrentItemCnt = GetInventoryCnt(ItemId); //서버는 이미 이전에 증가되었음.
+	}
 	PC->UpdateItemEntry(ItemData, ItemData->CurrentItemCnt);
+
 	PC->BlinkBag();
 }
 

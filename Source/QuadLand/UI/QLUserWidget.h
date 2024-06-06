@@ -10,6 +10,7 @@
 /**
  * 
  */
+
 UCLASS()
 
 class QUADLAND_API UQLUserWidget : public UUserWidget
@@ -37,7 +38,8 @@ public:
 	FORCEINLINE class UQLPlayerHUDWidget* GetStatHUD() { return CharacterStat; }
 	FORCEINLINE class UQLPlayerHpBarWidget* GetHpHUD() { return HpBar; }
 
-
+	void UpdateLivePlayer(int16 InLivePlayer);
+	void UpdateProgressTime(const FString &InTime);
 protected:
 	virtual void NativeConstruct() override;
 	FTimerHandle HiddenTimer;
@@ -64,6 +66,12 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class UTextBlock> TxtShootingMethod;
+
+	UPROPERTY(meta = (BindWiget))
+	TObjectPtr<class UTextBlock> TxtProgressTime;
+
+	UPROPERTY(meta = (BindWiget))
+	TObjectPtr<class UTextBlock> TxtPersonCnt;
 
 	uint8 bIsSemiAutomatic : 1;
 

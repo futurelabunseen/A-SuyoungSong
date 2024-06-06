@@ -155,8 +155,8 @@ float AQLCharacterBase::CalculateSpeed()
 }
 
 void AQLCharacterBase::ServerRPCReload_Implementation()
-{	//MaxAmmo 없으면 실행 불가능 
-
+{	
+	//MaxAmmo 없으면 실행 불가능 
 	bIsReload = !bIsReload;
 }
 void AQLCharacterBase::ServerRPCShooting_Implementation()
@@ -174,4 +174,5 @@ void AQLCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AQLCharacterBase, bIsShooting);
 	DOREPLIFETIME(AQLCharacterBase, bIsReload); 
 	DOREPLIFETIME(AQLCharacterBase, bIsAiming);
+	DOREPLIFETIME(AQLCharacterBase, bIsDead);
 }

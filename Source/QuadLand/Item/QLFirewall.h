@@ -20,6 +20,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void TakenDamage(AActor* Target);
 
+	UFUNCTION(BlueprintCallable)
+	void StopDamage(AActor* Target);
+
 protected:
 
 	UPROPERTY(EditAnywhere, Category = GameplayEffect)

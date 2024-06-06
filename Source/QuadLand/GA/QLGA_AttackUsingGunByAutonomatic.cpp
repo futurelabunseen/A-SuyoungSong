@@ -50,6 +50,13 @@ bool UQLGA_AttackUsingGunByAutonomatic::CanActivateAbility(const FGameplayAbilit
 		return false;
 	}
 
+	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(Character);
+
+	if (Player && Player->GetIsJumping())
+	{
+		return false;
+	}
 
 	return true;
 }

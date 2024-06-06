@@ -35,8 +35,8 @@ public:
 	void ServerRPCShooting(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
 
 	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
-	FORCEINLINE bool GetIsReload() const { return bIsDead; }
-	FORCEINLINE bool GetIsDead() const { return bIsReload; }
+	FORCEINLINE bool GetIsDead() const { return bIsDead; }
+	FORCEINLINE bool GetIsReload() const { return bIsReload; }
 	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
 	FORCEINLINE void SetIsDead(bool InDead) { bIsDead = InDead; }
 	UFUNCTION(Server, Reliable)
@@ -60,7 +60,7 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 	//Attack
 protected:
-	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
+	UPROPERTY(Replicated, EditAnywhere,BlueprintReadOnly, Category = Battle)
 	uint8 bIsDead : 1;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

@@ -29,6 +29,5 @@ void UQLAN_AttackHitCheck::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenc
 		Payload.OptionalObject = ResultSocket;
 		
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(MeshComp->GetOwner(), CHARACTER_ATTACK_HITCHECK, Payload);
-		
 	}
 }

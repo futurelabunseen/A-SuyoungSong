@@ -11,6 +11,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Hearing.h"
+#include "Game/QLGameMode.h"
 #include "QuadLand.h"
 
 AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -121,6 +122,14 @@ void AQLCharacterNonPlayer::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 	{
 		FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
 		ASC->TryActivateAbilitiesByTag(TargetTag);
+
+		AQLGameMode* GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
+
+		if (GameMode)
+		{
+			GameMode->DeadNonPlayer(FName(this->GetName()));
+			GameMode->GetWinner(CallbackTag, NewCount);
+		}
 	}
 	bIsDead = true;
 }
@@ -149,7 +158,6 @@ void AQLCharacterNonPlayer::UpdateTargetPerception(AActor* Actor, FAIStimulus St
 
 		if (BC)
 		{
-			QL_LOG(QLLog, Warning, TEXT("PatrolPosition %s"), *Stimulus.StimulusLocation.ToString());
 			BC->SetValueAsVector(TEXT("PatrolPosition"), Stimulus.StimulusLocation);
 		}
 	}

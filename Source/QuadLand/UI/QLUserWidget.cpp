@@ -142,3 +142,20 @@ void UQLUserWidget::NativeConstruct()
 
 	TxtShootingMethod->SetVisibility(ESlateVisibility::Hidden);
 }
+
+void UQLUserWidget::UpdateLivePlayer(int16 InLivePlayer)
+{
+	if (TxtPersonCnt)
+	{
+		FString TxtLivePlayer = FString::Printf(TEXT("%d"), InLivePlayer);
+		TxtPersonCnt->SetText(FText::FromString(TxtLivePlayer));
+	}
+}
+
+void UQLUserWidget::UpdateProgressTime(const FString &InTime)
+{
+	if (TxtProgressTime)
+	{
+		TxtProgressTime->SetText(FText::FromString(InTime));
+	}
+}

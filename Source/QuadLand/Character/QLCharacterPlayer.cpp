@@ -174,6 +174,7 @@ void AQLCharacterPlayer::BeginPlay()
 	{
 		BombPath = NewObject<USplineComponent>(this, TEXT("BombPath"));
 		BombPath->SetupAttachment(GetMesh(), TEXT("Bomb"));
+		BombPath->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 		BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
 	}
 
@@ -183,6 +184,7 @@ void AQLCharacterPlayer::BeginPlay()
 	{
 		return;
 	}
+
 	FOnTimelineFloat XRecoilCurve;
 	//델리게이트 연결
 	XRecoilCurve.BindUFunction(this, FName("StartHorizontalRecoil"));
@@ -325,7 +327,7 @@ void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 
 	if (InItem == nullptr) return;
 	if (bHasGun) return; 
-	QL_LOG(QLLog, Warning, TEXT("Equip Weapon"));
+
 	AQLItemBox* Item = Cast<AQLItemBox>(InItem);
 	UQLItemData* InItemInfo = Item->Stat;
 	//Mesh 위치는 소켓 
@@ -377,7 +379,6 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 		}
 		Weapon->Weapon->SetHiddenInGame(false);
 		Weapon->GroundWeapon = WeaponStat->GroundWeapon;
-		//Weapon->Weapons.Add(WeaponStat->Type, WeaponStat); //제거하는 부분에서 제거해줘야함.
 		Weapon->Weapon->SetSkeletalMesh(GunStat->WeaponMesh.Get());
 		bHasGun = true;
 	}
@@ -428,17 +429,29 @@ FVector AQLCharacterPlayer::GetCameraForward()
 	return  Camera->GetForwardVector();
 }
 
-void AQLCharacterPlayer::UpdateAmmoUI()
+void AQLCharacterPlayer::UpdateAmmo()
 {
-	if (IsLocallyControlled())
+	if (QLInventory->GetInventoryCnt(EItemType::Ammo))
 	{
 		AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 		AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
 
 		UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
 		UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
-		int32 ItemCnt = FMath::RoundToInt((PS->GetMaxAmmoCnt() + PS->GetCurrentAmmoCnt()) / PS->GetAmmoCnt());
-		PC->UpdateAmmoUI(ItemData, ItemCnt);
+		uint32 ItemCnt = FMath::RoundToInt((PS->GetMaxAmmoCnt() + PS->GetCurrentAmmoCnt()) / PS->GetAmmoCnt());
+		QLInventory->InventoryItem[EItemType::Ammo] = ItemCnt;
+		ItemData->CurrentItemCnt = ItemCnt;
+		ServerRPCUpdateAmmo(ItemCnt);
+		PC->UpdateItemEntry(ItemData, ItemCnt);
+	}
+}
+
+
+void AQLCharacterPlayer::ServerRPCUpdateAmmo_Implementation(uint32 ItemCnt)
+{
+	if (GetNetMode() == ENetMode::NM_Client)
+	{
+		QLInventory->InventoryItem[EItemType::Ammo] = ItemCnt;
 	}
 }
 
@@ -450,11 +463,6 @@ bool AQLCharacterPlayer::GetIsJumping()
 FVector AQLCharacterPlayer::GetWeaponMuzzlePos()
 {
 	return Weapon->GetMuzzlePos();
-}
-
-int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
-{
-	return QLInventory->GetInventoryCnt(ItemType);
 }
 
 FVector AQLCharacterPlayer::GetVelocity() const
@@ -484,10 +492,8 @@ void AQLCharacterPlayer::MulticastRPCSwitchAttackType_Implementation(ECharacterA
 		
 		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
 		Weapon->Weapon->SetHiddenInGame(true); //총 숨김 (애니메이션도 풀어야함) => 이친구는,,,멀티캐스트 RPC 필요
-		QL_LOG(QLLog, Warning, TEXT("this? 1"));
 		if (Weapon->Bomb != nullptr)
 		{
-			QL_LOG(QLLog, Warning, TEXT("this? 2"));
 			Weapon->SetBombHiddenInGame(true);
 		}
 		break;
@@ -708,7 +714,10 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 
 	ItemInfo->SetLifeSpan(0.5f);
 }
-
+int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
+{
+	return QLInventory->GetInventoryCnt(ItemType);
+}
 void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
 {
 	if (IsLocallyControlled()&&NotifyName == FName(TEXT("ThrowAnimNofity")))

@@ -168,7 +168,7 @@ void AQLPlayerState::OnChangedHp(const FOnAttributeChangeData& Data)
     float CurrentHP = Data.NewValue;
 
     AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
-    QL_LOG(QLNetLog, Log, TEXT("%lf %lf"), CurrentHP, GetMaxHealth());
+    
     if (PC && PC->IsLocalController())
     {
         //Player의 QLPlayerHpBarWidget 가져옴

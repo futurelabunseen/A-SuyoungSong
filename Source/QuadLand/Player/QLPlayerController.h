@@ -33,11 +33,9 @@ public:
 	class UUserWidget* GetPlayerUIWidget() const { return HUDs[EHUDType::HUD]; }
 
 	void CreateHUD();
-	void UpdateAmmoUI(UObject* Item,int32 UpdateItemCnt);
 	/* 인벤토리 */
 	void UpdateNearbyItemEntry(UObject* Item); //아이템이 생김 - Stat을 넘기자
 	void UpdateItemEntry(UObject* Item, int32 CurrentItemCnt);
-
 
 	void UpdateEquipWeaponUI();
 	void UpdateEquipBombUI();
@@ -75,6 +73,10 @@ public:
 	FOnDeathCheckDelegate OnDeathCheckDelegate;
 
 	uint8 bReadyGame : 1;
+
+	UFUNCTION(Client,Reliable)
+	void ClientRPCUpdateLivePlayer(int16 InLivePlayer); //GameMode로부터 ClientRPC로 전달받음.
+
 protected:
 
 	uint8 bIsBlinkWidget;
@@ -109,6 +111,9 @@ protected:
 	float TimeSyncRunningTime = 0.f;
 
 	void ServerTimeCheck(float DeltaTime);
+
+	//경쟁 시간 체크
+	void UpdateProgressTime();
 public:
 
 	virtual float GetServerTime();
@@ -120,6 +125,7 @@ private:
 
 	uint32 CountDownInt = 0;
 
+	float StartTime = 0.f;
 	void SetHUDTime();
 	uint8 bStartGame : 1;
 

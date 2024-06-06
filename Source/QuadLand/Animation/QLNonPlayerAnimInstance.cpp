@@ -18,6 +18,7 @@ void UQLNonPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		if (CurrentPlayer)
 		{
 			bIsAiming = CurrentPlayer->GetIsAiming();
+			bIsDead = CurrentPlayer->GetIsDead();
 		}
 	}
 }

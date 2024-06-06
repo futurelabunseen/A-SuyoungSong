@@ -113,6 +113,18 @@ void UQLMap::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
+	if (LocationVolume == nullptr)
+	{
+		UWorld* CurrentWorld = GetWorld();
+		for (const auto& Entry : FActorRange(CurrentWorld))
+		{
+			ALocationVolume* Location = Cast<ALocationVolume>(Entry);
+			if (Location)
+			{
+				LocationVolume = Location;
+			}
+		}
+	}
 	if (LocationVolume && Player)
 	{
 		FVector LocationPivot=LocationVolume->GetActorLocation();

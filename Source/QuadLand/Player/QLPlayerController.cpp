@@ -30,7 +30,6 @@ AQLPlayerController::AQLPlayerController()
 
 void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
 {
-
 	if (IsLocalController() && HUDs.Find(UItype))
 	{
 		HUDs[UItype]->SetVisibility(ESlateVisibility::Hidden);
@@ -154,6 +153,16 @@ void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)
 	}
 }
 
+void AQLPlayerController::ClientRPCUpdateLivePlayer_Implementation(int16 InLivePlayer)
+{
+	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+
+	if (UserWidget)
+	{
+		UserWidget->UpdateLivePlayer(InLivePlayer);
+	}
+}
+
 void AQLPlayerController::ClientRPCGameStart_Implementation()
 {
 	bReadyGame = true;
@@ -206,6 +215,7 @@ void AQLPlayerController::CreateHUD()
 
 	for (const auto &HUD : HUDClass)
 	{
+
 		UUserWidget *Widget = CreateWidget<UUserWidget>(this, HUD.Value);
 
 		Widget->AddToViewport();
@@ -215,10 +225,13 @@ void AQLPlayerController::CreateHUD()
 
 	UQLUserWidget *Widget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 
-	Widget->ChangedAmmoCnt(PS->GetCurrentAmmoCnt());
-	Widget->ChangedRemainingAmmo(PS->GetMaxAmmoCnt()); //ÀÓ½Ã°ª »ðÀÔ
-	Widget->ChangedHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
-	Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
+	if (Widget)
+	{
+		Widget->ChangedAmmoCnt(PS->GetCurrentAmmoCnt());
+		Widget->ChangedRemainingAmmo(PS->GetMaxAmmoCnt()); //ÀÓ½Ã°ª »ðÀÔ
+		Widget->ChangedHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
+		Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
+	}
 	
 	SetHiddenHUD(EHUDType::Inventory);
 	SetHiddenHUD(EHUDType::Map);
@@ -235,13 +248,6 @@ void AQLPlayerController::CreateHUD()
 	{
 		QLCharacter->OnChangeShootingMethod.BindUObject(Widget, &UQLUserWidget::VisibleShootingMethodUI);
 	}
-}
-
-void AQLPlayerController::UpdateAmmoUI(UObject* Item,int32 UpdateItemCnt)
-{
-	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
-	InventoryUI->HasCurrentItem(Item);
-	
 }
 
 void AQLPlayerController::UpdateNearbyItemEntry(UObject* Item)
@@ -267,6 +273,7 @@ void AQLPlayerController::UpdateItemEntry(UObject* Item, int32 CurrentItemCnt)
 		}
 	}
 }
+
 
 void AQLPlayerController::UpdateEquipWeaponUI()
 {
@@ -368,6 +375,24 @@ void AQLPlayerController::ServerTimeCheck(float DeltaTime)
 	}
 }
 
+void AQLPlayerController::UpdateProgressTime()
+{
+	if (HUDs.Find(EHUDType::HUD) == 0) return;
+
+	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+
+	if (UserWidget)
+	{
+		uint32 ProgressTime = GetServerTime() - StartTime;
+
+		int32 Minutes = FMath::FloorToInt(ProgressTime / 60.f);
+		int32 Seconds = ProgressTime - Minutes * 60;
+
+		FString ProgressTimeText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+		UserWidget->UpdateProgressTime(ProgressTimeText);
+	}
+}
+
 float AQLPlayerController::GetServerTime()
 {
 	if (HasAuthority())
@@ -379,13 +404,14 @@ float AQLPlayerController::GetServerTime()
 }
 void AQLPlayerController::Tick(float DeltaTime)
 {
-
 	Super::Tick(DeltaTime);
 
 	if (bReadyGame)
 	{
 		SetHUDTime();
 	}
+	
+	UpdateProgressTime();
 	ServerTimeCheck(DeltaTime);
 }
 
@@ -416,6 +442,7 @@ void AQLPlayerController::SetHUDTime()
 
 						SetHiddenHUD(EHUDType::Loading);
 						bStartGame = true;
+						StartTime = GetServerTime();
 					}
 				}
 			}
