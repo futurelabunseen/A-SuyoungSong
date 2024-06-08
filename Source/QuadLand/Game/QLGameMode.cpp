@@ -64,8 +64,7 @@ void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 		PC->bReadyGame = true;
 	}
 
-	FTimerHandle StartTimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 1.0f, false);
+	GameStart();
 }
 
 void AQLGameMode::StartPlay()
@@ -156,13 +155,14 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 
 			if (LivePlayerCount == 1)
 			{
-				
 				if (ASC && Players.Value == false)
 				{
 					FGameplayTagContainer TargetTag(CHARACTER_STATE_WIN);
 					ASC->TryActivateAbilitiesByTag(TargetTag);
+					QL_LOG(QLNetLog, Log, TEXT("Player Win %s"), *Character->GetName());
 				}
 			}
+
 			const auto PC = Character->GetController<AQLPlayerController>();
 			if (ASC && ASC->HasMatchingGameplayTag(CHARACTER_STATE_DEAD))
 			{
@@ -179,24 +179,7 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 void AQLGameMode::AddPlayer(ACharacter* Player)
 {
 	PlayerDieStatus.Add(Player, false);
-	RealPlayer.Add(Player);
 	LivePlayerCount++;
-}
-
-ACharacter* AQLGameMode::NextCharacter(int32 NextIndex)
-{
-
-	if (LivePlayerCount == 1) return nullptr; //승리 결정해야함.
-
-	AQLCharacterBase* Character = Cast<AQLCharacterBase>(RealPlayer[NextIndex]);
-	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
-
-	while(ASC->HasMatchingGameplayTag(CHARACTER_STATE_DEAD) == false)
-	{
-		NextIndex = (NextIndex + 1) % RealPlayer.Num();
-	}
-	
-	return RealPlayer[NextIndex];
 }
 
 void AQLGameMode::GameStart()

@@ -35,15 +35,7 @@ public:
 	UFUNCTION()
 	void AddPlayer(ACharacter* Player);
 
-	UFUNCTION()
-	ACharacter* NextCharacter(int32 NextIndex);
-
-	uint32 GetRealPlayerCnt() { return RealPlayer.Num(); }
 protected:
-
-	UPROPERTY(BlueprintReadOnly)
-	TArray<TObjectPtr<class ACharacter>> RealPlayer;
-
 	UPROPERTY(BlueprintReadOnly)
 	int32 LivePlayerCount;
 

@@ -125,7 +125,7 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 private:
-	float MatchTime = 2.0f;
+	float MatchTime = 20.0f;
 
 	uint32 CountDownInt = 0;
 
