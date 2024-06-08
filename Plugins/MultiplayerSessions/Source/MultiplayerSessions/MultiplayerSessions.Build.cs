@@ -11,6 +11,7 @@ public class MultiplayerSessions : ModuleRules
 		PublicIncludePaths.AddRange(
 			new string[] {
 				// ... add public include paths required here ...
+				
 			}
 			);
 				
@@ -30,7 +31,8 @@ public class MultiplayerSessions : ModuleRules
 				"OnlineSubsystemSteam",
 				"UMG",
 				"Slate",
-				"SlateCore"
+				"SlateCore",
+                "QuadLand"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

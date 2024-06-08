@@ -40,6 +40,8 @@ public:
 
 	void UpdateLivePlayer(int16 InLivePlayer);
 	void UpdateProgressTime(const FString &InTime);
+
+	void SettingNickname(const FString& InNickname);
 protected:
 	virtual void NativeConstruct() override;
 	FTimerHandle HiddenTimer;
@@ -72,6 +74,10 @@ protected:
 
 	UPROPERTY(meta = (BindWiget))
 	TObjectPtr<class UTextBlock> TxtPersonCnt;
+
+	UPROPERTY(meta = (BindWiget))
+	TObjectPtr<class UTextBlock> TxtNickname;
+
 
 	uint8 bIsSemiAutomatic : 1;
 

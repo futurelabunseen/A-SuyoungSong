@@ -3,24 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameMode.h"
-#include "QLLobbyGameMode.generated.h"
+#include "Subsystems/LocalPlayerSubsystem.h"
+#include "QLLocalPlayerSubsystem.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class QUADLAND_API AQLLobbyGameMode : public AGameMode
+class QUADLAND_API UQLLocalPlayerSubsystem : public ULocalPlayerSubsystem
 {
 	GENERATED_BODY()
-
 public:
-	AQLLobbyGameMode();
 	void SetNickname(FString InNickname) { TmpNickname = InNickname; }
 	FString GetNickname() { return TmpNickname; }
 protected:
 
 	UPROPERTY(Transient, VisibleAnywhere, BlueprintReadOnly, Category = Nickname, Meta = (AllowPrivateAccess = "true"))
 	FString TmpNickname;
-
 };

@@ -537,7 +537,8 @@ void UQLInputComponent::PutLifeStone()
 
 	if (Character->bIsNearbyBox)
 	{
-		PS->ServerRPCConcealLifeStone();
+		QL_SUBLOG(QLLog, Log, TEXT("Current Nickname %s"), *PS->GetNickname());
+		PS->ServerRPCConcealLifeStone(PS->GetNickname());
 	}
 	else
 	{

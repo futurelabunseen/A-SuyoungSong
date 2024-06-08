@@ -6,6 +6,10 @@
 #include "MultiplayerSessionsSubsystem.h"
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
+#include "Components/EditableTextBox.h"
+#include "Components/TextBlock.h"
+#include "QuadLand/Game/QLGameInstance.h"
+#include "Kismet/GameplayStatics.h"
 
 void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch, FString LobbyPath)
 {
@@ -71,6 +75,13 @@ void UMenu::NativeDestruct()
 	Super::NativeDestruct();
 }
 
+void UMenu::NativeConstruct()
+{
+	Super::NativeConstruct();
+	TxtAlert->SetVisibility(ESlateVisibility::Hidden);
+	TxtError->SetVisibility(ESlateVisibility::Hidden);
+}
+
 void UMenu::OnCreateSession(bool bWasSuccessful)
 {
 	if (bWasSuccessful)
@@ -115,7 +126,12 @@ void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResu
 	}
 	if (!bWasSuccessful || SessionResults.Num() == 0)
 	{
+		//Join 실패시 Alert뜨기
+		TxtError->SetVisibility(ESlateVisibility::Visible);
 		JoinButton->SetIsEnabled(true);
+		FTimerHandle HiddenTimer;
+
+		GetWorld()->GetTimerManager().SetTimer(HiddenTimer, this, &UMenu::HiddenError, 3.0f, false);
 	}
 }
 
@@ -148,21 +164,69 @@ void UMenu::OnStartSession(bool bWasSuccessful)
 
 }
 
+void UMenu::HiddenAlert()
+{
+	TxtAlert->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UMenu::HiddenError()
+{
+	TxtError->SetVisibility(ESlateVisibility::Hidden);
+}
+
 void UMenu::HostButtonClicked()
 {
-	HostButton->SetIsEnabled(false);
-	if (MultiplayerSessionsSubsystem)
+	bool isPutNickname = TxtInputNickname->GetText().ToString().Len() > 0; //0글자 이상
+	if (isPutNickname)
 	{
-		MultiplayerSessionsSubsystem->CreateSession(NumPublicConnections, MatchType);
+
+		UQLGameInstance* GameInstance = Cast<UQLGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+
+		if (GameInstance)
+		{
+			GameInstance->SetNickname(TxtInputNickname->GetText().ToString());
+		}
+		UE_LOG(LogTemp, Log, TEXT("Current Nickname %s"), *TxtInputNickname->GetText().ToString());
+		HostButton->SetIsEnabled(false);
+		if (MultiplayerSessionsSubsystem)
+		{
+			MultiplayerSessionsSubsystem->CreateSession(NumPublicConnections, MatchType);
+		}
+	}
+	else
+	{
+		TxtAlert->SetVisibility(ESlateVisibility::Visible);
+		FTimerHandle HiddenTimer;
+
+		GetWorld()->GetTimerManager().SetTimer(HiddenTimer, this, &UMenu::HiddenAlert, 3.0f,false);
 	}
 }
 
 void UMenu::JoinButtonClicked()
 {
-	JoinButton->SetIsEnabled(false);
-	if (MultiplayerSessionsSubsystem)
+	bool isPutNickname = TxtInputNickname->GetText().ToString().Len() > 0; //0글자 이상
+	if (isPutNickname)
 	{
-		MultiplayerSessionsSubsystem->FindSessions(10000);
+		UQLGameInstance* GameInstance = Cast<UQLGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+
+		if (GameInstance)
+		{
+			GameInstance->SetNickname(TxtInputNickname->GetText().ToString());
+		}
+		UE_LOG(LogTemp, Log, TEXT("Current Nickname %s"), *TxtInputNickname->GetText().ToString());
+
+		JoinButton->SetIsEnabled(false);
+		if (MultiplayerSessionsSubsystem)
+		{
+			MultiplayerSessionsSubsystem->FindSessions(10000);
+		}
+	}
+	else
+	{
+		TxtAlert->SetVisibility(ESlateVisibility::Visible);
+		FTimerHandle HiddenTimer;
+
+		GetWorld()->GetTimerManager().SetTimer(HiddenTimer, this, &UMenu::HiddenAlert, 3.0f, false);
 	}
 }
 

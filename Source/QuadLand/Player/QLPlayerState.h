@@ -24,6 +24,7 @@ public:
 	void SetAmmoStat(float AmmoCnt);
 	void BulletWaste(float DiscardedCount);
 	void SetWeaponStat(const class UQLWeaponStat* Stat);
+	const FString& GetNickname() { return Nickname; }
 	void AddHPStat(float HP);
 	void AddStaminaStat(float Stamina);
 	void ResetWeaponStat(const class UQLWeaponStat* Stat);
@@ -66,7 +67,7 @@ public:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(Server, Reliable)
-	void ServerRPCConcealLifeStone();
+	void ServerRPCConcealLifeStone(const FString &InNickname);
 
 	UFUNCTION(Client,Unreliable)
 	void ClientRPCConcealLifeStoneUI();
@@ -74,6 +75,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPCPutLifeStone(); //서버에게 눌렀음을 전달
 protected:
+
+	UPROPERTY(Transient, VisibleAnywhere, BlueprintReadOnly, Category = Nickname, Meta = (AllowPrivateAccess = "true"))
+	FString Nickname;
 
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<class UAbilitySystemComponent> ASC;
@@ -118,7 +122,7 @@ protected:
 	void UpdateStorageWidget(FName Nickname, class AQLLifestoneStorageBox* StorageBox);
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastRPCUpdateStorageWidget(FName Nickname, class AQLLifestoneStorageBox* StorageBox);
+	void MulticastRPCUpdateStorageWidget(FName InNickname, class AQLLifestoneStorageBox* StorageBox);
 
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bHasLifeStone : 1;

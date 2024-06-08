@@ -18,6 +18,8 @@
 #include "Gimmick/QLLifestoneStorageBox.h"
 #include "Character/QLCharacterBase.h"
 
+#include "Game/QLGameInstance.h"
+#include "Kismet/GameplayStatics.h"
 AQLPlayerState::AQLPlayerState()
 {
     ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
@@ -123,7 +125,6 @@ void AQLPlayerState::BeginPlay()
 {
     Super::BeginPlay();
 
-
     if (ASC)
     {
         HealthChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetHealthAttribute()).AddUObject(this, &AQLPlayerState::OnChangedHp);
@@ -133,7 +134,14 @@ void AQLPlayerState::BeginPlay()
         StaminaChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetStaminaAttribute()).AddUObject(this, &AQLPlayerState::OnChangedStamina);
         MaxStaminaChangedDeleagteHandle= ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetMaxStaminaAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxStamina);
     }
+
+    UQLGameInstance* GameInstance = Cast<UQLGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+     if (GameInstance)
+     {
+           Nickname = GameInstance->GetNickname();
+     }
 }
+
 
 void AQLPlayerState::OnChangedStamina(const FOnAttributeChangeData& Data)
 {
@@ -221,15 +229,15 @@ void AQLPlayerState::OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data)
 }
 
 //Multicast 호출
-void AQLPlayerState::UpdateStorageWidget(FName Nickname, AQLLifestoneStorageBox* StorageBox)
+void AQLPlayerState::UpdateStorageWidget(FName InNickname, AQLLifestoneStorageBox* StorageBox)
 {
     //MulticastRPC 호출
-    MulticastRPCUpdateStorageWidget(Nickname, StorageBox);
+    MulticastRPCUpdateStorageWidget(InNickname, StorageBox);
 }
 
-void AQLPlayerState::MulticastRPCUpdateStorageWidget_Implementation(FName Nickname, AQLLifestoneStorageBox* StorageBox)
+void AQLPlayerState::MulticastRPCUpdateStorageWidget_Implementation(FName InNickname, AQLLifestoneStorageBox* StorageBox)
 {
-    StorageBox->UpdateAlertPanel(Nickname);
+    StorageBox->UpdateAlertPanel(InNickname);
 }
 
 void AQLPlayerState::ClientRPCConcealLifeStoneUI_Implementation()
@@ -242,7 +250,7 @@ void AQLPlayerState::ClientRPCConcealLifeStoneUI_Implementation()
     }
 }
 
-void AQLPlayerState::ServerRPCConcealLifeStone_Implementation()
+void AQLPlayerState::ServerRPCConcealLifeStone_Implementation(const FString &InNickname)
 {
    
     //라인트레이스를 쏘아서 가장 가까이 있는 오브젝트를 체크한다.
@@ -282,7 +290,7 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation()
                     StorageBox->OnUpdateAlertPanel.BindUObject(this, &AQLPlayerState::UpdateStorageWidget);
                 }
             }
-            StorageBox->ConcealLifeStone(FName(GetName()));
+            StorageBox->ConcealLifeStone(FName(InNickname));
           
             //ClientRPC 전달해서 Client UI 업데이트
         }
@@ -385,6 +393,7 @@ void AQLPlayerState::SetDead()
         ASC->TryActivateAbilitiesByTag(TargetTag);
     }
 }
+
 
 void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {

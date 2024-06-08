@@ -153,8 +153,21 @@ void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)
 	}
 }
 
+void AQLPlayerController::SettingNickname()
+{
+	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+
+	if (PS)
+	{
+		UQLUserWidget* UserWidget = Cast< UQLUserWidget>(HUDs[EHUDType::HUD]);
+		UserWidget->SettingNickname(PS->GetNickname());
+	}
+}
+
 void AQLPlayerController::ClientRPCUpdateLivePlayer_Implementation(int16 InLivePlayer)
 {
+	if (HUDs.Find(EHUDType::HUD)) return;
+
 	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 
 	if (UserWidget)
@@ -231,6 +244,7 @@ void AQLPlayerController::CreateHUD()
 		Widget->ChangedRemainingAmmo(PS->GetMaxAmmoCnt()); //ÀÓ½Ã°ª »ðÀÔ
 		Widget->ChangedHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
 		Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
+		SettingNickname();
 	}
 	
 	SetHiddenHUD(EHUDType::Inventory);
@@ -451,3 +465,4 @@ void AQLPlayerController::SetHUDTime()
 	}
 	
 }
+

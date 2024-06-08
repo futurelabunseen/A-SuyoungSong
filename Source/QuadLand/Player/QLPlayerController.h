@@ -77,6 +77,8 @@ public:
 	UFUNCTION(Client,Reliable)
 	void ClientRPCUpdateLivePlayer(int16 InLivePlayer); //GameMode로부터 ClientRPC로 전달받음.
 
+	void SettingNickname();
+
 protected:
 
 	uint8 bIsBlinkWidget;
@@ -121,12 +123,14 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 private:
-	float MatchTime = 1.0f;
+	float MatchTime = 2.0f;
 
 	uint32 CountDownInt = 0;
 
 	float StartTime = 0.f;
 	void SetHUDTime();
 	uint8 bStartGame : 1;
+
+
 
 };

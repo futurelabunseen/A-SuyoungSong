@@ -159,3 +159,11 @@ void UQLUserWidget::UpdateProgressTime(const FString &InTime)
 		TxtProgressTime->SetText(FText::FromString(InTime));
 	}
 }
+
+void UQLUserWidget::SettingNickname(const FString& InNickname)
+{
+	if (TxtNickname)
+	{
+		TxtNickname->SetText(FText::FromString(InNickname));
+	}
+}
