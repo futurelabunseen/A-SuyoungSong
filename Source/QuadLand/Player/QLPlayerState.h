@@ -32,9 +32,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetbIsWin() { return bIsWin; }
 
-	UFUNCTION(BlueprintCallable)
-	bool GetbIsDead();
-
 	float GetStamina();
 	float GetMaxStamina();
 	float GetHealth();

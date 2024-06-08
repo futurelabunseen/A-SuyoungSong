@@ -36,9 +36,17 @@ public:
 	void AddPlayer(ACharacter* Player);
 
 	UFUNCTION()
-	ACharacter* NextCharacter(ACharacter* CurrentPlayer);
+	ACharacter* NextCharacter(int32 NextIndex);
 
-	uint32 GetRealPlayerCnt() { return RealPlayerCount; }
+	uint32 GetRealPlayerCnt() { return RealPlayer.Num(); }
+protected:
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<TObjectPtr<class ACharacter>> RealPlayer;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 LivePlayerCount;
+
 private:
 
 	void GameStart();
@@ -52,8 +60,5 @@ private:
 	UPROPERTY()
 	TMap <TObjectPtr<class ACharacter>, bool> PlayerDieStatus;
 
-	uint32 LivePlayerCount;
-
-	uint32 RealPlayerCount;
 
 };

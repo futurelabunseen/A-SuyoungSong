@@ -312,14 +312,6 @@ void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
     }
 }
 
-
-bool AQLPlayerState::GetbIsDead()
-{
-    AQLCharacterBase* Player = Cast<AQLCharacterBase>(GetPawn());
-    
-    return  Player->GetIsDead();
-}
-
 float AQLPlayerState::GetStamina()
 {
     return PlayerStatInfo->GetStamina();
@@ -363,12 +355,18 @@ void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
 void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 {
     AQLCharacterBase* Player = Cast<AQLCharacterBase>(GetPawn());
-    if (Player->GetIsDead() == false)
+    if (Player && Player->GetIsDead() == false)
     {
         FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
         ASC->TryActivateAbilitiesByTag(TargetTag);
     }
-    Player->SetIsDead(!Player->GetIsDead());
+    if (HasAuthority())
+    {
+        if (Player)
+        {
+            Player->SetIsDead(!Player->GetIsDead());
+        }
+    }
 }
 
 void AQLPlayerState::CoolTimeStamina(const FGameplayTag CallbackTag, int32 NewCount)
