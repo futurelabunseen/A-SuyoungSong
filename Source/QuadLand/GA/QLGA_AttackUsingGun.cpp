@@ -13,11 +13,18 @@
 #include "GameplayTag/GamplayTags.h"
 #include "Interface/QLAIAttackInterface.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
+#include "Sound/SoundCue.h"
 #include "QuadLand.h"
 
 UQLGA_AttackUsingGun::UQLGA_AttackUsingGun()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	static ConstructorHelpers::FObjectFinder<USoundCue> SoundCueObject(TEXT("/Script/Engine.SoundCue'/Game/MilitaryWeapSilver/Sound/Rifle/Cues/RifleA_Fire_Cue.RifleA_Fire_Cue'"));
+
+	if (SoundCueObject.Object)
+	{
+		Sound = SoundCueObject.Object;
+	}
 }
 
 void UQLGA_AttackUsingGun::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -91,6 +98,10 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	//여기서 발동 -> 총알 횟수 주는 Effect수행
 	//*/
 	////Gameplay Effect를 실행한다.
+
+
+	UGameplayStatics::PlaySoundAtLocation(Character, Sound, Character->GetWeaponMuzzlePos());
+
 	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReduceAmmoCntEffect);
 
 	if (EffectSpecHandle.IsValid())

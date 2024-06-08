@@ -22,7 +22,7 @@ protected:
 
 	virtual bool Initialize() override;
 	virtual void NativeDestruct() override;
-
+	virtual void NativeConstruct() override; 
 	//
 	// Callbacks for the custom delegates on the MultiplayerSessionsSubsystem
 	//
@@ -35,6 +35,9 @@ protected:
 	UFUNCTION()
 	void OnStartSession(bool bWasSuccessful);
 
+
+	void HiddenAlert();
+	void HiddenError();
 private:
 
 	UPROPERTY(meta = (BindWidget))
@@ -43,6 +46,14 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UButton* JoinButton;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UEditableTextBox> TxtInputNickname;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TxtAlert;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TxtError;
 	UFUNCTION()
 	void HostButtonClicked();
 

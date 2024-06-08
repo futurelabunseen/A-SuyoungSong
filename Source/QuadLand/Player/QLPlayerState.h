@@ -66,7 +66,7 @@ public:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(Server, Reliable)
-	void ServerRPCConcealLifeStone();
+	void ServerRPCConcealLifeStone(const FString &InNickname);
 
 	UFUNCTION(Client,Unreliable)
 	void ClientRPCConcealLifeStoneUI();
@@ -118,7 +118,7 @@ protected:
 	void UpdateStorageWidget(FName Nickname, class AQLLifestoneStorageBox* StorageBox);
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastRPCUpdateStorageWidget(FName Nickname, class AQLLifestoneStorageBox* StorageBox);
+	void MulticastRPCUpdateStorageWidget(FName InNickname, class AQLLifestoneStorageBox* StorageBox);
 
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bHasLifeStone : 1;

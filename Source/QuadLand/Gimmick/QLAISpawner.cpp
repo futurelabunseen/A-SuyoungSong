@@ -60,7 +60,7 @@ void AQLAISpawner::BeginPlay()
 
 					if (GameMode)
 					{
-						GameMode->AddPlayer(FName(NonPlayer->GetName()));
+						GameMode->AddPlayer(NonPlayer);
 					}
 				}
 				

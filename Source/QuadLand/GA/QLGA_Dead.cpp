@@ -7,6 +7,7 @@
 #include "AbilitySystemComponent.h"
 
 #include "QuadLand.h"
+#include "Character/QLCharacterPlayer.h"
 #include "Player/QLPlayerController.h"
 #include "GameplayTag/GamplayTags.h"
 
@@ -35,12 +36,22 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	Character->SetLifeSpan(5.0f);
 	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
 
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(Character);
+	
+	if (Player && HasAuthority(&ActivationInfo))
+	{
+		Player->SpectateNextPlayer();
+	}
+
 	if (IsLocallyControlled()&&PC)
 	{
-		PC->Loose();
+		
+		//PC->Loose();
 	
 		//관전 카메라 Possess
+		//살아있는 캐릭터를 가져온다.
 	}
+	
 	OnCompleted();
 }
 

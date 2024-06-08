@@ -23,6 +23,7 @@ public:
 	void InitGASInputComponent(class UInputComponent* InputComponent);
 	virtual void BeginPlay() override;
 
+
 protected:
 	//Look & Move Section
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))

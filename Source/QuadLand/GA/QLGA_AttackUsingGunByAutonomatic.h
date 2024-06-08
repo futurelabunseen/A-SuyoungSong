@@ -46,4 +46,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "CameraShake")
 	TObjectPtr<class UCameraShakeBase> CamShake;
+
+	UPROPERTY(EditAnywhere, Category = "GunSound")
+	TObjectPtr<class USoundCue> Sound;
 };

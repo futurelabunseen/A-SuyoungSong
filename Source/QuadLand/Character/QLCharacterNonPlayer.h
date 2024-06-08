@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Character/QLCharacterBase.h"
-#include "AbilitySystemInterface.h"
 #include "Interface/QLLifestoneContainerInterface.h"
 #include "QLCharacterNonPlayer.generated.h"
 
@@ -12,14 +11,14 @@
  * 
  */
 UCLASS()
-class QUADLAND_API AQLCharacterNonPlayer : public AQLCharacterBase, public IQLLifestoneContainerInterface,  public IAbilitySystemInterface
+class QUADLAND_API AQLCharacterNonPlayer : public AQLCharacterBase, public IQLLifestoneContainerInterface
 {
 	GENERATED_BODY()
 	
 public:
 
 	AQLCharacterNonPlayer(const FObjectInitializer& ObjectInitializer);
-	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void BeginPlay() override;
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
@@ -32,9 +31,6 @@ public:
 protected:
 
 	uint8 bTakeDamage : 1;
-	UPROPERTY(EditAnywhere, Category = GAS)
-	TObjectPtr<class UAbilitySystemComponent> ASC;
-
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = AI)
 	TObjectPtr<class UAIPerceptionComponent> AIPerception;

@@ -41,10 +41,6 @@ AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectIni
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
-UAbilitySystemComponent* AQLCharacterNonPlayer::GetAbilitySystemComponent() const
-{
-	return ASC;
-}
 
 void AQLCharacterNonPlayer::PossessedBy(AController* NewController)
 {
@@ -127,7 +123,7 @@ void AQLCharacterNonPlayer::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 
 		if (GameMode)
 		{
-			GameMode->DeadNonPlayer(FName(this->GetName()));
+			GameMode->DeadNonPlayer(this);
 			GameMode->GetWinner(CallbackTag, NewCount);
 		}
 	}

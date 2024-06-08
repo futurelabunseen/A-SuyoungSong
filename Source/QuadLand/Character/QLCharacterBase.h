@@ -6,10 +6,11 @@
 #include "GameFramework/Character.h"
 #include "GameData/QLTurningInPlaceType.h"
 #include "Interface/AttackHitCheckInterface.h"
+#include "AbilitySystemInterface.h"
 #include "QLCharacterBase.generated.h"
 
 UCLASS()
-class QUADLAND_API AQLCharacterBase : public ACharacter, public IAttackHitCheckInterface
+class QUADLAND_API AQLCharacterBase : public ACharacter, public IAttackHitCheckInterface, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -41,8 +42,15 @@ public:
 	FORCEINLINE void SetIsDead(bool InDead) { bIsDead = InDead; }
 	UFUNCTION(Server, Reliable)
 	void ServerRPCReload(); //Reload ÇàÀ§´Â Reliable
+	FVector GetWeaponMuzzlePos();
+
+	//ASC
+	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 protected:
+
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TObjectPtr<class UAbilitySystemComponent> ASC;
 
 	UPROPERTY(Replicated)
 	uint8 bIsShooting : 1;

@@ -20,6 +20,13 @@
 UQLGA_AttackUsingGunByAutonomatic::UQLGA_AttackUsingGunByAutonomatic()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+
+	static ConstructorHelpers::FObjectFinder<USoundCue> SoundCueObject(TEXT("/Script/Engine.SoundCue'/Game/MilitaryWeapSilver/Sound/Rifle/Cues/RifleA_Fire_Cue.RifleA_Fire_Cue'"));
+
+	if (SoundCueObject.Object)
+	{
+		Sound = SoundCueObject.Object;
+	}
 }
 
 bool UQLGA_AttackUsingGunByAutonomatic::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, OUT FGameplayTagContainer* OptionalRelevantTags) const
@@ -113,6 +120,8 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 		}
 	}
 
+	UGameplayStatics::PlaySoundAtLocation(Character,Sound,Character->GetWeaponMuzzlePos());
+	
 	if (HasAuthority(&CurrentActivationInfo))
 	{
 		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReduceAmmoCntEffect);

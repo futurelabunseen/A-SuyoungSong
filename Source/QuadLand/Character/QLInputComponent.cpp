@@ -231,6 +231,7 @@ void UQLInputComponent::BeginPlay()
 	}
 }
 
+
 void UQLInputComponent::Move(const FInputActionValue& Value)
 {
 	//이동 벡터
@@ -281,7 +282,8 @@ void UQLInputComponent::FarmingItemPressed()
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 	if (Character)
 	{
-
+		//몽타주 실행
+		Character->PlayAnimMontage(Character->PickupMontage);
 		//라인트레이스를 쏘아보고 없으면 return
 		FHitResult OutHitResult;
 
@@ -537,7 +539,8 @@ void UQLInputComponent::PutLifeStone()
 
 	if (Character->bIsNearbyBox)
 	{
-		PS->ServerRPCConcealLifeStone();
+		QL_SUBLOG(QLLog, Log, TEXT("Current Nickname %s"), *PS->GetPlayerName());
+		PS->ServerRPCConcealLifeStone(PS->GetPlayerName());
 	}
 	else
 	{
@@ -608,11 +611,12 @@ void UQLInputComponent::SetInventory()
 				{
 					ItemData->CurrentItemCnt = 1;
 					PC->UpdateNearbyItemEntry(ItemData);
+
+					QL_SUBLOG(QLLog, Log, TEXT("%d"), ItemData->CurrentItemCnt);
 				}
 			}
 		}
 	}
-	Character->UpdateAmmo();
 
 	FInputModeUIOnly UIOnlyInputMode;
 	PC->SetVisibilityHUD(EHUDType::Inventory);
