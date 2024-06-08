@@ -27,13 +27,18 @@ public:
 	virtual void SpawnAI() override;
 
 	UFUNCTION()
-	void DeadNonPlayer(FName NonPlayerName);
+	void DeadNonPlayer(ACharacter* NonPlayer);
 
 	UFUNCTION()
 	void GetWinner(const FGameplayTag CallbackTag, int32 NewCount);
 
 	UFUNCTION()
-	void AddPlayer(FName PlayerName);
+	void AddPlayer(ACharacter* Player);
+
+	UFUNCTION()
+	ACharacter* NextCharacter(ACharacter* CurrentPlayer);
+
+	uint32 GetRealPlayerCnt() { return RealPlayerCount; }
 private:
 
 	void GameStart();
@@ -44,8 +49,11 @@ private:
 	UPROPERTY(EditAnywhere, Category = Classes)
 	TSubclassOf<class AQLAISpawner> AISpawnerClass;
 
-	TMap<FName, bool> PlayerDieStatus;
+	UPROPERTY()
+	TMap <TObjectPtr<class ACharacter>, bool> PlayerDieStatus;
 
-	int32 LivePlayerCount;
+	uint32 LivePlayerCount;
+
+	uint32 RealPlayerCount;
 
 };

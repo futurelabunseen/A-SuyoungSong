@@ -116,7 +116,9 @@ void UQLInventory::UpdateNearbyItemEntry(UObject* InItem)
 		if (Entry && Entry->ItemType == InItemInfo->ItemType)
 		{
 			IsNotFound = false;
-			Entry->CurrentItemCnt++; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
+			Entry->CurrentItemCnt += 1; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
+			UE_LOG(LogTemp, Warning, TEXT("Item Type %d Cnt %d %d"), InItemInfo->ItemType, InItemInfo->CurrentItemCnt, Entry->CurrentItemCnt);
+
 			break;
 		}
 	}
@@ -126,6 +128,7 @@ void UQLInventory::UpdateNearbyItemEntry(UObject* InItem)
 		//생성
 		GroundItem->AddItem(InItem);
 	}
+	GroundItem->RegenerateAllEntries();
 }
 
 void UQLInventory::RemoveNearbyItemEntry(UObject* InItem)
@@ -136,7 +139,6 @@ void UQLInventory::RemoveNearbyItemEntry(UObject* InItem)
 void UQLInventory::RemoveAllNearbyItemEntries()
 {
 	GroundItem->ClearListItems();
-	GroundItem->RegenerateAllEntries();
 }
 
 void UQLInventory::OnClickedItem()

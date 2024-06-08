@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Character/QLCharacterBase.h"
-#include "AbilitySystemInterface.h"
 #include "Interface/QLLifestoneContainerInterface.h"
 #include "GameData/QLItemType.h"
 #include "GameplayEffectTypes.h"
@@ -28,7 +27,7 @@ struct FTakeItemDelegateWrapper
 };
 
 UCLASS()
-class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase,public IQLLifestoneContainerInterface, public IAbilitySystemInterface
+class QUADLAND_API AQLCharacterPlayer : public AQLCharacterBase,public IQLLifestoneContainerInterface
 {
 	GENERATED_BODY()
 	
@@ -45,10 +44,6 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void SetCharacterControl();
 
-	//ASC
-	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
-
 	 const ECharacterAttackType& GetCurrentAttackType() const { return CurrentAttackType; }
 
 	 class UQLPunchAttackData* GetPunchAttackData() { return PunchAttackData; }
@@ -61,7 +56,6 @@ public:
 	FVector CalPlayerLocalCameraStartPos();
 	
 	FVector GetCameraForward();
-	FVector GetWeaponMuzzlePos();
 
 	//const class UQLWeaponStat* GetWeaponStat() const;
 
@@ -79,7 +73,13 @@ public:
 	class UQLInventoryComponent* GetInventory() { return QLInventory; }
 
 	int GetInventoryCnt(EItemType ItemType);
+
+	void SpectateNextPlayer();
+
+	void SpectatePreviousPlayer();
 protected:
+
+	int16 SpectateIndex;
 
 	uint8 bIsProning : 1;
 protected:
@@ -128,6 +128,12 @@ protected:
 	void SetupStartAbilities();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
+	TObjectPtr<class UAnimMontage> PickupMontage;
+
+	UFUNCTION(Client,Unreliable)
+	void ClientRPCPlayAnimation(AQLCharacterPlayer* CharacterPlay);
 
 protected:
 
@@ -142,9 +148,6 @@ protected:
 
 	//GAS
 protected:
-
-	UPROPERTY(EditAnywhere, Category = GAS)
-	TObjectPtr<class UAbilitySystemComponent> ASC;
 
 	//GAS - Input Abilities
 	UPROPERTY(EditAnywhere, Category = GAS)

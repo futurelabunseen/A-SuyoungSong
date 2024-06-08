@@ -28,6 +28,11 @@ AQLPlayerController::AQLPlayerController()
 	bReadyGame = false;
 }
 
+void AQLPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
 void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
 {
 	if (IsLocalController() && HUDs.Find(UItype))
@@ -160,7 +165,7 @@ void AQLPlayerController::SettingNickname()
 	if (PS)
 	{
 		UQLUserWidget* UserWidget = Cast< UQLUserWidget>(HUDs[EHUDType::HUD]);
-		UserWidget->SettingNickname(PS->GetNickname());
+		UserWidget->SettingNickname(PS->GetPlayerName());
 	}
 }
 

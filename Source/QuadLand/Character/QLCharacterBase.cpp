@@ -8,6 +8,7 @@
 #include "Physics/QLCollision.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "Item/QLWeaponComponent.h"
 
 #include "QuadLand.h"
@@ -52,6 +53,16 @@ AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) 
 bool AQLCharacterBase::bIsUsingGun()
 {
 	return ( CurrentAttackType == ECharacterAttackType::AutomaticGunAttack || CurrentAttackType == ECharacterAttackType::GunAttack );
+}
+
+UAbilitySystemComponent* AQLCharacterBase::GetAbilitySystemComponent() const
+{
+	return ASC;
+}
+
+FVector AQLCharacterBase::GetWeaponMuzzlePos()
+{
+	return Weapon->GetMuzzlePos();
 }
 
 FGameplayTag AQLCharacterBase::GetCurrentAttackTag() const

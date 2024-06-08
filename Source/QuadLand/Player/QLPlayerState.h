@@ -24,7 +24,6 @@ public:
 	void SetAmmoStat(float AmmoCnt);
 	void BulletWaste(float DiscardedCount);
 	void SetWeaponStat(const class UQLWeaponStat* Stat);
-	const FString& GetNickname() { return Nickname; }
 	void AddHPStat(float HP);
 	void AddStaminaStat(float Stamina);
 	void ResetWeaponStat(const class UQLWeaponStat* Stat);
@@ -75,9 +74,6 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPCPutLifeStone(); //서버에게 눌렀음을 전달
 protected:
-
-	UPROPERTY(Transient, VisibleAnywhere, BlueprintReadOnly, Category = Nickname, Meta = (AllowPrivateAccess = "true"))
-	FString Nickname;
 
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<class UAbilitySystemComponent> ASC;

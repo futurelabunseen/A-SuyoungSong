@@ -8,6 +8,7 @@
 #include "GameplayTag/GamplayTags.h"
 #include "AbilitySystemComponent.h"
 #include "Player/QLPlayerState.h"
+#include "GameFramework/Character.h"
 #include "GameData/QLItemDataset.h"
 #include "QLGameMode.h"
 
@@ -20,28 +21,24 @@ void AQLGameState::AddPlayerState(APlayerState* PlayerState)
 {
 	Super::AddPlayerState(PlayerState);
 	
-
-	AQLPlayerState* NewPlayerState = Cast<AQLPlayerState>(PlayerState);
-	if (NewPlayerState)
+	AQLPlayerState* PS = Cast<AQLPlayerState>(PlayerState);
+	if (PS)
 	{
 		QL_LOG(QLNetLog, Log, TEXT("NewPlayerState Cast Checked"));
 
-		UAbilitySystemComponent* ASC = NewPlayerState->GetAbilitySystemComponent();
+		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 		if (ASC)
 		{
 			ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLGameState::GetWinner);
 		}
 	}
 
-	if (HasAuthority())
-	{
-		//게임모드를 가져온다.
-		AQLGameMode *GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
+	AQLGameMode *GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
 
-		if (GameMode)
-		{
-			GameMode->AddPlayer(FName(NewPlayerState->GetName()));
-		}
+	if (GameMode)
+	{
+		ACharacter *Character = Cast<ACharacter>(PS->GetPawn());
+		GameMode->AddPlayer(Character);
 	}
 }
 

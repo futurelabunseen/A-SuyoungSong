@@ -34,6 +34,7 @@
 #include "QLCharacterMovementComponent.h"
 #include "Character/QLInputComponent.h"
 #include "Character/QLInventoryComponent.h"
+#include "Game/QLGameMode.h"
 
 #include "QuadLand.h"
 
@@ -102,6 +103,8 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	{
 		GetMesh()->SetAnimClass(AnimInstanceRef.Class);
 	}
+
+	SpectateIndex = 0;
 }
 
 /// <summary>
@@ -253,11 +256,6 @@ void AQLCharacterPlayer::SetCharacterControl()
 
 }
 
-UAbilitySystemComponent* AQLCharacterPlayer::GetAbilitySystemComponent() const
-{
-	return ASC;
-}
-
 
 void AQLCharacterPlayer::Tick(float DeltaSeconds)
 {
@@ -360,7 +358,23 @@ void AQLCharacterPlayer::ServerRPCFarming_Implementation()
 			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 		}
 	), 1.5f, false);
+	//몽타주 실행
+	PlayAnimMontage(PickupMontage);
 
+	for (APlayerController* PlayerController : TActorRange<APlayerController>(GetWorld()))
+	{
+		if (PlayerController && GetController() != PlayerController)
+		{
+			if (!PlayerController->IsLocalController())
+			{
+				AQLCharacterPlayer* OtherPlayer = Cast<AQLCharacterPlayer>(PlayerController->GetPawn());
+				if (OtherPlayer)
+				{
+					OtherPlayer->ClientRPCPlayAnimation(this);
+				}
+			}
+		}
+	}
 	bPressedFarmingKey = true;
 	FarmingItem();
 }
@@ -413,7 +427,10 @@ void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 
 void AQLCharacterPlayer::GetAmmo(AQLItem* ItemInfo)
 {
-	UQLAmmoData* AmmoItem = Cast<UQLAmmoData>(ItemInfo->Stat);
+	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
+
+	UQLAmmoData* AmmoItem = Cast<UQLAmmoData>(ItemData);
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 	PS->SetAmmoStat(AmmoItem->AmmoCnt);
 	GetItem(ItemInfo);
@@ -438,6 +455,7 @@ void AQLCharacterPlayer::UpdateAmmo()
 
 		UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
 		UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
+
 		uint32 ItemCnt = FMath::RoundToInt((PS->GetMaxAmmoCnt() + PS->GetCurrentAmmoCnt()) / PS->GetAmmoCnt());
 		QLInventory->InventoryItem[EItemType::Ammo] = ItemCnt;
 		ItemData->CurrentItemCnt = ItemCnt;
@@ -458,11 +476,6 @@ void AQLCharacterPlayer::ServerRPCUpdateAmmo_Implementation(uint32 ItemCnt)
 bool AQLCharacterPlayer::GetIsJumping()
 {
 	return GetCharacterMovement()->IsFalling();
-}
-
-FVector AQLCharacterPlayer::GetWeaponMuzzlePos()
-{
-	return Weapon->GetMuzzlePos();
 }
 
 FVector AQLCharacterPlayer::GetVelocity() const
@@ -643,6 +656,15 @@ void AQLCharacterPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AQLCharacterPlayer, bPressedFarmingKey);
 }
 
+void AQLCharacterPlayer::ClientRPCPlayAnimation_Implementation(AQLCharacterPlayer* CharacterPlay)
+{
+	if (CharacterPlay)
+	{
+		//몽타주 실행
+		CharacterPlay->PlayAnimMontage(CharacterPlay->PickupMontage);
+	}
+}
+
 void AQLCharacterPlayer::DestoryItem(AQLItemBox* Item)
 {
 	if (Item)
@@ -714,9 +736,30 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 
 	ItemInfo->SetLifeSpan(0.5f);
 }
+
 int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 {
 	return QLInventory->GetInventoryCnt(ItemType);
+}
+void AQLCharacterPlayer::SpectateNextPlayer()
+{
+	AQLGameMode *GameMode=GetWorld()->GetAuthGameMode<AQLGameMode>();
+
+	if (GameMode)
+	{
+		uint32 Index = (SpectateIndex + 1) % GameMode->GetRealPlayerCnt();
+
+		APlayerController *PC = GetController<APlayerController>();
+
+		if (PC)
+		{
+			PC->SetViewTargetWithBlend(GameMode->NextCharacter(this));
+		}
+	}
+
+}
+void AQLCharacterPlayer::SpectatePreviousPlayer()
+{
 }
 void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
 {

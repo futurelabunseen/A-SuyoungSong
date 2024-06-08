@@ -23,6 +23,8 @@ class QUADLAND_API AQLPlayerController : public APlayerController
 public:
 	AQLPlayerController();
 
+	virtual void BeginPlay() override;
+
 	UFUNCTION(BlueprintCallable)
 	void SetVisibilityHUD(EHUDType UItype);
 

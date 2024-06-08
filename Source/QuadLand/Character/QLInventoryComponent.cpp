@@ -214,7 +214,9 @@ void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EI
 						{
 							return;
 						}
-						IQLGetItemStat* ItemStat = CastChecked<IQLGetItemStat>(ItemData);
+						UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+						UQLItemData* Data = DataManager->GetItem(ItemId);
+						IQLGetItemStat* ItemStat = CastChecked<IQLGetItemStat>(Data);
 						PS->SetAmmoStat(ItemStat->GetStat());
 					}
 				}
@@ -250,7 +252,8 @@ void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId, int32 ItemC
 	// 
 	if (ItemId == EItemType::Bomb)
 	{
-
+		AQLPlayerController* PC = GetController<AQLPlayerController>();
+		PC->UpdateEquipBombUI();
 	}
 	//Server RPC 전송 -> Server 아이템 생성 및 아이템 조정 
 	ServerRPCAddGroundByDraggedItem(ItemId, ItemCnt);

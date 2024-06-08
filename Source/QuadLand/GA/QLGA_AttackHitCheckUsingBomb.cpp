@@ -79,7 +79,7 @@ void UQLGA_AttackHitCheckUsingBomb::OnCompletedCallback()
 		
 		for (const auto& Player : NearbyPlayers)
 		{
-			AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(Player.GetActor());
+			AQLCharacterBase* Character = Cast<AQLCharacterBase>(Player.GetActor());
 
 			if (Character)
 			{

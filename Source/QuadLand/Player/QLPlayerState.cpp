@@ -135,10 +135,10 @@ void AQLPlayerState::BeginPlay()
         MaxStaminaChangedDeleagteHandle= ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetMaxStaminaAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxStamina);
     }
 
-    UQLGameInstance* GameInstance = Cast<UQLGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+     UQLGameInstance* GameInstance = Cast<UQLGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
      if (GameInstance)
      {
-           Nickname = GameInstance->GetNickname();
+         SetPlayerName(GameInstance->GetNickname());
      }
 }
 

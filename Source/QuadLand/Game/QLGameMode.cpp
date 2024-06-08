@@ -10,6 +10,7 @@
 #include "QuadLand.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayTag/GamplayTags.h"
+#include "GameFramework/Character.h"
 #include "Character/QLCharacterNonPlayer.h"
 #include "EngineUtils.h"
 
@@ -33,6 +34,8 @@ AQLGameMode::AQLGameMode()
 	GameStateClass = AQLGameState::StaticClass();
 
 	LivePlayerCount = 0;
+
+	RealPlayerCount = 0;
 }
 
 void AQLGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
@@ -80,25 +83,27 @@ void AQLGameMode::SpawnAI()
 	{
 		AISpawner->SetLifeSpan(5.0f);
 	}
+	QL_LOG(QLNetLog, Log, TEXT("Player %d "), LivePlayerCount);
 
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
+	for (const auto& Players : PlayerDieStatus)
 	{
-		const auto PC = Cast<AQLPlayerController>(It->Get());
+		const auto PC = Cast<AQLPlayerController>(Players.Key);
 
-		PC->ClientRPCUpdateLivePlayer(LivePlayerCount);
+		if (PC)
+		{
+			PC->ClientRPCUpdateLivePlayer(LivePlayerCount);
+		}
 	}
 	//GameState를 가져온다.
 }
 
-void AQLGameMode::DeadNonPlayer(FName NonPlayerName)
+void AQLGameMode::DeadNonPlayer(ACharacter* NonPlayerName)
 {
 		
 	if (PlayerDieStatus.Find(NonPlayerName)&&PlayerDieStatus[NonPlayerName] == false)
 	{
 		PlayerDieStatus[NonPlayerName] = true;
 		LivePlayerCount--;
-
-		QL_LOG(QLNetLog, Log, TEXT("Non Player Death %s"), *NonPlayerName.ToString());
 	}
 
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
@@ -117,56 +122,91 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 	//승리자가 한명 남았을 때 승리자 태그를 부착한다.
 	//GetWorld에 있는 플레이어 스테이트 가져오기
 
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
-	{
-		AQLPlayerState* PlayerState = CastChecked<AQLPlayerState>(It->Get()->PlayerState);
 
-		UAbilitySystemComponent* ASC = PlayerState->GetAbilitySystemComponent();
-		FName PlayerName = FName(PlayerState->GetName());
-		//태그가 부착되어있는지 확인한다.
-		if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_DEAD))
+	for (const auto& Players : PlayerDieStatus)
+	{
+		AQLCharacterBase* Character = Cast<AQLCharacterBase>(Players.Key);
+
+		if (Character)
 		{
-			if (PlayerDieStatus[PlayerName] == false)
+			UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+			if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_DEAD))
 			{
-				LivePlayerCount--; //처음 죽음
-				const auto PC = Cast<AQLPlayerController>(It->Get());
-				PC->ClientRPCUpdateLivePlayer(LivePlayerCount);
-				QL_LOG(QLNetLog, Log, TEXT("Player Death %s"), *PlayerName.ToString());
+				if (Players.Value == false)
+				{
+					LivePlayerCount--; //처음 죽음
+					const auto PC = Character->GetController<AQLPlayerController>();
+					if (PC)
+					{
+						PC->ClientRPCUpdateLivePlayer(LivePlayerCount);
+						QL_LOG(QLNetLog, Log, TEXT("Player Death %s"), *Character->GetName());
+					}
+					PlayerDieStatus[Character] = true;
+				}
 			}
-			PlayerDieStatus[PlayerName] = true;
 		}
-		
 	}
 
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
+
+	for (const auto& Players : PlayerDieStatus)
 	{
-		AQLPlayerState* PlayerState = CastChecked<AQLPlayerState>(It->Get()->PlayerState);
-		UAbilitySystemComponent* ASC = PlayerState->GetAbilitySystemComponent();
-		FName PlayerName = FName(PlayerState->GetName());
+		AQLCharacterBase* Character = Cast<AQLCharacterBase>(Players.Key);
 
-		if (LivePlayerCount == 1)
+		if (Character)
 		{
-			if (PlayerDieStatus[PlayerName] == false)
+			if (LivePlayerCount == 1)
 			{
-				QL_LOG(QLNetLog, Log, TEXT("Player Win %s"), *PlayerName.ToString());
-				
-				//PlayerState를 사용해서 MulticastRPC 전송
+				UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 
-				FGameplayTagContainer TargetTag(CHARACTER_STATE_WIN);
-				ASC->TryActivateAbilitiesByTag(TargetTag);
-				//GameMode 에게 전달해야함.
+				if (ASC && Players.Value == false)
+				{
+					QL_LOG(QLNetLog, Log, TEXT("Player Death %s"), *Character->GetName());
 
-				//ServerRPC를 사용해서 승리자 플레이어 전달
+					FGameplayTagContainer TargetTag(CHARACTER_STATE_WIN);
+					ASC->TryActivateAbilitiesByTag(TargetTag);
+				}
 			}
 		}
 	}
 
 }
 
-void AQLGameMode::AddPlayer(FName PlayerName)
+void AQLGameMode::AddPlayer(ACharacter* Player)
 {
-	PlayerDieStatus.Add(PlayerName, false);
+	PlayerDieStatus.Add(Player, false);
 	LivePlayerCount++;
+	RealPlayerCount++;
+}
+
+ACharacter* AQLGameMode::NextCharacter(ACharacter* CurrentPlayer)
+{
+	bool bIsCheck = false;
+	int Idx = 0;
+	ACharacter* NextPlayer = nullptr;
+
+	for (const auto& Player : PlayerDieStatus)
+	{
+		AQLPlayerController* PC = (Player.Key)->GetController<AQLPlayerController>();
+		if (PC)
+		{
+			Idx++;
+			if (bIsCheck && PlayerDieStatus[Player.Key] == false)
+			{
+				NextPlayer = Player.Key;
+			}
+			if (Player.Key == CurrentPlayer)
+			{
+				bIsCheck = true;
+			}
+		}
+	}
+
+	if (Idx == RealPlayerCount || NextPlayer == nullptr)
+	{
+		return  PlayerDieStatus.begin().Key();
+	}
+
+	return NextPlayer;
 }
 
 void AQLGameMode::GameStart()
