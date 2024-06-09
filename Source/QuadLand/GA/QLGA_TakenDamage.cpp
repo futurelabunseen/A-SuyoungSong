@@ -6,6 +6,7 @@
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "GameFramework/Character.h"
 #include "Player/QLPlayerController.h"
+#include "AI/QLAIController.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayTag/GamplayTags.h"
 #include "QuadLand.h"
@@ -27,6 +28,15 @@ void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		PC->BlinkBloodWidget();
 		QL_GASLOG(QLNetLog, Log, TEXT("this?"));
 	}
+
+	//만약 NonPlayer라면
+
+	//AQLAIController* NonPC = Character->GetController<AQLAIController>();
+
+	//if (NonPC)
+	//{
+	//	//여기서 타겟을 지정함.
+	//}
 	OnCompletedCallback();
 }
 

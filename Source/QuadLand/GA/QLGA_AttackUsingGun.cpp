@@ -72,6 +72,10 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		}
 	}
 
+	if (HasAuthority(&ActivationInfo))
+	{
+		Character->MakeNoise();
+	}
 	UAnimMontage* AnimMontageUsingGun = Character->GetAnimMontage();
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();

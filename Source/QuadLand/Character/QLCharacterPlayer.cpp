@@ -103,8 +103,6 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	{
 		GetMesh()->SetAnimClass(AnimInstanceRef.Class);
 	}
-
-	SpectateIndex = 0;
 }
 
 /// <summary>
@@ -741,26 +739,7 @@ int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 {
 	return QLInventory->GetInventoryCnt(ItemType);
 }
-void AQLCharacterPlayer::SpectateNextPlayer()
-{
-	AQLGameMode *GameMode=GetWorld()->GetAuthGameMode<AQLGameMode>();
 
-	if (GameMode)
-	{
-		uint32 Index = (SpectateIndex + 1) % GameMode->GetRealPlayerCnt();
-
-		APlayerController *PC = GetController<APlayerController>();
-
-		if (PC)
-		{
-			PC->SetViewTargetWithBlend(GameMode->NextCharacter(this));
-		}
-	}
-
-}
-void AQLCharacterPlayer::SpectatePreviousPlayer()
-{
-}
 void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
 {
 	if (IsLocallyControlled()&&NotifyName == FName(TEXT("ThrowAnimNofity")))

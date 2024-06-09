@@ -74,13 +74,7 @@ public:
 
 	int GetInventoryCnt(EItemType ItemType);
 
-	void SpectateNextPlayer();
-
-	void SpectatePreviousPlayer();
 protected:
-
-	int16 SpectateIndex;
-
 	uint8 bIsProning : 1;
 protected:
 	virtual FVector GetVelocity() const override;

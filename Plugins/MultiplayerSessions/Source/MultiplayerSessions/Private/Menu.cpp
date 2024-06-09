@@ -86,11 +86,8 @@ void UMenu::OnCreateSession(bool bWasSuccessful)
 {
 	if (bWasSuccessful)
 	{
-		UWorld* World = GetWorld();
-		if (World)
-		{
-			World->ServerTravel(PathToLobby);
-		}
+		FTimerHandle StartTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &UMenu::GameStart, 5.0f, false);
 	}
 	else
 	{
@@ -172,6 +169,15 @@ void UMenu::HiddenAlert()
 void UMenu::HiddenError()
 {
 	TxtError->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UMenu::GameStart()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		World->ServerTravel(PathToLobby);
+	}
 }
 
 void UMenu::HostButtonClicked()

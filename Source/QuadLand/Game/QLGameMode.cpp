@@ -34,8 +34,6 @@ AQLGameMode::AQLGameMode()
 	GameStateClass = AQLGameState::StaticClass();
 
 	LivePlayerCount = 0;
-
-	RealPlayerCount = 0;
 }
 
 void AQLGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
@@ -67,12 +65,15 @@ void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 
 	FTimerHandle StartTimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 1.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 2.0f, false);
+
 }
 
 void AQLGameMode::StartPlay()
 {
 	Super::StartPlay();
+
+	GameStart();
 }
 
 void AQLGameMode::SpawnAI()
@@ -154,16 +155,24 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 
 		if (Character)
 		{
+			UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+
 			if (LivePlayerCount == 1)
 			{
-				UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
-
 				if (ASC && Players.Value == false)
 				{
-					QL_LOG(QLNetLog, Log, TEXT("Player Death %s"), *Character->GetName());
-
 					FGameplayTagContainer TargetTag(CHARACTER_STATE_WIN);
 					ASC->TryActivateAbilitiesByTag(TargetTag);
+					QL_LOG(QLNetLog, Log, TEXT("Player Win %s"), *Character->GetName());
+				}
+			}
+
+			const auto PC = Character->GetController<AQLPlayerController>();
+			if (ASC && ASC->HasMatchingGameplayTag(CHARACTER_STATE_DEAD))
+			{
+				if (PC && PC->IsLocalController())
+				{
+					PC->Loose();
 				}
 			}
 		}
@@ -175,38 +184,6 @@ void AQLGameMode::AddPlayer(ACharacter* Player)
 {
 	PlayerDieStatus.Add(Player, false);
 	LivePlayerCount++;
-	RealPlayerCount++;
-}
-
-ACharacter* AQLGameMode::NextCharacter(ACharacter* CurrentPlayer)
-{
-	bool bIsCheck = false;
-	int Idx = 0;
-	ACharacter* NextPlayer = nullptr;
-
-	for (const auto& Player : PlayerDieStatus)
-	{
-		AQLPlayerController* PC = (Player.Key)->GetController<AQLPlayerController>();
-		if (PC)
-		{
-			Idx++;
-			if (bIsCheck && PlayerDieStatus[Player.Key] == false)
-			{
-				NextPlayer = Player.Key;
-			}
-			if (Player.Key == CurrentPlayer)
-			{
-				bIsCheck = true;
-			}
-		}
-	}
-
-	if (Idx == RealPlayerCount || NextPlayer == nullptr)
-	{
-		return  PlayerDieStatus.begin().Key();
-	}
-
-	return NextPlayer;
 }
 
 void AQLGameMode::GameStart()

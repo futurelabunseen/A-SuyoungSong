@@ -195,4 +195,5 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetShowMenuUI();
+
 };

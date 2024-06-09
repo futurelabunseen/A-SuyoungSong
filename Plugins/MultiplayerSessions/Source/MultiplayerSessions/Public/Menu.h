@@ -35,11 +35,11 @@ protected:
 	UFUNCTION()
 	void OnStartSession(bool bWasSuccessful);
 
-
 	void HiddenAlert();
 	void HiddenError();
 private:
 
+	void GameStart();
 	UPROPERTY(meta = (BindWidget))
 	class UButton* HostButton;
 

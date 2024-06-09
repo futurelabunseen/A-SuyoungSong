@@ -102,6 +102,13 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 		APlayerCameraManager* LocalCamera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
 		LocalCamera->StartCameraShake(CameraShakeClass);
 	}
+
+
+	if (HasAuthority(&CurrentActivationInfo))
+	{
+		Character->MakeNoise();
+	}
+
 	QL_GASLOG(QLLog, Warning, TEXT("Current Effect Spec"));
 
 	float AnimSpeedRate = 1.5f;

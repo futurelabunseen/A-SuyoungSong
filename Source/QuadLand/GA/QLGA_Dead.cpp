@@ -10,6 +10,7 @@
 #include "Character/QLCharacterPlayer.h"
 #include "Player/QLPlayerController.h"
 #include "GameplayTag/GamplayTags.h"
+#include "Character/QLSpectatorPawn.h"
 
 UQLGA_Dead::UQLGA_Dead() 
 {
@@ -33,26 +34,12 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	Character->SetActorEnableCollision(false);
 	Character->bUseControllerRotationYaw = false;
-	Character->SetLifeSpan(5.0f);
-	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
 
-	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(Character);
-	
-	if (Player && HasAuthority(&ActivationInfo))
-	{
-		Player->SpectateNextPlayer();
-	}
+	Character->SetLifeSpan(10.0f);
 
-	if (IsLocallyControlled()&&PC)
-	{
-		
-		//PC->Loose();
-	
-		//관전 카메라 Possess
-		//살아있는 캐릭터를 가져온다.
-	}
-	
-	OnCompleted();
+	FTimerHandle SpawnTimerHandle;
+
+	GetWorld()->GetTimerManager().SetTimer(SpawnTimerHandle, this, &UQLGA_Dead::OnCompleted, 5.0f, false);
 }
 
 void UQLGA_Dead::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -64,6 +51,18 @@ void UQLGA_Dead::OnCompleted()
 {
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = true;
+
+	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
+	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
+
+	if (PC && HasAuthority(&CurrentActivationInfo))
+	{
+		FTransform Transform = Character->GetActorTransform();
+		FActorSpawnParameters Params;
+		AQLSpectatorPawn *SpectatorPawn =GetWorld()->SpawnActor<AQLSpectatorPawn>(SpectatorPawnClass, Transform, Params);
+
+		PC->Possess(Cast<APawn>(SpectatorPawn));
+	}
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 

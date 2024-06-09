@@ -195,7 +195,7 @@ void UQLInputComponent::InitPlayerImputComponent(UInputComponent* InputComponent
 		EnhancedInputComponent->BindAction(WeaponSwitcherAction[ECharacterAttackType::HookAttack], ETriggerEvent::Completed, this, &UQLInputComponent::SelectDefaultAttackType);
 		EnhancedInputComponent->BindAction(WeaponSwitcherAction[ECharacterAttackType::GunAttack], ETriggerEvent::Completed, this, &UQLInputComponent::SelectGunAttackType);
 		EnhancedInputComponent->BindAction(WeaponSwitcherAction[ECharacterAttackType::BombAttack], ETriggerEvent::Completed, this, &UQLInputComponent::SelectBombAttackType);
-		
+	
 		InitGASInputComponent(InputComponent);
 
 	}	
@@ -611,8 +611,6 @@ void UQLInputComponent::SetInventory()
 				{
 					ItemData->CurrentItemCnt = 1;
 					PC->UpdateNearbyItemEntry(ItemData);
-
-					QL_SUBLOG(QLLog, Log, TEXT("%d"), ItemData->CurrentItemCnt);
 				}
 			}
 		}
