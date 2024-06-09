@@ -11,6 +11,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Hearing.h"
+#include "Perception/AISenseConfig_Sight.h"
 #include "Game/QLGameMode.h"
 #include "QuadLand.h"
 
@@ -31,10 +32,13 @@ AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectIni
 
 	AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 	UAISenseConfig_Hearing *HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearConfig"));
+
+	UAISenseConfig_Sight* SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
 	AIPerception->ConfigureSense(*HearingConfig);
+	AIPerception->ConfigureSense(*SightConfig);
 
 	Weapon->Weapon->SetSkeletalMesh(GunMesh);
-
+	
 	AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AQLCharacterNonPlayer::UpdateTargetPerception);
 
 	AIControllerClass = AQLAIController::StaticClass();
@@ -147,14 +151,59 @@ void AQLCharacterNonPlayer::CheckBoxOverlap()
 void AQLCharacterNonPlayer::UpdateTargetPerception(AActor* Actor, FAIStimulus Stimulus)
 {
 	AQLAIController* AIController = GetController<AQLAIController>();
+	//1. 시야에 들어온다
+	//2. 소리가 들리는 쪽으로 고개를 돌린다.:
 
-	if (AIController)
+	UBlackboardComponent *BC = AIController->GetBlackboardComponent();
+
+	ACharacter* Character = Cast<ACharacter>(Actor); //NonPlayer,Player 모두 찾아냄.
+	if (Character == nullptr)
 	{
-		UBlackboardComponent* BC = AIController->GetBlackboardComponent();
+		return;
+	}
 
-		if (BC)
+	if (BC == nullptr)
+	{
+		return;
+	}
+
+	if (Stimulus.WasSuccessfullySensed())
+	{
+		if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
 		{
-			BC->SetValueAsVector(TEXT("PatrolPosition"), Stimulus.StimulusLocation);
+			if (CheckTargetTimer.IsValid())
+			{
+				GetWorld()->GetTimerManager().ClearTimer(CheckTargetTimer);
+			}
+			//총을 맞았을때 Hearing 한다
+			//주변에 있는 사람을 찾는다.
+			BC->SetValueAsObject(TEXT("TargetActor"), Actor);
+
+		}
+		if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
+		{
+			QL_LOG(QLLog, Warning, TEXT("TargetActor"));
+			BC->SetValueAsObject(TEXT("TargetActor"), Actor);
+			GetWorld()->GetTimerManager().ClearTimer(CheckTargetTimer);
+			CheckTargetTimer.Invalidate();
+		}
+		else
+		{
+			//없으면  
+			GetWorld()->GetTimerManager().SetTimer(CheckTargetTimer, this, &AQLCharacterNonPlayer::ChangeTarget, 3.0f, false);
 		}
 	}
+}
+
+
+void AQLCharacterNonPlayer::ChangeTarget()
+{
+	AQLAIController* AIController = GetController<AQLAIController>();
+	//1. 시야에 들어온다
+	//2. 소리가 들리는 쪽으로 고개를 돌린다.:
+
+	UBlackboardComponent* BC = AIController->GetBlackboardComponent();
+
+	QL_LOG(QLLog, Warning, TEXT("No TargetActor"));
+	BC->SetValueAsObject(TEXT("TargetActor"), nullptr);
 }

@@ -8,14 +8,14 @@
 
 AQLAIController::AQLAIController()
 {
-	static ConstructorHelpers::FObjectFinder<UBlackboardData> BlackboardDataRef(TEXT("/Script/AIModule.BlackboardData'/Game/QuadLand/AI/BB_QLNonPlayer.BB_QLNonPlayer'"));
+	static ConstructorHelpers::FObjectFinder<UBlackboardData> BlackboardDataRef(TEXT("/Script/AIModule.BlackboardData'/Game/QuadLand/AI/BB_EQSTest.BB_EQSTest'"));
 
 	if (BlackboardDataRef.Object)
 	{
 		BBAsset = BlackboardDataRef.Object;
 	}
 	
-	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BehaviorTreeRef(TEXT("/Script/AIModule.BehaviorTree'/Game/QuadLand/AI/BT_QLNonPlayer.BT_QLNonPlayer'"));
+	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BehaviorTreeRef(TEXT("/Script/AIModule.BehaviorTree'/Game/QuadLand/AI/BT_EQSTest.BT_EQSTest'"));
 
 	if (BehaviorTreeRef.Object)
 	{

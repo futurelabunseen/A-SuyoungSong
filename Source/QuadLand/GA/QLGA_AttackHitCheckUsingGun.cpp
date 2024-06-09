@@ -63,6 +63,8 @@ void UQLGA_AttackHitCheckUsingGun::OnCompletedCallback(const FGameplayAbilityTar
 
 				FGameplayTagContainer TargetTag(CHARACTER_ATTACK_TAKENDAMAGE);
 				TargetASC->TryActivateAbilitiesByTag(TargetTag);
+				//플레이어는 알필요가 없는데, AI는 누가 쐈는지 알 필요가 있음.
+
 
 				//Hit 위치 판정 헤드샷일 때 +10 더해준다.
 				//타겟 액터의 본 위치를 가져온다

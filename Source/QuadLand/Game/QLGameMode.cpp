@@ -64,12 +64,16 @@ void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 		PC->bReadyGame = true;
 	}
 
-	GameStart();
+	FTimerHandle StartTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 2.0f, false);
+
 }
 
 void AQLGameMode::StartPlay()
 {
 	Super::StartPlay();
+
+	GameStart();
 }
 
 void AQLGameMode::SpawnAI()

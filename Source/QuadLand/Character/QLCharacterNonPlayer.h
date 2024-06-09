@@ -48,4 +48,15 @@ protected:
 
 	UFUNCTION()
 	void UpdateTargetPerception(AActor* Actor, FAIStimulus Stimulus);
+
+	FTimerHandle CheckTargetTimer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AttackOffset)
+	float MinOffset;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AttackOffset)
+	float MaxOffset;
+
+	void ChangeTarget();
+
 };
