@@ -127,7 +127,7 @@ void AQLCharacterNonPlayer::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 
 		if (GameMode)
 		{
-			GameMode->DeadNonPlayer(this);
+			GameMode->DeadNonPlayer(FName(this->GetName()));
 			GameMode->GetWinner(CallbackTag, NewCount);
 		}
 	}

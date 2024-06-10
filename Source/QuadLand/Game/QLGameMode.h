@@ -27,13 +27,13 @@ public:
 	virtual void SpawnAI() override;
 
 	UFUNCTION()
-	void DeadNonPlayer(ACharacter* NonPlayer);
+	void DeadNonPlayer(FName NonPlayerName);
 
 	UFUNCTION()
 	void GetWinner(const FGameplayTag CallbackTag, int32 NewCount);
 
 	UFUNCTION()
-	void AddPlayer(ACharacter* Player);
+	void AddPlayer(FName PlayerName);
 
 protected:
 	UPROPERTY(BlueprintReadOnly)
@@ -50,7 +50,7 @@ private:
 	TSubclassOf<class AQLAISpawner> AISpawnerClass;
 
 	UPROPERTY()
-	TMap <TObjectPtr<class ACharacter>, bool> PlayerDieStatus;
+	TMap<FName, bool> PlayerDieStatus;
 
 
 };

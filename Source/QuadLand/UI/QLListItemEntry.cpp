@@ -10,7 +10,7 @@ void UQLListItemEntry::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ItemImg = Cast<UImage>(GetWidgetFromName(TEXT("ItemImg")));
+	ItemImg = Cast<UImage>(GetWidgetFromName(TEXT("ItemImage")));
 	TxtItemTitle = Cast<UTextBlock>(GetWidgetFromName(TEXT("TxtItemTitle")));
 	TxtItemCnt = Cast< UTextBlock>(GetWidgetFromName(TEXT("TxtItemCnt")));
 }
@@ -25,7 +25,11 @@ void UQLListItemEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 		UE_LOG(LogTemp, Warning, TEXT("Data is not valid"));
 		return;
 	}
-	ItemImg = Data->ItemImg;
+
+	if (ItemImg && Data->ItemImg)
+	{
+		ItemImg->SetBrushFromTexture(Data->ItemImg);
+	}
 	//이친구,,, 어떻게가져와?
 	FString ItemCntTxt = FString::Printf(TEXT("%d"), Data->CurrentItemCnt);
 	TxtItemCnt->SetText(FText::FromString(ItemCntTxt));

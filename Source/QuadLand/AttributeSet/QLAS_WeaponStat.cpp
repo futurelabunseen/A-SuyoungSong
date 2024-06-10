@@ -59,6 +59,7 @@ void UQLAS_WeaponStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	{
 		SetCurrentAmmo(FMath::Clamp(GetCurrentAmmo(), 0.0f, GetAmmoCnt()));
 	}
+
 	//Ammo 변경되어서 전달.. MaxAmmo - Ammo 
 }
 

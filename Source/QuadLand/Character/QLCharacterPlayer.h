@@ -59,7 +59,9 @@ public:
 
 	//const class UQLWeaponStat* GetWeaponStat() const;
 
-	void UpdateAmmo();
+	UFUNCTION()
+	void UpdateAmmo(const FGameplayTag CallbackTag, int32 NewCount);
+
 	UFUNCTION(Server,Unreliable)
 	void ServerRPCUpdateAmmo(uint32 ItemCnt);
 	FORCEINLINE bool GetHasGun() const { return bHasGun; }
