@@ -4,6 +4,9 @@
 #include "AI/Decorator/BTDecorator_SelectAttackOrRun.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Character/QLCharacterNonPlayer.h"
+#include "AbilitySystemComponent.h"
+#include "AttributeSet/QLAS_PlayerStat.h"
 
 UBTDecorator_SelectAttackOrRun::UBTDecorator_SelectAttackOrRun()
 {
@@ -19,8 +22,22 @@ bool UBTDecorator_SelectAttackOrRun::CalculateRawConditionValue(UBehaviorTreeCom
 		return bResult;
 	}
 	//Random으로정한다.
-	float Value = FMath::RandRange(0, 100);
-	
-	UE_LOG(LogTemp, Warning, TEXT("UBTDecorator_SelectAttackOrRun %d"), Value>=50.f);
-	return Value>=50.f;
+	AQLCharacterNonPlayer* ControllingPawn = Cast<AQLCharacterNonPlayer>(OwnerComp.GetAIOwner()->GetPawn());
+	if (nullptr == ControllingPawn)
+	{
+		return false;
+	}
+	UAbilitySystemComponent* ASC = ControllingPawn->GetAbilitySystemComponent();
+
+	if (ASC == nullptr)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+
+	const UQLAS_PlayerStat *NonPlayerHp = ASC->GetSet<UQLAS_PlayerStat>();
+
+	float RemainingHP = NonPlayerHp->GetHealth() / NonPlayerHp->GetMaxHealth();
+
+	return RemainingHP >= 0.3f; //공격할 수 있다
 }

@@ -166,33 +166,42 @@ void AQLCharacterNonPlayer::UpdateTargetPerception(AActor* Actor, FAIStimulus St
 	{
 		return;
 	}
-
-	if (Stimulus.WasSuccessfullySensed())
+	
+	if (Actor == this)
 	{
-		if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
-		{
-			if (CheckTargetTimer.IsValid())
-			{
-				GetWorld()->GetTimerManager().ClearTimer(CheckTargetTimer);
-			}
-			//총을 맞았을때 Hearing 한다
-			//주변에 있는 사람을 찾는다.
-			BC->SetValueAsObject(TEXT("TargetActor"), Actor);
+		return;
+	}
 
-		}
-		if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
+	if (bTakeDamage == false)
+	{
+		if (Stimulus.WasSuccessfullySensed())
 		{
-			QL_LOG(QLLog, Warning, TEXT("TargetActor"));
-			BC->SetValueAsObject(TEXT("TargetActor"), Actor);
-			GetWorld()->GetTimerManager().ClearTimer(CheckTargetTimer);
-			CheckTargetTimer.Invalidate();
-		}
-		else
-		{
-			//없으면  
-			GetWorld()->GetTimerManager().SetTimer(CheckTargetTimer, this, &AQLCharacterNonPlayer::ChangeTarget, 3.0f, false);
+			if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
+			{
+				if (CheckTargetTimer.IsValid())
+				{
+					GetWorld()->GetTimerManager().ClearTimer(CheckTargetTimer);
+				}
+				//총을 맞았을때 Hearing 한다
+				//주변에 있는 사람을 찾는다.
+				BC->SetValueAsObject(TEXT("TargetActor"), Actor);
+
+			}
+			if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
+			{
+				QL_LOG(QLLog, Warning, TEXT("TargetActor"));
+				BC->SetValueAsObject(TEXT("TargetActor"), Actor);
+				GetWorld()->GetTimerManager().ClearTimer(CheckTargetTimer);
+				CheckTargetTimer.Invalidate();
+			}
+			else
+			{
+				//없으면  
+				GetWorld()->GetTimerManager().SetTimer(CheckTargetTimer, this, &AQLCharacterNonPlayer::ChangeTarget, 3.0f, false);
+			}
 		}
 	}
+
 }
 
 

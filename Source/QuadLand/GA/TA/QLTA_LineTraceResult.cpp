@@ -42,7 +42,11 @@ FGameplayAbilityTargetDataHandle AQLTA_LineTraceResult::MakeTargetData() const
 			if (Target)
 			{
 				AttackStartLocation = Character->GetWeapon()->GetWeaponMesh()->GetSocketLocation(FName("MuzzleFlash"));
-				AttackEndLocation = AI->GetTarget()->GetActorLocation();
+				FVector Location = Target->GetActorLocation();
+				Location.Y += AI->GetTargetPos().X;
+				Location.Z += AI->GetTargetPos().Y;
+
+				AttackEndLocation = Location;
 			}
 		}
 	}

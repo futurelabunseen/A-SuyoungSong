@@ -40,6 +40,7 @@ public:
 	FORCEINLINE bool GetIsReload() const { return bIsReload; }
 	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
 	FORCEINLINE void SetIsDead(bool InDead) { bIsDead = InDead; }
+	FORCEINLINE bool GetIsCrunching() const { return bIsCrouched; }
 	UFUNCTION(Server, Reliable)
 	void ServerRPCReload(); //Reload วเภงดย Reliable
 	FVector GetWeaponMuzzlePos();

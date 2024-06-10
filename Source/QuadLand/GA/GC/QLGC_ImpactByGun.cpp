@@ -68,6 +68,7 @@ bool UQLGC_ImpactByGun::OnExecute_Implementation(AActor* Target, const FGameplay
 				BulletTransform.SetRotation(Quat);
 				GetWorld()->SpawnActor<AQLBullet>(BulletClass, BulletTransform);
 			}
+
 		}
 	}
 

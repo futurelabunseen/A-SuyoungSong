@@ -12,7 +12,7 @@
 #include "GameplayTag/GamplayTags.h"
 #include "GameFramework/Character.h"
 #include "Interface/QLLifestoneContainerInterface.h"
-
+#include "Character/QLCharacterPlayer.h"
 #include "QuadLand.h"
 
 UQLGA_AttackHitCheckUsingGun::UQLGA_AttackHitCheckUsingGun()
@@ -60,10 +60,22 @@ void UQLGA_AttackHitCheckUsingGun::OnCompletedCallback(const FGameplayAbilityTar
 			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitResult.GetActor());
 			if (ReceivedCharacter)
 			{
-
-				FGameplayTagContainer TargetTag(CHARACTER_ATTACK_TAKENDAMAGE);
-				TargetASC->TryActivateAbilitiesByTag(TargetTag);
-				//플레이어는 알필요가 없는데, AI는 누가 쐈는지 알 필요가 있음.
+				
+				AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(HitResult.GetActor());
+				if (Player)
+				{
+					//플레이어는 TryActivateAbilitiesByTag 로 실행
+					FGameplayTagContainer TargetTag(CHARACTER_ATTACK_TAKENDAMAGE);
+					TargetASC->TryActivateAbilitiesByTag(TargetTag);
+				}
+				else
+				{
+					//플레이어는 알필요가 없는데, AI는 누가 쐈는지 알 필요가 있음.
+					//AI는 SendGameplayEventToActor 실행
+					FGameplayEventData Payload;
+					Payload.Instigator = CurrentActorInfo->AvatarActor.Get();
+					UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(HitResult.GetActor(), CHARACTER_ATTACK_TAKENDAMAGE, Payload);
+				}
 
 
 				//Hit 위치 판정 헤드샷일 때 +10 더해준다.

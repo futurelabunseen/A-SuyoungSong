@@ -5,7 +5,7 @@
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
-
+#include "Character/QLCharacterNonPlayer.h"
 AQLAIController::AQLAIController()
 {
 	static ConstructorHelpers::FObjectFinder<UBlackboardData> BlackboardDataRef(TEXT("/Script/AIModule.BlackboardData'/Game/QuadLand/AI/BB_EQSTest.BB_EQSTest'"));
@@ -58,9 +58,17 @@ const APawn* AQLAIController::GetTarget()
 	return nullptr;
 }
 
-FVector AQLAIController::GetTargetPos()
+FVector2D AQLAIController::GetTargetPos()
 {
-	return FVector();
+	AQLCharacterNonPlayer* NonPlayer = CastChecked<AQLCharacterNonPlayer>(GetPawn());
+	
+	FVector2D XRandOffset = NonPlayer->GetXRandOffset();
+	FVector2D YRandOffset = NonPlayer->GetYRandOffset();
+
+	float RandX = FMath::RandRange(XRandOffset.X, XRandOffset.Y);
+	float RandY = FMath::RandRange(YRandOffset.X, YRandOffset.Y);
+	
+	return FVector2D(RandX,RandY);
 }
 
 void AQLAIController::SetTargetPos(FVector InPos)

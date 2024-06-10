@@ -47,7 +47,6 @@ void UQLSwitchWeaponWidget::SwitchWeaponStyle(ECharacterAttackType AttackType)
 
 		IMGPunch->SetColorAndOpacity(DiactiveColor);
 		IMGPunch->SetRenderScale(DeactivePunchScale);
-		UE_LOG(QLNetLog, Warning, TEXT("UQLSwitchWeaponWidget : Current Attack Type %d"), AttackType);
 
 	}
 	else if(AttackType == ECharacterAttackType::HookAttack)
@@ -61,7 +60,6 @@ void UQLSwitchWeaponWidget::SwitchWeaponStyle(ECharacterAttackType AttackType)
 
 		IMGBomb->SetColorAndOpacity(DiactiveColor);
 		IMGBomb->SetRenderScale(DeactiveBombScale);
-		UE_LOG(QLNetLog, Warning, TEXT("UQLSwitchWeaponWidget : Current Attack Type %d"), AttackType);
 
 	}
 	else
@@ -74,7 +72,6 @@ void UQLSwitchWeaponWidget::SwitchWeaponStyle(ECharacterAttackType AttackType)
 
 		IMGPunch->SetColorAndOpacity(DiactiveColor);
 		IMGPunch->SetRenderScale(DeactivePunchScale);
-		UE_LOG(QLNetLog, Warning, TEXT("UQLSwitchWeaponWidget : Change Gun"));
 
 	}
 }

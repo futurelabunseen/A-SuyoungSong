@@ -28,6 +28,10 @@ public:
 	void Dead(const FGameplayTag CallbackTag, int32 NewCount);
 	bool CanTakeDamage();
 	void StopDamage();
+
+	FVector2D GetXRandOffset() { return XRandOffset; }
+
+	FVector2D GetYRandOffset() { return YRandOffset; }
 protected:
 
 	uint8 bTakeDamage : 1;
@@ -52,10 +56,10 @@ protected:
 	FTimerHandle CheckTargetTimer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AttackOffset)
-	float MinOffset;
+	FVector2D XRandOffset;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AttackOffset)
-	float MaxOffset;
+	FVector2D YRandOffset;
 
 	void ChangeTarget();
 

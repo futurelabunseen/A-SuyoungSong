@@ -30,7 +30,6 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		{
 			bIsFalling = Movement->IsFalling();
 			bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshold);
-			bIsCrunching = CurrentPlayer->GetIsCrunching();
 			bIsAiming = CurrentPlayer->GetIsAiming();
 			TurningInPlaceType = CurrentPlayer->GetTurningInPlaceType();
 			bIsPickup = CurrentPlayer->GetPickup();

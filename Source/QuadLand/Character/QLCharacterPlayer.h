@@ -65,7 +65,6 @@ public:
 	UFUNCTION(Server,Unreliable)
 	void ServerRPCUpdateAmmo(uint32 ItemCnt);
 	FORCEINLINE bool GetHasGun() const { return bHasGun; }
-	FORCEINLINE bool GetIsCrunching() const { return bIsCrouched; }
 	FORCEINLINE bool GetPickup() const { return bPressedFarmingKey; }
 	FORCEINLINE bool GetIsProning() const { return bIsProning; }
 	bool GetIsJumping();

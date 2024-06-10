@@ -130,7 +130,12 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 					const APawn* Target = AI->GetTarget();
 					if (Target)
 					{
-						CueParams.Location = Target->GetActorLocation();
+						FVector Location = Target->GetActorLocation();
+						Location.Y += AI->GetTargetPos().X;
+						Location.Z += AI->GetTargetPos().Y;
+
+						CueParams.Location = Location;
+						UE_LOG(LogTemp, Log, TEXT("Current Location %s"), *Location.ToString());
 					}
 				}
 			}

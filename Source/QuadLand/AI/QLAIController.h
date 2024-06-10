@@ -22,7 +22,7 @@ public:
 	void StopAI();
 
 	virtual const APawn* GetTarget() override;
-	virtual FVector GetTargetPos() override;
+	virtual FVector2D GetTargetPos() override;
 	virtual void SetTargetPos(FVector InPos) override;
 protected:
 

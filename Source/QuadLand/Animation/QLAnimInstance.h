@@ -24,9 +24,6 @@ protected:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override; //변수를 업데이트 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
-	uint8 bIsCrunching : 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsProning : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
