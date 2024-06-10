@@ -29,7 +29,7 @@ public:
 	EItemType ItemType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
-	TObjectPtr<class UImage> ItemImg;
+	TObjectPtr<class UTexture2D> ItemImg;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
 	FString ItemName;

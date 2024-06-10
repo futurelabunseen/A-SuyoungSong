@@ -235,8 +235,15 @@ void AQLPlayerController::CreateHUD()
 	{
 
 		UUserWidget *Widget = CreateWidget<UUserWidget>(this, HUD.Value);
-
-		Widget->AddToViewport();
+		
+		if (EHUDType::Blood == HUD.Key)
+		{
+			Widget->AddToViewport();
+		}
+		else
+		{
+			Widget->AddToViewport(5);
+		}
 		Widget->SetVisibility(ESlateVisibility::Visible);
 		HUDs.Add(HUD.Key, Widget);
 	}

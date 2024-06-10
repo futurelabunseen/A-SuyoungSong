@@ -124,6 +124,7 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
+	ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 }
 
 //Client Only 
@@ -142,6 +143,9 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
+	ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
+
+	//CHARACTER_STATE_RELOAD
 }
 
 void AQLCharacterPlayer::OnRep_Controller()
@@ -283,14 +287,14 @@ void AQLCharacterPlayer::FarmingItem()
 	FVector LocEnd = CameraLocStart + (GetCameraForward() * FarmingTraceDist);
 
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(ItemFarmingLineTrace), false, this); //식별자 
-
-	bResult = GetWorld()->LineTraceSingleByChannel(
+	bResult = GetWorld()->SweepSingleByChannel(
 		OutHitResult,
 		CameraLocStart,
 		LocEnd,
+		FQuat::Identity,
 		CCHANNEL_QLITEMACTION,
-		Params
-	);
+		FCollisionShape::MakeSphere(30.0f),
+		Params);
 
 
 	AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
@@ -444,8 +448,11 @@ FVector AQLCharacterPlayer::GetCameraForward()
 	return  Camera->GetForwardVector();
 }
 
-void AQLCharacterPlayer::UpdateAmmo()
+void AQLCharacterPlayer::UpdateAmmo(const FGameplayTag CallbackTag, int32 NewCount)
 {
+
+	if (NewCount > 1) return;
+
 	if (QLInventory->GetInventoryCnt(EItemType::Ammo))
 	{
 		AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
@@ -456,9 +463,12 @@ void AQLCharacterPlayer::UpdateAmmo()
 
 		uint32 ItemCnt = FMath::RoundToInt((PS->GetMaxAmmoCnt() + PS->GetCurrentAmmoCnt()) / PS->GetAmmoCnt());
 		QLInventory->InventoryItem[EItemType::Ammo] = ItemCnt;
-		ItemData->CurrentItemCnt = ItemCnt;
-		ServerRPCUpdateAmmo(ItemCnt);
-		PC->UpdateItemEntry(ItemData, ItemCnt);
+		//ServerRPCUpdateAmmo(ItemCnt);
+
+		if (IsLocallyControlled())
+		{
+			PC->UpdateItemEntry(ItemData, ItemCnt);
+		}
 	}
 }
 

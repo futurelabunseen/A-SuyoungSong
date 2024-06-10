@@ -7,9 +7,9 @@
 #include "QuadLand.h"
 
 UQLSwitchWeaponWidget::UQLSwitchWeaponWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), 
-DeactivePunchScale(0.6f, 0.9), ActivePunchScale(0.9f, 0.8f),
-DeactiveGunScale(1.0f, 1.0f), ActiveGunScale(2.0f, 2.0f),
-DeactiveBombScale(0.6f, 0.8f), ActiveBombScale(0.6f, 1.4f),
+DeactivePunchScale(0.3f, 0.8f), ActivePunchScale(0.5f, 1.0f),
+DeactiveGunScale(1.3f, 0.8f), ActiveGunScale(1.5f, 1.0f),
+DeactiveBombScale(0.5f, 0.8f), ActiveBombScale(0.5f, 1.f),
 DiactiveColor(1.0f, 1.0f, 1.f, 0.3f), ActiveColor(1.0f, 1.0f, 1.f, 1.0f)
 {
 }

@@ -21,24 +21,26 @@ void AQLGameState::AddPlayerState(APlayerState* PlayerState)
 {
 	Super::AddPlayerState(PlayerState);
 	
-	AQLPlayerState* PS = Cast<AQLPlayerState>(PlayerState);
-	if (PS)
+	AQLPlayerState* NewPlayerState = Cast<AQLPlayerState>(PlayerState);
+	if (NewPlayerState)
 	{
 		QL_LOG(QLNetLog, Log, TEXT("NewPlayerState Cast Checked"));
 
-		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+		UAbilitySystemComponent* ASC = NewPlayerState->GetAbilitySystemComponent();
 		if (ASC)
 		{
 			ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLGameState::GetWinner);
 		}
 	}
 
-	AQLGameMode *GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
-
-	if (GameMode)
+	if (HasAuthority())
 	{
-		ACharacter *Character = Cast<ACharacter>(PS->GetPawn());
-		GameMode->AddPlayer(Character);
+		AQLGameMode* GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
+
+		if (GameMode)
+		{
+			GameMode->AddPlayer(FName(NewPlayerState->GetName()));
+		}
 	}
 }
 

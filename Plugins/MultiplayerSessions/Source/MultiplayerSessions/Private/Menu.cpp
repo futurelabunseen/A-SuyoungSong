@@ -182,10 +182,9 @@ void UMenu::GameStart()
 
 void UMenu::HostButtonClicked()
 {
-	bool isPutNickname = TxtInputNickname->GetText().ToString().Len() > 0; //0글자 이상
+	bool isPutNickname = TxtInputNickname->GetText().ToString().Len() > 1; //0글자 이상
 	if (isPutNickname)
 	{
-
 		UQLGameInstance* GameInstance = Cast<UQLGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 
 		if (GameInstance)
@@ -210,7 +209,7 @@ void UMenu::HostButtonClicked()
 
 void UMenu::JoinButtonClicked()
 {
-	bool isPutNickname = TxtInputNickname->GetText().ToString().Len() > 0; //0글자 이상
+	bool isPutNickname = TxtInputNickname->GetText().ToString().Len() > 1; //0글자 이상
 	if (isPutNickname)
 	{
 		UQLGameInstance* GameInstance = Cast<UQLGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));

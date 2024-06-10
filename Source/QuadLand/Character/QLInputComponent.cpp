@@ -615,7 +615,6 @@ void UQLInputComponent::SetInventory()
 			}
 		}
 	}
-
 	FInputModeUIOnly UIOnlyInputMode;
 	PC->SetVisibilityHUD(EHUDType::Inventory);
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);

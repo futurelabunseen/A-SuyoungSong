@@ -117,8 +117,6 @@ void UQLInventory::UpdateNearbyItemEntry(UObject* InItem)
 		{
 			IsNotFound = false;
 			Entry->CurrentItemCnt += 1; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
-			UE_LOG(LogTemp, Warning, TEXT("Item Type %d Cnt %d %d"), InItemInfo->ItemType, InItemInfo->CurrentItemCnt, Entry->CurrentItemCnt);
-
 			break;
 		}
 	}
