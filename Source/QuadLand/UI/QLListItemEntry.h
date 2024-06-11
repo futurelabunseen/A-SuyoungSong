@@ -22,6 +22,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void SetItemCntTxt(int32 ItemCnt);
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SetItemImgTexture(class UTexture2D* Texture);
 protected:
 	virtual void NativeConstruct() override;
 	/** Follows the same pattern as the NativeOn[X] methods in UUserWidget - super calls are expected in order to route the event to BP. */
@@ -29,8 +32,8 @@ protected:
 	//아이템 UI 설정 시 호출하는 함수
 protected:
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
-	TObjectPtr<class UImage> ItemImg;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item, meta = (BindWidget))
+	TObjectPtr<class UImage> ItemImage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
 	TObjectPtr<class UTextBlock> TxtItemTitle;

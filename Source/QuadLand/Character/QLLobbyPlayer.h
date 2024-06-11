@@ -14,5 +14,19 @@ class QUADLAND_API AQLLobbyPlayer : public APawn
 public:
 	// Sets default values for this pawn's properties
 	AQLLobbyPlayer();
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<class UInputMappingContext> InputMappingContext;
+	
+	virtual void BeginPlay();
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> SkipAction;
+
+	void SkipOpening();
+
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	uint8 bSkipOpening : 1;
 };

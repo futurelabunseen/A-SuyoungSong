@@ -248,4 +248,10 @@ protected:
 
 	void StandToProne();
 
+
+public:
+	void UpdateAmmoTemp();
+
+	UFUNCTION(Client,Unreliable)
+	void ClientRPCUpdateAmmoUI();
 };

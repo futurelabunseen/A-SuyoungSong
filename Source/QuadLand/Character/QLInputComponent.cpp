@@ -175,7 +175,7 @@ void UQLInputComponent::InitPlayerImputComponent(UInputComponent* InputComponent
 
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &UQLInputComponent::PressedCrouch);
 
-		EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Started, this, &UQLInputComponent::ShowMenuUI);
+		EnhancedInputComponent->BindAction(MenuAction, ETriggerEvent::Completed, this, &UQLInputComponent::ShowMenuUI);
 
 		EnhancedInputComponent->BindAction(ProneAction, ETriggerEvent::Completed, this, &UQLInputComponent::PressedProne);
 
@@ -234,6 +234,8 @@ void UQLInputComponent::BeginPlay()
 
 void UQLInputComponent::Move(const FInputActionValue& Value)
 {
+
+	if (bShowMenuUI) return;
 	//¿Ãµø ∫§≈Õ
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 	AQLPlayerController* PC = GetController<AQLPlayerController>();
@@ -265,6 +267,7 @@ void UQLInputComponent::Move(const FInputActionValue& Value)
 
 void UQLInputComponent::Look(const FInputActionValue& Value)
 {
+	if (bShowMenuUI) return;
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
@@ -615,6 +618,7 @@ void UQLInputComponent::SetInventory()
 			}
 		}
 	}
+
 	FInputModeUIOnly UIOnlyInputMode;
 	PC->SetVisibilityHUD(EHUDType::Inventory);
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
@@ -748,6 +752,7 @@ void UQLInputComponent::ServerRPCChangeShootingMethod_Implementation()
 
 void UQLInputComponent::GASInputPressed(int32 id)
 {
+	if (bShowMenuUI) return;
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 	
 	if (Character == nullptr)
@@ -781,6 +786,7 @@ void UQLInputComponent::GASInputPressed(int32 id)
 
 void UQLInputComponent::GASInputReleased(int32 id)
 {
+	if (bShowMenuUI) return;
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 
 	if (Character == nullptr)
@@ -828,18 +834,18 @@ void UQLInputComponent::ShowMenuUI()
 
 	if (bShowMenuUI == false)
 	{
-		FInputModeUIOnly UIOnlyInputMode;
-		PC->SetInputMode(UIOnlyInputMode);
-		PC->SetShowMouseCursor(true);
 		PC->SetVisibilityHUD(EHUDType::Menu);
+		PC->bShowMouseCursor = true;
+		bShowMenuUI = true;
 	}
 	else
 	{
 		PC->CloseHUD(EHUDType::Menu);
 		PC->SetHiddenHUD(EHUDType::Menu);
+		PC->bShowMouseCursor = false;
+		bShowMenuUI = false;
 	}
-	bShowMenuUI = !bShowMenuUI;
-
+	
 }
 
 void UQLInputComponent::SetShowMenuUI()

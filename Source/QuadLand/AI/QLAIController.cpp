@@ -58,22 +58,28 @@ const APawn* AQLAIController::GetTarget()
 	return nullptr;
 }
 
-FVector2D AQLAIController::GetTargetPos()
+FVector AQLAIController::GetTargetPos()
+{
+	return TargetLocation;
+}
+
+void AQLAIController::SetTargetPos()
 {
 	AQLCharacterNonPlayer* NonPlayer = CastChecked<AQLCharacterNonPlayer>(GetPawn());
-	
-	FVector2D XRandOffset = NonPlayer->GetXRandOffset();
-	FVector2D YRandOffset = NonPlayer->GetYRandOffset();
+
+	FVector2D XRandOffset = NonPlayer->GetXRandOffset(); //X
+	FVector2D YRandOffset = NonPlayer->GetYRandOffset(); //Z
 
 	float RandX = FMath::RandRange(XRandOffset.X, XRandOffset.Y);
 	float RandY = FMath::RandRange(YRandOffset.X, YRandOffset.Y);
-	
-	return FVector2D(RandX,RandY);
-}
 
-void AQLAIController::SetTargetPos(FVector InPos)
-{
-	TargetPos = GetTarget()->GetActorLocation() + InPos;
+	const APawn *Target = GetTarget();
+	if (Target)
+	{
+		TargetLocation = GetTarget()->GetActorLocation();
+		TargetLocation.X += RandX;
+		TargetLocation.Z += RandY;
+	}
 }
 
 void AQLAIController::OnPossess(APawn* InPawn)

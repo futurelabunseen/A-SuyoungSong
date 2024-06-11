@@ -115,9 +115,7 @@ void AQLPlayerState::ResetWeaponStat(const UQLWeaponStat* Stat)
 
 void AQLPlayerState::UseGlassesItem(float Time) //이친구는 클라이언트에서 사용되어야함.
 {
-    QL_LOG(QLNetLog, Warning, TEXT("this? %f"),Time);
     AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
-
     PC->ClientRPCShowLifestoneWidget(Time);
 }
 
@@ -134,12 +132,6 @@ void AQLPlayerState::BeginPlay()
         StaminaChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetStaminaAttribute()).AddUObject(this, &AQLPlayerState::OnChangedStamina);
         MaxStaminaChangedDeleagteHandle= ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetMaxStaminaAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxStamina);
     }
-
-     UQLGameInstance* GameInstance = Cast<UQLGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-     if (GameInstance)
-     {
-         SetPlayerName(GameInstance->GetNickname());
-     }
 }
 
 

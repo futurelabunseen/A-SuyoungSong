@@ -63,4 +63,8 @@ protected:
 
 	void ChangeTarget();
 
+
+	FTimerHandle TargetActorCancelTimer;
+
+
 };

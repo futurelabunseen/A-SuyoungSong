@@ -128,7 +128,7 @@ void UQLMap::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	if (LocationVolume && Player)
 	{
 		FVector LocationPivot=LocationVolume->GetActorLocation();
-		FVector2D VolumeScale(13500.0f, 9000.0f);
+		FVector2D VolumeScale(15500.0f, 9000.0f);
 
 		LocationPivot.X = LocationPivot.X - (VolumeScale.X / 2.f); //202
 		LocationPivot.Y = LocationPivot.Y - (VolumeScale.Y / 2.f);

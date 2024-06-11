@@ -5,12 +5,11 @@
 #include "GameData/QLItemData.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
-
+#include "Engine/Texture2D.h"
 void UQLListItemEntry::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ItemImg = Cast<UImage>(GetWidgetFromName(TEXT("ItemImage")));
 	TxtItemTitle = Cast<UTextBlock>(GetWidgetFromName(TEXT("TxtItemTitle")));
 	TxtItemCnt = Cast< UTextBlock>(GetWidgetFromName(TEXT("TxtItemCnt")));
 }
@@ -26,9 +25,9 @@ void UQLListItemEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 		return;
 	}
 
-	if (ItemImg && Data->ItemImg)
+	if (ItemImage && Data->ItemImg)
 	{
-		ItemImg->SetBrushFromTexture(Data->ItemImg);
+		ItemImage->SetBrushFromTexture(Data->ItemImg);
 	}
 	//이친구,,, 어떻게가져와?
 	FString ItemCntTxt = FString::Printf(TEXT("%d"), Data->CurrentItemCnt);
@@ -45,4 +44,16 @@ void UQLListItemEntry::SetItemCntTxt(int32 ItemCnt)
 {
 	FString ItemCntTxt = FString::Printf(TEXT("%d"), ItemCnt);
 	TxtItemCnt->SetText(FText::FromString(ItemCntTxt));
+}
+
+void UQLListItemEntry::SetItemImgTexture(UTexture2D* Texture)
+{
+	UE_LOG(LogTemp, Log, TEXT("1"));
+	if (ItemImage)
+	{
+		UE_LOG(LogTemp, Log, TEXT("2"));
+		ItemImage->SetBrushFromTexture(Texture);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("3"));
 }

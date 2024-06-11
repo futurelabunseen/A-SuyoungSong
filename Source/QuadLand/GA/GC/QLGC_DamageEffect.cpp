@@ -10,6 +10,8 @@
 #include "GameFramework/Character.h"
 #include "Sound/SoundBase.h"
 #include "Components/AudioComponent.h"
+#include "Sound/SoundWave.h"
+
 UQLGC_DamageEffect::UQLGC_DamageEffect()
 {
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DecalMaterialRef(TEXT("/Script/Engine.Material'/Game/Vefects/Blood_VFX/VFX/Decals/M_VFX_Blood_Decal.M_VFX_Blood_Decal'"));
@@ -51,8 +53,10 @@ bool UQLGC_DamageEffect::OnExecute_Implementation(AActor* MyTarget, const FGamep
 			if (SpawnedDecal)
 			{
 				SpawnedDecal->SortOrder = 2;
-				SpawnedDecal->AttachToComponent(HitResult->GetComponent(), FAttachmentTransformRules::KeepWorldTransform);
+				SpawnedDecal->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
 			}
+
+			UGameplayStatics::SpawnSoundAtLocation(MyTarget, Sound, Parameters.Location, FRotator::ZeroRotator);
 		}
 		
 		UDecalComponent* SpawnedBulletDecal = UGameplayStatics::SpawnDecalAttached(BulletMarks, FVector(5.0f, 5.0f, 5.0f), HitResult->GetComponent(), FName("TargetActorBulletDecals"), HitResult->ImpactPoint, FRotator::ZeroRotator, EAttachLocation::KeepWorldPosition);

@@ -78,7 +78,6 @@ void UMenu::NativeDestruct()
 void UMenu::NativeConstruct()
 {
 	Super::NativeConstruct();
-	TxtAlert->SetVisibility(ESlateVisibility::Hidden);
 	TxtError->SetVisibility(ESlateVisibility::Hidden);
 }
 
@@ -161,10 +160,6 @@ void UMenu::OnStartSession(bool bWasSuccessful)
 
 }
 
-void UMenu::HiddenAlert()
-{
-	TxtAlert->SetVisibility(ESlateVisibility::Hidden);
-}
 
 void UMenu::HiddenError()
 {
@@ -182,56 +177,19 @@ void UMenu::GameStart()
 
 void UMenu::HostButtonClicked()
 {
-	bool isPutNickname = TxtInputNickname->GetText().ToString().Len() > 1; //0글자 이상
-	if (isPutNickname)
+	HostButton->SetIsEnabled(false);
+	if (MultiplayerSessionsSubsystem)
 	{
-		UQLGameInstance* GameInstance = Cast<UQLGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-
-		if (GameInstance)
-		{
-			GameInstance->SetNickname(TxtInputNickname->GetText().ToString());
-		}
-		UE_LOG(LogTemp, Log, TEXT("Current Nickname %s"), *TxtInputNickname->GetText().ToString());
-		HostButton->SetIsEnabled(false);
-		if (MultiplayerSessionsSubsystem)
-		{
-			MultiplayerSessionsSubsystem->CreateSession(NumPublicConnections, MatchType);
-		}
-	}
-	else
-	{
-		TxtAlert->SetVisibility(ESlateVisibility::Visible);
-		FTimerHandle HiddenTimer;
-
-		GetWorld()->GetTimerManager().SetTimer(HiddenTimer, this, &UMenu::HiddenAlert, 3.0f,false);
+		MultiplayerSessionsSubsystem->CreateSession(NumPublicConnections, MatchType);
 	}
 }
 
 void UMenu::JoinButtonClicked()
 {
-	bool isPutNickname = TxtInputNickname->GetText().ToString().Len() > 1; //0글자 이상
-	if (isPutNickname)
+	JoinButton->SetIsEnabled(false);
+	if (MultiplayerSessionsSubsystem)
 	{
-		UQLGameInstance* GameInstance = Cast<UQLGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-
-		if (GameInstance)
-		{
-			GameInstance->SetNickname(TxtInputNickname->GetText().ToString());
-		}
-		UE_LOG(LogTemp, Log, TEXT("Current Nickname %s"), *TxtInputNickname->GetText().ToString());
-
-		JoinButton->SetIsEnabled(false);
-		if (MultiplayerSessionsSubsystem)
-		{
-			MultiplayerSessionsSubsystem->FindSessions(10000);
-		}
-	}
-	else
-	{
-		TxtAlert->SetVisibility(ESlateVisibility::Visible);
-		FTimerHandle HiddenTimer;
-
-		GetWorld()->GetTimerManager().SetTimer(HiddenTimer, this, &UMenu::HiddenAlert, 3.0f, false);
+		MultiplayerSessionsSubsystem->FindSessions(10000);
 	}
 }
 

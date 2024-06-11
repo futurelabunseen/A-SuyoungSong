@@ -113,6 +113,11 @@ void AQLCharacterNonPlayer::AttachTakeDamageTag(const FGameplayTag CallbackTag, 
 	if (NewCount >= 1)
 	{
 		bTakeDamage = true;
+
+		if (TargetActorCancelTimer.IsValid() == false)
+		{
+			GetWorld()->GetTimerManager().SetTimer(TargetActorCancelTimer, this, &AQLCharacterNonPlayer::StopDamage, 10.0f);
+		}
 	}
 }
 
@@ -142,6 +147,9 @@ bool AQLCharacterNonPlayer::CanTakeDamage()
 void AQLCharacterNonPlayer::StopDamage()
 {
 	bTakeDamage = false;
+	GetWorld()->GetTimerManager().ClearTimer(TargetActorCancelTimer);
+	TargetActorCancelTimer.Invalidate();
+	ChangeTarget();
 }
 
 void AQLCharacterNonPlayer::CheckBoxOverlap()
@@ -154,6 +162,10 @@ void AQLCharacterNonPlayer::UpdateTargetPerception(AActor* Actor, FAIStimulus St
 	//1. 시야에 들어온다
 	//2. 소리가 들리는 쪽으로 고개를 돌린다.:
 
+	if (AIController == nullptr)
+	{
+		return;
+	}
 	UBlackboardComponent *BC = AIController->GetBlackboardComponent();
 
 	ACharacter* Character = Cast<ACharacter>(Actor); //NonPlayer,Player 모두 찾아냄.

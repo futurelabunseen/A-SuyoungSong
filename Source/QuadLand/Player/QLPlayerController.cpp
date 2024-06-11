@@ -31,6 +31,8 @@ AQLPlayerController::AQLPlayerController()
 void AQLPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ClientRPCGameStart();
 }
 
 void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
@@ -177,7 +179,7 @@ void AQLPlayerController::ClientRPCUpdateLivePlayer_Implementation(int16 InLiveP
 
 	if (UserWidget)
 	{
-		UserWidget->UpdateLivePlayer(InLivePlayer);
+	//	UserWidget->UpdateLivePlayer(InLivePlayer);
 	}
 }
 

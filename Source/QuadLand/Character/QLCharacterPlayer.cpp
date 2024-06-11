@@ -447,11 +447,41 @@ FVector AQLCharacterPlayer::GetCameraForward()
 	return  Camera->GetForwardVector();
 }
 
-void AQLCharacterPlayer::UpdateAmmo(const FGameplayTag CallbackTag, int32 NewCount)
+void AQLCharacterPlayer::UpdateAmmoTemp()
 {
 
-	if (NewCount > 1) return;
+	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
+	AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
 
+	if (IsLocallyControlled())
+	{
+		PC->UpdateItemEntry(ItemData,0);
+	}
+
+	QLInventory->InventoryItem[EItemType::Ammo] = 0;
+	ClientRPCUpdateAmmoUI();
+	QL_LOG(QLLog, Log, TEXT("UpdateAmmo"));
+}
+
+void AQLCharacterPlayer::ClientRPCUpdateAmmoUI_Implementation()
+{
+	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
+	AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
+
+	if (IsLocallyControlled())
+	{
+		PC->UpdateItemEntry(ItemData, 0);
+	}
+
+	QLInventory->InventoryItem[EItemType::Ammo] = 0;
+	QL_LOG(QLLog, Log, TEXT("UpdateAmmo"));
+}
+
+
+void AQLCharacterPlayer::UpdateAmmo(const FGameplayTag CallbackTag, int32 NewCount)
+{
 	if (QLInventory->GetInventoryCnt(EItemType::Ammo))
 	{
 		AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
@@ -461,7 +491,11 @@ void AQLCharacterPlayer::UpdateAmmo(const FGameplayTag CallbackTag, int32 NewCou
 		UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
 
 		uint32 ItemCnt = FMath::RoundToInt((PS->GetMaxAmmoCnt() + PS->GetCurrentAmmoCnt()) / PS->GetAmmoCnt());
-		QLInventory->InventoryItem[EItemType::Ammo] = ItemCnt;
+	
+		if (QLInventory->GetInventoryCnt(EItemType::Ammo))
+		{
+			QLInventory->InventoryItem[EItemType::Ammo] = ItemCnt;
+		}
 		//ServerRPCUpdateAmmo(ItemCnt);
 
 		if (IsLocallyControlled())
@@ -834,4 +868,3 @@ void AQLCharacterPlayer::StandToProne()
 
 	Movement->ChangeProneSpeedCommand();
 }
-

@@ -35,7 +35,6 @@ protected:
 	UFUNCTION()
 	void OnStartSession(bool bWasSuccessful);
 
-	void HiddenAlert();
 	void HiddenError();
 private:
 
@@ -45,12 +44,6 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* JoinButton;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UEditableTextBox> TxtInputNickname;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UTextBlock> TxtAlert;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> TxtError;
