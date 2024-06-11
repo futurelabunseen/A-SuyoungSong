@@ -29,12 +29,15 @@ public:
 	bool CanTakeDamage();
 	void StopDamage();
 
+	void CanSelectTarget(bool InSelectTarget);
+	bool GetSelectTarget() { return bSelectTarget; }
 	FVector2D GetXRandOffset() { return XRandOffset; }
 
-	FVector2D GetYRandOffset() { return YRandOffset; }
+	FVector2D GetZRandOffset() { return ZRandOffset; }
 protected:
 
 	uint8 bTakeDamage : 1;
+	uint8 bSelectTarget : 1;
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = AI)
 	TObjectPtr<class UAIPerceptionComponent> AIPerception;
@@ -53,13 +56,17 @@ protected:
 	UFUNCTION()
 	void UpdateTargetPerception(AActor* Actor, FAIStimulus Stimulus);
 
+
+	UFUNCTION()
+	void const UpdateTarget(const TArray<AActor*>& UpdatedActors);
+
 	FTimerHandle CheckTargetTimer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AttackOffset)
 	FVector2D XRandOffset;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AttackOffset)
-	FVector2D YRandOffset;
+	FVector2D ZRandOffset;
 
 	void ChangeTarget();
 

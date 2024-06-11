@@ -21,13 +21,11 @@ void UQLAS_WeaponStat::PreAttributeChange(const FGameplayAttribute& Attribute, f
 	if (Attribute == GetAmmoCntAttribute())
 	{
 		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
-		UE_LOG(LogTemp, Log, TEXT("NewValue %lf"), NewValue);
 	}
 
 	if (Attribute == GetCurrentAmmoAttribute())
 	{
 		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
-		UE_LOG(LogTemp, Log, TEXT("NewValue %lf"), NewValue);
 	}
 }
 

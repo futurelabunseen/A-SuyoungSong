@@ -449,19 +449,8 @@ FVector AQLCharacterPlayer::GetCameraForward()
 
 void AQLCharacterPlayer::UpdateAmmoTemp()
 {
-
-	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
-	UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
-	AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
-
-	if (IsLocallyControlled())
-	{
-		PC->UpdateItemEntry(ItemData,0);
-	}
-
 	QLInventory->InventoryItem[EItemType::Ammo] = 0;
 	ClientRPCUpdateAmmoUI();
-	QL_LOG(QLLog, Log, TEXT("UpdateAmmo"));
 }
 
 void AQLCharacterPlayer::ClientRPCUpdateAmmoUI_Implementation()
@@ -470,10 +459,7 @@ void AQLCharacterPlayer::ClientRPCUpdateAmmoUI_Implementation()
 	UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
 	AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
 
-	if (IsLocallyControlled())
-	{
-		PC->UpdateItemEntry(ItemData, 0);
-	}
+	PC->UpdateItemEntry(ItemData, 0);
 
 	QLInventory->InventoryItem[EItemType::Ammo] = 0;
 	QL_LOG(QLLog, Log, TEXT("UpdateAmmo"));

@@ -68,10 +68,10 @@ void AQLAIController::SetTargetPos()
 	AQLCharacterNonPlayer* NonPlayer = CastChecked<AQLCharacterNonPlayer>(GetPawn());
 
 	FVector2D XRandOffset = NonPlayer->GetXRandOffset(); //X
-	FVector2D YRandOffset = NonPlayer->GetYRandOffset(); //Z
+	FVector2D ZRandOffset = NonPlayer->GetZRandOffset(); //Z
 
 	float RandX = FMath::RandRange(XRandOffset.X, XRandOffset.Y);
-	float RandY = FMath::RandRange(YRandOffset.X, YRandOffset.Y);
+	float RandY = FMath::RandRange(ZRandOffset.X, ZRandOffset.Y);
 
 	const APawn *Target = GetTarget();
 	if (Target)
