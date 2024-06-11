@@ -29,4 +29,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GameplayCue)
 	TObjectPtr<class UParticleSystem> ParticleSystem;
 
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GameplayCue)
+	TObjectPtr<class USoundWave> Sound;
 };

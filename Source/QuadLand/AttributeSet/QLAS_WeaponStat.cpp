@@ -21,13 +21,11 @@ void UQLAS_WeaponStat::PreAttributeChange(const FGameplayAttribute& Attribute, f
 	if (Attribute == GetAmmoCntAttribute())
 	{
 		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
-		UE_LOG(LogTemp, Log, TEXT("NewValue %lf"), NewValue);
 	}
 
 	if (Attribute == GetCurrentAmmoAttribute())
 	{
 		NewValue = NewValue < 0.0f ? 0.0f : NewValue;
-		UE_LOG(LogTemp, Log, TEXT("NewValue %lf"), NewValue);
 	}
 }
 
@@ -44,7 +42,6 @@ bool UQLAS_WeaponStat::PreGameplayEffectExecute(FGameplayEffectModCallbackData& 
 		RemainingCnt = (RemainingCnt >= 0.0f) ? RemainingCnt : 0.0f;
 		SetMaxAmmoCnt(FMath::Clamp(RemainingCnt, Minimum, Maximum));
 	}
-
 	return true;
 }
 
@@ -57,6 +54,16 @@ void UQLAS_WeaponStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 
 	if (Data.EvaluatedData.Attribute == GetCurrentAmmoAttribute())
 	{
+		if (GetMaxAmmoCnt() <= 0.0f && GetCurrentAmmo() <=0.0f)
+		{
+			AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>((Data.Target.AbilityActorInfo.Get())->AvatarActor.Get());
+			if (Character)
+			{
+				Character->UpdateAmmoTemp();
+
+				UE_LOG(LogTemp, Log, TEXT("Ammo Update"));
+			}
+		}
 		SetCurrentAmmo(FMath::Clamp(GetCurrentAmmo(), 0.0f, GetAmmoCnt()));
 	}
 

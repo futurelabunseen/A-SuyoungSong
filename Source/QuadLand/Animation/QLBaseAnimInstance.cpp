@@ -37,5 +37,7 @@ void UQLBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		RootYawOffset = Player->GetCurrnetYaw();
 		PitchOffset = Player->GetCurrentPitch();
 		Direction = CalculateDirection(Velocity, Owner->GetActorRotation()); //Locomotion Angle
+		bIsCrunching = Player->GetIsCrunching();
+
 	}
 }

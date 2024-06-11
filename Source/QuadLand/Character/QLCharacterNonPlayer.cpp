@@ -39,6 +39,7 @@ AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectIni
 
 	Weapon->Weapon->SetSkeletalMesh(GunMesh);
 	
+	//AIPerception->OnPerceptionUpdated.AddDynamic(this, &AQLCharacterNonPlayer::UpdateTarget);
 	AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AQLCharacterNonPlayer::UpdateTargetPerception);
 
 	AIControllerClass = AQLAIController::StaticClass();
@@ -113,6 +114,11 @@ void AQLCharacterNonPlayer::AttachTakeDamageTag(const FGameplayTag CallbackTag, 
 	if (NewCount >= 1)
 	{
 		bTakeDamage = true;
+
+		if (TargetActorCancelTimer.IsValid() == false)
+		{
+			GetWorld()->GetTimerManager().SetTimer(TargetActorCancelTimer, this, &AQLCharacterNonPlayer::StopDamage, 10.0f);
+		}
 	}
 }
 
@@ -142,6 +148,14 @@ bool AQLCharacterNonPlayer::CanTakeDamage()
 void AQLCharacterNonPlayer::StopDamage()
 {
 	bTakeDamage = false;
+	GetWorld()->GetTimerManager().ClearTimer(TargetActorCancelTimer);
+	TargetActorCancelTimer.Invalidate();
+	ChangeTarget();
+}
+
+void AQLCharacterNonPlayer::CanSelectTarget(bool InSelectTarget)
+{
+	bSelectTarget = InSelectTarget;
 }
 
 void AQLCharacterNonPlayer::CheckBoxOverlap()
@@ -150,10 +164,15 @@ void AQLCharacterNonPlayer::CheckBoxOverlap()
 
 void AQLCharacterNonPlayer::UpdateTargetPerception(AActor* Actor, FAIStimulus Stimulus)
 {
+	if (bSelectTarget) return;
 	AQLAIController* AIController = GetController<AQLAIController>();
 	//1. 시야에 들어온다
 	//2. 소리가 들리는 쪽으로 고개를 돌린다.:
 
+	if (AIController == nullptr)
+	{
+		return;
+	}
 	UBlackboardComponent *BC = AIController->GetBlackboardComponent();
 
 	ACharacter* Character = Cast<ACharacter>(Actor); //NonPlayer,Player 모두 찾아냄.
@@ -166,33 +185,57 @@ void AQLCharacterNonPlayer::UpdateTargetPerception(AActor* Actor, FAIStimulus St
 	{
 		return;
 	}
-
-	if (Stimulus.WasSuccessfullySensed())
+	
+	if (Actor == this)
 	{
-		if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
-		{
-			if (CheckTargetTimer.IsValid())
-			{
-				GetWorld()->GetTimerManager().ClearTimer(CheckTargetTimer);
-			}
-			//총을 맞았을때 Hearing 한다
-			//주변에 있는 사람을 찾는다.
-			BC->SetValueAsObject(TEXT("TargetActor"), Actor);
+		return;
+	}
 
-		}
-		if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
+	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
+	{
+		QL_LOG(QLLog, Warning, TEXT("TargetActor"));
+		BC->SetValueAsObject(TEXT("TargetActor"), Actor);
+		GetWorld()->GetTimerManager().ClearTimer(CheckTargetTimer);
+		CheckTargetTimer.Invalidate();
+	}
+
+}
+
+void const AQLCharacterNonPlayer::UpdateTarget(const TArray<AActor*>& UpdatedActors)
+{
+	AQLAIController* AIController = GetController<AQLAIController>();
+	//1. 시야에 들어온다
+	//2. 소리가 들리는 쪽으로 고개를 돌린다.:
+
+	if (AIController == nullptr)
+	{
+		return;
+	}
+	float Min = 123456789.f;
+	UBlackboardComponent* BC = AIController->GetBlackboardComponent();
+	AActor* TargetActor = nullptr;
+	for (const auto Target : UpdatedActors)
+	{
+		
+		if (Target == this) continue;
+
+		ACharacter* TargetCharacter = Cast<ACharacter>(Target);
+
+		if (TargetCharacter) continue;
+
+		//내적 수행
+		float Dist = FVector::Dist(TargetCharacter->GetActorLocation(), this->GetActorLocation());
+
+		if (Dist < Min)
 		{
-			QL_LOG(QLLog, Warning, TEXT("TargetActor"));
-			BC->SetValueAsObject(TEXT("TargetActor"), Actor);
-			GetWorld()->GetTimerManager().ClearTimer(CheckTargetTimer);
-			CheckTargetTimer.Invalidate();
-		}
-		else
-		{
-			//없으면  
-			GetWorld()->GetTimerManager().SetTimer(CheckTargetTimer, this, &AQLCharacterNonPlayer::ChangeTarget, 3.0f, false);
+			Min = Dist;
+
+			TargetActor = TargetCharacter;
 		}
 	}
+
+	QL_LOG(QLLog, Warning, TEXT("Current Target %s"), *TargetActor->GetName());
+	BC->SetValueAsObject(TEXT("TargetActor"), TargetActor);
 }
 
 

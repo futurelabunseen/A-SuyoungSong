@@ -23,7 +23,7 @@ public:
 
 	virtual const APawn* GetTarget() override;
 	virtual FVector GetTargetPos() override;
-	virtual void SetTargetPos(FVector InPos) override;
+	virtual void SetTargetPos() override;
 protected:
 
 	virtual void OnPossess(APawn* InPawn) override;
@@ -37,4 +37,7 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class UBehaviorTree> BTAsset;
+
+
+	FVector TargetLocation;
 };

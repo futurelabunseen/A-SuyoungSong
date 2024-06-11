@@ -9,6 +9,7 @@
 #include "AI/QLAIController.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayTag/GamplayTags.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "QuadLand.h"
 UQLGA_TakenDamage::UQLGA_TakenDamage()
 {
@@ -28,15 +29,23 @@ void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		PC->BlinkBloodWidget();
 		QL_GASLOG(QLNetLog, Log, TEXT("this?"));
 	}
-
+	
+	
 	//만약 NonPlayer라면
 
-	//AQLAIController* NonPC = Character->GetController<AQLAIController>();
+	AQLAIController* AIController = Character->GetController<AQLAIController>();
 
-	//if (NonPC)
-	//{
-	//	//여기서 타겟을 지정함.
-	//}
+	if (AIController)
+	{
+		//여기서 타겟을 지정함
+		UBlackboardComponent* BC = AIController->GetBlackboardComponent();
+		if (BC)
+		{
+			QL_GASLOG(QLNetLog, Log, TEXT("Player ? %s"), *TriggerEventData->Instigator.GetFName().ToString());
+			BC->SetValueAsObject(TEXT("TargetActor"), Cast<UObject>(TriggerEventData->Instigator));
+		}
+	
+	}
 	OnCompletedCallback();
 }
 

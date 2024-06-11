@@ -63,16 +63,12 @@ void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 	{
 		PC->bReadyGame = true;
 	}
-
 }
 
 void AQLGameMode::StartPlay()
 {
 	Super::StartPlay();
-
-	FTimerHandle StartTimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLGameMode::GameStart, 3.0f, false);
-
+	//GameStart();
 }
 
 void AQLGameMode::SpawnAI()
@@ -89,7 +85,7 @@ void AQLGameMode::SpawnAI()
 	{
 		const auto PC = Cast<AQLPlayerController>(It->Get());
 
-		PC->ClientRPCUpdateLivePlayer(LivePlayerCount);
+		//	PC->ClientRPCUpdateLivePlayer(LivePlayerCount);
 	}
 	//GameState를 가져온다.
 }

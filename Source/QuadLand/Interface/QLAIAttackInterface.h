@@ -25,5 +25,5 @@ public:
 
 	virtual const APawn *GetTarget() = 0;
 	virtual FVector GetTargetPos() = 0;
-	virtual void SetTargetPos(FVector InPos) = 0;
+	virtual void SetTargetPos() = 0;
 };

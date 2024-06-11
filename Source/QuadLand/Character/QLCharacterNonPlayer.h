@@ -28,9 +28,16 @@ public:
 	void Dead(const FGameplayTag CallbackTag, int32 NewCount);
 	bool CanTakeDamage();
 	void StopDamage();
+
+	void CanSelectTarget(bool InSelectTarget);
+	bool GetSelectTarget() { return bSelectTarget; }
+	FVector2D GetXRandOffset() { return XRandOffset; }
+
+	FVector2D GetZRandOffset() { return ZRandOffset; }
 protected:
 
 	uint8 bTakeDamage : 1;
+	uint8 bSelectTarget : 1;
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = AI)
 	TObjectPtr<class UAIPerceptionComponent> AIPerception;
@@ -49,14 +56,22 @@ protected:
 	UFUNCTION()
 	void UpdateTargetPerception(AActor* Actor, FAIStimulus Stimulus);
 
+
+	UFUNCTION()
+	void const UpdateTarget(const TArray<AActor*>& UpdatedActors);
+
 	FTimerHandle CheckTargetTimer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AttackOffset)
-	float MinOffset;
+	FVector2D XRandOffset;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AttackOffset)
-	float MaxOffset;
+	FVector2D ZRandOffset;
 
 	void ChangeTarget();
+
+
+	FTimerHandle TargetActorCancelTimer;
+
 
 };

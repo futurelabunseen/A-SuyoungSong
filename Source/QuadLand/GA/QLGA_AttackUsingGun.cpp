@@ -127,11 +127,8 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 				IQLAIAttackInterface* AI = Cast<IQLAIAttackInterface>(Character->GetController());
 				if (AI)
 				{
-					const APawn* Target = AI->GetTarget();
-					if (Target)
-					{
-						CueParams.Location = Target->GetActorLocation();
-					}
+					AI->SetTargetPos();
+					CueParams.Location = AI->GetTargetPos();
 				}
 			}
 			//현재 ASC를 가져와서 ExecuteGameplayCue 실행 

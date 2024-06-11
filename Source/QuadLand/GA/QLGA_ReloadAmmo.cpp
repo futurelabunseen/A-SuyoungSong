@@ -24,10 +24,7 @@ bool UQLGA_ReloadAmmo::CanActivateAbility(const FGameplayAbilitySpecHandle Handl
 	bool Result = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 	UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = Source->GetSet<UQLAS_WeaponStat>();
-	if (!WeaponStat || WeaponStat->GetMaxAmmoCnt() <= 0.0f)
-	{
-		return false;
-	}
+
 	if (WeaponStat->GetCurrentAmmo() >= 25.0f)
 	{
 		return false;
@@ -42,6 +39,12 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	//Attribute Set 을 가져와서 GetSet으로 가져온데, Ammo 값이 만빵이면 EndAbility 종료한다. 
 	
 	UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo_Checked();
+	const UQLAS_WeaponStat* WeaponStat = Source->GetSet<UQLAS_WeaponStat>();
+	if (!WeaponStat || WeaponStat->GetMaxAmmoCnt() <= 0.0f)
+	{
+		CancelAbility(Handle, ActorInfo, ActivationInfo, true);
+		return;
+	}
 
 	if (Source)
 	{
