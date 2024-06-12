@@ -53,14 +53,26 @@ void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataH
 			const UQLAS_WeaponStat* SourceAttributeSet = SourceASC->GetSet<UQLAS_WeaponStat>();
 			FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(AttackDamageEffect);
 
-			//FGameplayEventData Payload;
-			FGameplayTagContainer TargetTag(CHARACTER_ATTACK_TAKENDAMAGE);
+			AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(HitResult.GetActor());
 			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitResult.GetActor());
+			//플레이어는 TryActivateAbilitiesByTag 로 실행
+			FGameplayTagContainer TargetTag(CHARACTER_ATTACK_TAKENDAMAGE);
+
+			if (Player)
+			{	
+				TargetASC->TryActivateAbilitiesByTag(TargetTag);
+			}
+			else
+			{
+				//플레이어는 알필요가 없는데, AI는 누가 쐈는지 알 필요가 있음.
+				//AI는 SendGameplayEventToActor 실행
+				FGameplayEventData Payload;
+				Payload.Instigator = CurrentActorInfo->AvatarActor.Get();
+				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(HitResult.GetActor(), CHARACTER_ATTACK_TAKENDAMAGE, Payload);
+			}
 			
 			if (TargetASC && SourceAttributeSet)
 			{
-				TargetASC->TryActivateAbilitiesByTag(TargetTag);
-
 				if (EffectSpecHandle.IsValid())
 				{
 					EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, SourceAttributeSet->GetAttackDamage());

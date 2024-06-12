@@ -22,8 +22,6 @@ public:
 	void OnCompletedCallback();
 protected:
 
-	UFUNCTION(NetMulticast,Unreliable)
-	void MulticastRPCShowGameplayCue();
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<class UGameplayEffect> AttackDamageEffect;
@@ -38,4 +36,8 @@ protected:
 	TSubclassOf<class AQLFirewall> Fire;
 
 	void SpawnFire();
+
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastRPCShowGameplayCue();
 };

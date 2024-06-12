@@ -16,11 +16,14 @@ class QUADLAND_API AQLLobbyGameMode : public AGameMode
 
 public:
 	AQLLobbyGameMode();
-	void SetNickname(FString InNickname) { TmpNickname = InNickname; }
-	FString GetNickname() { return TmpNickname; }
-protected:
 
-	UPROPERTY(Transient, VisibleAnywhere, BlueprintReadOnly, Category = Nickname, Meta = (AllowPrivateAccess = "true"))
-	FString TmpNickname;
+	virtual void PostLogin(APlayerController* NewPC) override;
 
+	void GameStart();
+	FTimerHandle StartTimerHandle;
+
+	virtual void Tick(float DeltaSeconds) override;
+
+
+	uint8 bIsFirstCondition : 1;
 };

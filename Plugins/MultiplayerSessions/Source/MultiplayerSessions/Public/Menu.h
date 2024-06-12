@@ -36,6 +36,11 @@ protected:
 	void OnStartSession(bool bWasSuccessful);
 
 	void HiddenError();
+
+private:
+	int Gender = 0;
+	int Gem = 0;
+
 private:
 
 	void GameStart();

@@ -173,13 +173,11 @@ void AQLPlayerController::SettingNickname()
 
 void AQLPlayerController::ClientRPCUpdateLivePlayer_Implementation(int16 InLivePlayer)
 {
-	if (HUDs.Find(EHUDType::HUD)) return;
-
 	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 
 	if (UserWidget)
 	{
-	//	UserWidget->UpdateLivePlayer(InLivePlayer);
+		UserWidget->UpdateLivePlayer(InLivePlayer);
 	}
 }
 

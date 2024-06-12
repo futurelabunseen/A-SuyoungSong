@@ -11,20 +11,15 @@
 #include "Camera/CameraShakeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameplayTag/GamplayTags.h"
+
 #include "Interface/QLAIAttackInterface.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
-#include "Sound/SoundCue.h"
+
 #include "QuadLand.h"
 
 UQLGA_AttackUsingGun::UQLGA_AttackUsingGun()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	static ConstructorHelpers::FObjectFinder<USoundCue> SoundCueObject(TEXT("/Script/Engine.SoundCue'/Game/MilitaryWeapSilver/Sound/Rifle/Cues/RifleA_Fire_Cue.RifleA_Fire_Cue'"));
-
-	if (SoundCueObject.Object)
-	{
-		Sound = SoundCueObject.Object;
-	}
 }
 
 void UQLGA_AttackUsingGun::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -58,7 +53,6 @@ bool UQLGA_AttackUsingGun::CanActivateAbility(const FGameplayAbilitySpecHandle H
 void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
 	//총을 쏜다면 플레이어를 회전 시킨다.
 	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(Character);
@@ -103,9 +97,6 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	//*/
 	////Gameplay Effect를 실행한다.
 
-
-	UGameplayStatics::PlaySoundAtLocation(Character, Sound, Character->GetWeaponMuzzlePos());
-
 	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReduceAmmoCntEffect);
 
 	if (EffectSpecHandle.IsValid())
@@ -140,7 +131,7 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	{
 		//SourceASC->AddTag
 		FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
-		SourceASC->TryActivateAbilitiesByTag(TargetTag,false); //Attack_HITCHECK + EQUIP 
+		SourceASC->TryActivateAbilitiesByTag(TargetTag, false); //Attack_HITCHECK + EQUIP 
 	}
 	AttackUsingGunMontage->ReadyForActivation();
 }

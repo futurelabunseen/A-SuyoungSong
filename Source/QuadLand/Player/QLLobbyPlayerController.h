@@ -16,4 +16,14 @@ class QUADLAND_API AQLLobbyPlayerController : public APlayerController
 	
 public:
 	AQLLobbyPlayerController();
+
+	void SetIsReady(bool InReady) { bIsReady = InReady; }
+	bool GetIsReady() { return bIsReady; }
+
+	UFUNCTION(Server,Reliable)
+	void ServerRPCReady(bool InReady);
+protected:
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = Ready)
+	uint8 bIsReady : 1;
 };

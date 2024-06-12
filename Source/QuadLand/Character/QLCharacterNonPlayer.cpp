@@ -14,6 +14,7 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Game/QLGameMode.h"
 #include "QuadLand.h"
+#include "Math/NumericLimits.h"
 
 AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -31,17 +32,14 @@ AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectIni
 	}
 
 	AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
-	UAISenseConfig_Hearing *HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearConfig"));
 
 	UAISenseConfig_Sight* SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-	AIPerception->ConfigureSense(*HearingConfig);
 	AIPerception->ConfigureSense(*SightConfig);
 
 	Weapon->Weapon->SetSkeletalMesh(GunMesh);
 	
-	//AIPerception->OnPerceptionUpdated.AddDynamic(this, &AQLCharacterNonPlayer::UpdateTarget);
-	AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AQLCharacterNonPlayer::UpdateTargetPerception);
-
+//	AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AQLCharacterNonPlayer::UpdateTargetPerception);
+	AIPerception->OnPerceptionUpdated.AddDynamic(this, &AQLCharacterNonPlayer::PerceptionUpdated);
 	AIControllerClass = AQLAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
@@ -114,11 +112,6 @@ void AQLCharacterNonPlayer::AttachTakeDamageTag(const FGameplayTag CallbackTag, 
 	if (NewCount >= 1)
 	{
 		bTakeDamage = true;
-
-		if (TargetActorCancelTimer.IsValid() == false)
-		{
-			GetWorld()->GetTimerManager().SetTimer(TargetActorCancelTimer, this, &AQLCharacterNonPlayer::StopDamage, 10.0f);
-		}
 	}
 }
 
@@ -148,9 +141,6 @@ bool AQLCharacterNonPlayer::CanTakeDamage()
 void AQLCharacterNonPlayer::StopDamage()
 {
 	bTakeDamage = false;
-	GetWorld()->GetTimerManager().ClearTimer(TargetActorCancelTimer);
-	TargetActorCancelTimer.Invalidate();
-	ChangeTarget();
 }
 
 void AQLCharacterNonPlayer::CanSelectTarget(bool InSelectTarget)
@@ -195,13 +185,11 @@ void AQLCharacterNonPlayer::UpdateTargetPerception(AActor* Actor, FAIStimulus St
 	{
 		QL_LOG(QLLog, Warning, TEXT("TargetActor"));
 		BC->SetValueAsObject(TEXT("TargetActor"), Actor);
-		GetWorld()->GetTimerManager().ClearTimer(CheckTargetTimer);
-		CheckTargetTimer.Invalidate();
 	}
 
 }
 
-void const AQLCharacterNonPlayer::UpdateTarget(const TArray<AActor*>& UpdatedActors)
+void AQLCharacterNonPlayer::PerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 {
 	AQLAIController* AIController = GetController<AQLAIController>();
 	//1. 시야에 들어온다
@@ -211,42 +199,39 @@ void const AQLCharacterNonPlayer::UpdateTarget(const TArray<AActor*>& UpdatedAct
 	{
 		return;
 	}
-	float Min = 123456789.f;
 	UBlackboardComponent* BC = AIController->GetBlackboardComponent();
-	AActor* TargetActor = nullptr;
-	for (const auto Target : UpdatedActors)
+
+	if (BC == nullptr)
 	{
-		
-		if (Target == this) continue;
+		return;
+	}
+	AActor* Target = nullptr;
 
-		ACharacter* TargetCharacter = Cast<ACharacter>(Target);
+	float MinDist = TNumericLimits<float>::Max();
 
-		if (TargetCharacter) continue;
+	FVector CurrentPos = this->GetActorLocation();
+	CurrentPos.Z = 0; //높이는 필요하지 않음
 
-		//내적 수행
-		float Dist = FVector::Dist(TargetCharacter->GetActorLocation(), this->GetActorLocation());
+	for (const auto TargetActor : UpdatedActors)
+	{
+		if (TargetActor == this) continue;
 
-		if (Dist < Min)
+		FVector TargetPos = TargetActor->GetActorLocation();
+
+		TargetPos.Z = 0;
+
+		float DistToTarget=FVector::Dist(TargetPos, CurrentPos);
+
+		if (MinDist > DistToTarget)
 		{
-			Min = Dist;
-
-			TargetActor = TargetCharacter;
+			MinDist = DistToTarget;
+			Target = TargetActor;
 		}
 	}
 
-	QL_LOG(QLLog, Warning, TEXT("Current Target %s"), *TargetActor->GetName());
-	BC->SetValueAsObject(TEXT("TargetActor"), TargetActor);
-}
-
-
-void AQLCharacterNonPlayer::ChangeTarget()
-{
-	AQLAIController* AIController = GetController<AQLAIController>();
-	//1. 시야에 들어온다
-	//2. 소리가 들리는 쪽으로 고개를 돌린다.:
-
-	UBlackboardComponent* BC = AIController->GetBlackboardComponent();
-
-	QL_LOG(QLLog, Warning, TEXT("No TargetActor"));
-	BC->SetValueAsObject(TEXT("TargetActor"), nullptr);
+	if (Target != nullptr)
+	{
+		//타겟 유지
+		BC->SetValueAsObject(TEXT("TargetActor"), Target);
+	}
 }

@@ -74,8 +74,15 @@ public:
 	class UQLInventoryComponent* GetInventory() { return QLInventory; }
 
 	int GetInventoryCnt(EItemType ItemType);
+	
+	UFUNCTION(Server,Reliable)
+	void ServerRPCInitCharacter();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPCInitCharacter();
 
 protected:
+
 	uint8 bIsProning : 1;
 protected:
 	virtual FVector GetVelocity() const override;
@@ -254,4 +261,5 @@ public:
 
 	UFUNCTION(Client,Unreliable)
 	void ClientRPCUpdateAmmoUI();
+
 };

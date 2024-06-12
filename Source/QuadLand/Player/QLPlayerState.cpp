@@ -17,8 +17,10 @@
 #include "Physics/QLCollision.h"
 #include "Gimmick/QLLifestoneStorageBox.h"
 #include "Character/QLCharacterBase.h"
-
+#include "Character/QLCharacterPlayer.h"
+#include "Player/QLLobbyPlayerState.h"
 #include "Game/QLGameInstance.h"
+#include "GameFramework/GameMode.h"
 #include "Kismet/GameplayStatics.h"
 AQLPlayerState::AQLPlayerState()
 {
@@ -71,7 +73,6 @@ void AQLPlayerState::BulletWaste(float DiscardedCount)
 
 void AQLPlayerState::SetWeaponStat(const UQLWeaponStat* Stat)
 {
-
     if (HasAuthority()&& Stat && ASC)
     {
         //원래 Base값..
@@ -131,6 +132,19 @@ void AQLPlayerState::BeginPlay()
         MaxAmmoChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(WeaponStatInfo->GetMaxAmmoCntAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxAmmoCnt);
         StaminaChangedDeleagteHandle = ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetStaminaAttribute()).AddUObject(this, &AQLPlayerState::OnChangedStamina);
         MaxStaminaChangedDeleagteHandle= ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetMaxStaminaAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxStamina);
+    }
+
+
+    UQLGameInstance* GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
+
+    if (GameInstance)
+    {
+        APlayerController* PC = Cast<APlayerController>(GetOwner());
+
+        if (PC && PC->IsLocalController())
+        {
+            ServerRPCInitType(GameInstance->GetGenderType(), GameInstance->GetGemMatType());
+        }
     }
 }
 
@@ -227,6 +241,19 @@ void AQLPlayerState::UpdateStorageWidget(FName InNickname, AQLLifestoneStorageBo
     MulticastRPCUpdateStorageWidget(InNickname, StorageBox);
 }
 
+void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGemType)
+{
+    GenderType = InGenderType;
+    GemType = InGemType;
+
+    AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetPawn());
+
+    if (Player)
+    {
+        Player->MulticastRPCInitCharacter();
+    }
+}
+
 void AQLPlayerState::MulticastRPCUpdateStorageWidget_Implementation(FName InNickname, AQLLifestoneStorageBox* StorageBox)
 {
     StorageBox->UpdateAlertPanel(InNickname);
@@ -283,8 +310,6 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation(const FString &InN
                 }
             }
             StorageBox->ConcealLifeStone(FName(InNickname));
-          
-            //ClientRPC 전달해서 Client UI 업데이트
         }
     }
 
@@ -384,14 +409,12 @@ void AQLPlayerState::SetDead()
     }
 }
 
-
 void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME(AQLPlayerState, bIsWin);
     DOREPLIFETIME(AQLPlayerState, bHasLifeStone);
+    DOREPLIFETIME(AQLPlayerState, GenderType);
+    DOREPLIFETIME(AQLPlayerState, GemType);
 }
-
-
-

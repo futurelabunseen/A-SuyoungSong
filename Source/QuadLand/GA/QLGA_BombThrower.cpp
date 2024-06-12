@@ -47,9 +47,9 @@ void UQLGA_BombThrower::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 	
 	AnimSpeedRate = 1.0f;
-	GrapAndThrowMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PunchAnimMontage"), ThrowAnimMontage, AnimSpeedRate, FName("Grap"));
-	GrapAndThrowMontage->OnCompleted.AddDynamic(this, &UQLGA_BombThrower::OnCompletedCallback);
-	GrapAndThrowMontage->OnInterrupted.AddDynamic(this, &UQLGA_BombThrower::OnInterruptedCallback);
+	GrapAndThrowMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("ThrowAnimMontage"), ThrowAnimMontage, AnimSpeedRate, FName("Grap"));
+	//GrapAndThrowMontage->OnCompleted.AddDynamic(this, &UQLGA_BombThrower::OnCompletedCallback);
+	//GrapAndThrowMontage->OnInterrupted.AddDynamic(this, &UQLGA_BombThrower::OnInterruptedCallback);
 	GrapAndThrowMontage->ReadyForActivation();
 
 }
@@ -86,6 +86,7 @@ void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, c
 	}
 
 	ServerRPCAttackHitCheck();
+	OnCompletedCallback();
 }
 
 void UQLGA_BombThrower::OnCompletedCallback()
@@ -114,4 +115,5 @@ void UQLGA_BombThrower::ServerRPCAttackHitCheck_Implementation()
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
 	ASC->TryActivateAbilitiesByTag(TargetTag);
+	OnCompletedCallback();
 }

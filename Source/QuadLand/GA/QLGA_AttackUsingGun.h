@@ -29,6 +29,7 @@ public:
 	void OnInterruptedCallback();
 	
 protected:
+
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<class UGameplayEffect> ReduceAmmoCntEffect;
 
@@ -38,6 +39,4 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "CameraShake")
 	TObjectPtr<class UCameraShakeBase> CamShake;
 
-	UPROPERTY(EditAnywhere, Category = "GunSound")
-	TObjectPtr<class USoundCue> Sound;
 };

@@ -18,7 +18,7 @@
 #include "QuadLand.h"
 UQLGA_AttackHitCheckUsingBomb::UQLGA_AttackHitCheckUsingBomb()
 {
-	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
 void UQLGA_AttackHitCheckUsingBomb::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -60,75 +60,83 @@ void UQLGA_AttackHitCheckUsingBomb::OnCompletedCallback()
 
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(DetectionPlayer), false);
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
+
+	if (SourceASC == nullptr)
+	{
+		bool bReplicateEndAbility = true;
+		bool bWasCancelled = false;
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+		return;
+	}
 	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
 
-	TArray<FHitResult> NearbyPlayers;
-	//ItemDetectionSocket
-	bool bResult = GetWorld()->SweepMultiByChannel(
-		NearbyPlayers,
-		Bomb->GetActorLocation(),
-		Bomb->GetActorLocation(),
-		FQuat::Identity,
-		CCHANNEL_QLACTION,
-		FCollisionShape::MakeSphere(WeaponStat->GetAttackDistance()),
-		Params
-	);
-	
-	if (bResult)
+	if (WeaponStat == nullptr)
 	{
-		
-		for (const auto& Player : NearbyPlayers)
+		bool bReplicateEndAbility = true;
+		bool bWasCancelled = false;
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+		return;
+	}
+
+	TArray<FHitResult> NearbyPlayers;
+
+	if (Bomb.IsValid())
+	{
+		bool bResult = GetWorld()->SweepMultiByChannel(
+			NearbyPlayers,
+			Bomb->GetActorLocation(),
+			Bomb->GetActorLocation(),
+			FQuat::Identity,
+			CCHANNEL_QLACTION,
+			FCollisionShape::MakeSphere(WeaponStat->GetAttackDistance()),
+			Params
+		);
+
+		if (bResult)
 		{
-			AQLCharacterBase* Character = Cast<AQLCharacterBase>(Player.GetActor());
 
-			if (Character)
+			for (const auto& Player : NearbyPlayers)
 			{
-				FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(AttackDamageEffect);
+				AQLCharacterBase* Character = Cast<AQLCharacterBase>(Player.GetActor());
 
-				if (EffectSpecHandle.IsValid())
+				if (Character)
 				{
-					FGameplayEffectContextHandle EffectContextHandle = UAbilitySystemBlueprintLibrary::GetEffectContext(EffectSpecHandle);;
-					EffectContextHandle.AddOrigin(Bomb->GetActorLocation()); //Origin 발생 위치를 저장한다.
-					EffectContextHandle.AddSourceObject(WeaponStat);
+					FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(AttackDamageEffect);
 
-					UAbilitySystemComponent* TargetASC = Character->GetAbilitySystemComponent();
-					EffectSpecHandle.Data->SetContext(EffectContextHandle);
-					TargetASC->BP_ApplyGameplayEffectSpecToSelf(EffectSpecHandle);
+					if (EffectSpecHandle.IsValid())
+					{
+						FGameplayEffectContextHandle EffectContextHandle = UAbilitySystemBlueprintLibrary::GetEffectContext(EffectSpecHandle);;
+						EffectContextHandle.AddOrigin(Bomb->GetActorLocation()); //Origin 발생 위치를 저장한다.
+						EffectContextHandle.AddSourceObject(WeaponStat);
 
+						UAbilitySystemComponent* TargetASC = Character->GetAbilitySystemComponent();
+
+						if (TargetASC)
+						{
+							EffectSpecHandle.Data->SetContext(EffectContextHandle);
+							TargetASC->BP_ApplyGameplayEffectSpecToSelf(EffectSpecHandle);
+						}
+					}
 				}
 			}
 		}
 	}
+	
 
 	if (HasAuthority(&CurrentActivationInfo))
 	{
-		MulticastRPCShowGameplayCue();
-	}
-
-	Bomb->SetLifeSpan(0.5f); //없어짐.
-	
-	bool bReplicateEndAbility = true;
-	bool bWasCancelled = false;
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
-void UQLGA_AttackHitCheckUsingBomb::MulticastRPCShowGameplayCue_Implementation()
-{
-	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
-	if (SourceASC)
-	{
-		FGameplayCueParameters CueParam;
-		CueParam.Location = Bomb->GetActorLocation();
-		SpawnFire();
-		//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
-		SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_EFFECT_FIREWALL, CueParam);
+		AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
+		if (Character)
+		{
+			MulticastRPCShowGameplayCue();
+		}
 	}
 
 }
 
 void UQLGA_AttackHitCheckUsingBomb::SpawnFire()
 {
-	if (HasAuthority(&CurrentActivationInfo))
+	if (HasAuthority(&CurrentActivationInfo)&& Bomb.IsValid())
 	{
 		FCollisionQueryParams Params(SCENE_QUERY_STAT(FireCollision), false);
 		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
@@ -169,4 +177,32 @@ void UQLGA_AttackHitCheckUsingBomb::SpawnFire()
 
 		}
 	}
+
+
+	bool bReplicateEndAbility = true;
+	bool bWasCancelled = false;
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UQLGA_AttackHitCheckUsingBomb::MulticastRPCShowGameplayCue_Implementation()
+{
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
+	if (SourceASC)
+	{
+		FGameplayCueParameters CueParam;
+
+		if (Bomb.IsValid())
+		{
+			CueParam.Location = Bomb->GetActorLocation();
+		}
+		else
+		{
+			CueParam.Location = FVector(0, 0, 0);
+		}
+
+		SpawnFire();
+		//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
+		SourceASC->ExecuteGameplayCue(GAMEPLAYCUE_EFFECT_FIREWALL, CueParam);
+	}
+
 }

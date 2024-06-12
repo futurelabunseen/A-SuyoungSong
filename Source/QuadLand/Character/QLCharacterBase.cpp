@@ -10,7 +10,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Item/QLWeaponComponent.h"
-
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 #include "QuadLand.h"
 AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), CurrentAttackType(ECharacterAttackType::GunAttack)
 {
@@ -44,7 +45,6 @@ AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) 
 	{
 		GetMesh()->SetSkeletalMesh(SkeletalMeshRef.Object);
 	}
-
 	// Mesh Component
 	Weapon = CreateDefaultSubobject<UQLWeaponComponent>(TEXT("Weapon"));
 	Weapon->Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
@@ -165,6 +165,7 @@ float AQLCharacterBase::CalculateSpeed()
 	return Velocity.Size2D();
 }
 
+
 void AQLCharacterBase::ServerRPCReload_Implementation()
 {	
 	//MaxAmmo 없으면 실행 불가능 
@@ -186,4 +187,10 @@ void AQLCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AQLCharacterBase, bIsReload); 
 	DOREPLIFETIME(AQLCharacterBase, bIsAiming);
 	DOREPLIFETIME(AQLCharacterBase, bIsDead);
+}
+
+
+void AQLCharacterBase::MulticastRPCGunAttackAnimMont_Implementation()
+{
+	this->PlayAnimMontage(GetAnimMontage(), 1.0f);	
 }

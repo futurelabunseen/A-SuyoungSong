@@ -28,6 +28,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetVisibilityHUD(EHUDType UItype);
 
+	int HUDNum() {
+		return HUDs.Num();
+	}
 	UFUNCTION(BlueprintCallable)
 	void SetHiddenHUD(EHUDType UItype);
 
