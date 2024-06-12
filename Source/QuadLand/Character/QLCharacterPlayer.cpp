@@ -120,10 +120,14 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 	}
 	InitializeAttributes();
 
-	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
-	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
-	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
-	ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
+	
+	if (ASC)
+	{
+		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
+		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
+		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
+		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
+	}
 }
 
 //Client Only 
@@ -199,6 +203,7 @@ void AQLCharacterPlayer::BeginPlay()
 	RecoilTimeline.AddInterpFloat(VerticalRecoil, YRecoilCurve);
 
 	StartHeight = GetActorLocation().Z;
+
 }
 
 void AQLCharacterPlayer::InitializeAttributes()
@@ -422,7 +427,6 @@ void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 	{
 		FGameplayTagContainer Tag(CHARACTER_STATE_DANGER);
 		ItemASC->TryActivateAbilitiesByTag(Tag);
-		QL_LOG(QLLog, Warning, TEXT("TargetASC is Dead"));
 	}
 }
 
@@ -453,6 +457,7 @@ void AQLCharacterPlayer::UpdateAmmoTemp()
 	ClientRPCUpdateAmmoUI();
 }
 
+
 void AQLCharacterPlayer::ClientRPCUpdateAmmoUI_Implementation()
 {
 	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
@@ -460,9 +465,7 @@ void AQLCharacterPlayer::ClientRPCUpdateAmmoUI_Implementation()
 	AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
 
 	PC->UpdateItemEntry(ItemData, 0);
-
 	QLInventory->InventoryItem[EItemType::Ammo] = 0;
-	QL_LOG(QLLog, Log, TEXT("UpdateAmmo"));
 }
 
 
@@ -621,9 +624,13 @@ void AQLCharacterPlayer::ResetEquipTypeA(const FGameplayTag CallbackTag, int32 N
 		{
 			CurrentAttackType = ECharacterAttackType::AutomaticGunAttack;
 		}
+
 		if (IsLocallyControlled())
 		{
-			PC->SwitchWeaponStyle(CurrentAttackType); //만약 연사이면 연사로 변경해야함.
+			if (bHasGun == false)
+			{
+				PC->SwitchWeaponStyle(CurrentAttackType); //만약 연사이면 연사로 변경해야함.
+			}
 		}
 	}
 }
@@ -640,7 +647,10 @@ void AQLCharacterPlayer::ResetBomb(const FGameplayTag CallbackTag, int32 NewCoun
 
 		if (IsLocallyControlled())
 		{
-			PC->SwitchWeaponStyle(CurrentAttackType);
+			if (GetInventoryCnt(EItemType::Bomb))
+			{
+				PC->SwitchWeaponStyle(CurrentAttackType);
+			}
 		}
 	}
 }
@@ -767,6 +777,26 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 {
 	return QLInventory->GetInventoryCnt(ItemType);
+}
+
+void AQLCharacterPlayer::ServerRPCInitCharacter_Implementation()
+{
+	MulticastRPCInitCharacter();
+}
+
+void AQLCharacterPlayer::MulticastRPCInitCharacter_Implementation()
+{
+	//스켈레탈을 바꾼다.
+	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+	USkeletalMesh* Skeletal = DataManager->GetSkeletalMesh(PS->GenderType);
+
+	QL_LOG(QLLog, Warning, TEXT("%d"), PS->GenderType);
+
+	if (Skeletal)
+	{
+		GetMesh()->SetSkeletalMesh(Skeletal);
+	}
 }
 
 void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)

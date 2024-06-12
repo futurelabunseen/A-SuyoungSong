@@ -35,13 +35,12 @@ void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 	AQLAIController* AIController = Character->GetController<AQLAIController>();
 
-	if (AIController)
+	if (AIController && TriggerEventData->Instigator)
 	{
 		//여기서 타겟을 지정함
 		UBlackboardComponent* BC = AIController->GetBlackboardComponent();
 		if (BC)
 		{
-			QL_GASLOG(QLNetLog, Log, TEXT("Player ? %s"), *TriggerEventData->Instigator.GetFName().ToString());
 			BC->SetValueAsObject(TEXT("TargetActor"), Cast<UObject>(TriggerEventData->Instigator));
 		}
 	

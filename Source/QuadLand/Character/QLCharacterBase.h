@@ -105,4 +105,9 @@ protected:
 protected:
 
 	FORCEINLINE float CalculateSpeed();
+
+public:
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastRPCGunAttackAnimMont();
 };

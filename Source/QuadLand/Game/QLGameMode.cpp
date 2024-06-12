@@ -36,40 +36,6 @@ AQLGameMode::AQLGameMode()
 	LivePlayerCount = 0;
 }
 
-void AQLGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
-{
-	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
-
-	if (GetNumPlayers() >= 4)
-	{
-		ErrorMessage = TEXT("All players are participating.");
-		return;
-	}
-}
-
-void AQLGameMode::PostLogin(APlayerController* NewPlayer)
-{
-	Super::PostLogin(NewPlayer);
-	
-	AQLPlayerController* PC = Cast<AQLPlayerController>(NewPlayer);
-
-	if (PC == nullptr)
-	{
-		QL_LOG(QLNetLog, Error, TEXT("PlayerController Error %s"), *PC->GetName());
-		return;
-	}
-
-	if (GetNumPlayers() >= 4) 
-	{
-		PC->bReadyGame = true;
-	}
-}
-
-void AQLGameMode::StartPlay()
-{
-	Super::StartPlay();
-	//GameStart();
-}
 
 void AQLGameMode::SpawnAI()
 {
@@ -79,14 +45,7 @@ void AQLGameMode::SpawnAI()
 	{
 		AISpawner->SetLifeSpan(5.0f);
 	}
-	QL_LOG(QLNetLog, Log, TEXT("Player %d "), LivePlayerCount);
 
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
-	{
-		const auto PC = Cast<AQLPlayerController>(It->Get());
-
-		//	PC->ClientRPCUpdateLivePlayer(LivePlayerCount);
-	}
 	//GameState를 가져온다.
 }
 
@@ -160,6 +119,11 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 
 				//ServerRPC를 사용해서 승리자 플레이어 전달
 			}
+			else
+			{
+				const auto PC = Cast<AQLPlayerController>(It->Get());
+				PC->Loose();
+			}
 		}
 	}
 
@@ -170,6 +134,27 @@ void AQLGameMode::AddPlayer(FName PlayerName)
 {
 	PlayerDieStatus.Add(PlayerName, false);
 	LivePlayerCount++;
+}
+
+void AQLGameMode::HandleSeamlessTravelPlayer(AController*& C)
+{
+	Super::HandleSeamlessTravelPlayer(C);
+
+	AQLPlayerController* PC = Cast<AQLPlayerController>(C);
+
+	if (PC == nullptr)
+	{
+		QL_LOG(QLNetLog, Error, TEXT("PlayerController Error %s"), *PC->GetName());
+		return;
+	}
+
+	
+	AQLPlayerState* PS = C->GetPlayerState<AQLPlayerState>();
+
+	if (PS)
+	{
+		AddPlayer(FName(PS->GetName()));
+	}
 }
 
 void AQLGameMode::GameStart()

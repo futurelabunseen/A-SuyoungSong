@@ -17,14 +17,10 @@ class QUADLAND_API AQLGameMode : public AGameMode , public IQLAISpawnerInterface
 	
 public:
 	AQLGameMode();
-	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
-
-	/** Called after a successful login.  This is the first place it is safe to call replicated functions on the PlayerController. */
-	virtual void PostLogin(APlayerController* NewPlayer) override;
-	
-	virtual void StartPlay() override;
 
 	virtual void SpawnAI() override;
+
+	bool GetPlayerState(FName Name) { return PlayerDieStatus[Name]; }
 
 	UFUNCTION()
 	void DeadNonPlayer(FName NonPlayerName);
@@ -35,6 +31,7 @@ public:
 	UFUNCTION()
 	void AddPlayer(FName PlayerName);
 
+	virtual void HandleSeamlessTravelPlayer(AController*& C) override;
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	int32 LivePlayerCount;

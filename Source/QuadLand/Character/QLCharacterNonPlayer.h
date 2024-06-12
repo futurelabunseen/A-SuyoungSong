@@ -56,10 +56,6 @@ protected:
 	UFUNCTION()
 	void UpdateTargetPerception(AActor* Actor, FAIStimulus Stimulus);
 
-
-	UFUNCTION()
-	void const UpdateTarget(const TArray<AActor*>& UpdatedActors);
-
 	FTimerHandle CheckTargetTimer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AttackOffset)
@@ -67,11 +63,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AttackOffset)
 	FVector2D ZRandOffset;
+	
 
-	void ChangeTarget();
-
-
-	FTimerHandle TargetActorCancelTimer;
-
+	UFUNCTION()
+	void PerceptionUpdated(const TArray<AActor*>& UpdatedActors);
 
 };

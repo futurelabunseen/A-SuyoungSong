@@ -84,8 +84,6 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
 	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
-	UAnimMontage* AnimMontageUsingGun = Character->GetAnimMontage();
-	UAnimInstance* AnimInstance = GetActorInfo().GetAnimInstance();
 
 	if (WeaponStat && WeaponStat->GetCurrentAmmo() <= 0.0f)
 	{
@@ -102,20 +100,12 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 		APlayerCameraManager* LocalCamera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
 		LocalCamera->StartCameraShake(CameraShakeClass);
 	}
-
+	
 
 	if (HasAuthority(&CurrentActivationInfo))
 	{
 		Character->MakeNoise();
-	}
-
-	QL_GASLOG(QLLog, Warning, TEXT("Current Effect Spec"));
-
-	float AnimSpeedRate = 1.5f;
-
-	if (AnimInstance->Montage_IsActive(AnimMontageUsingGun) == false)
-	{
-		AnimInstance->Montage_Play(AnimMontageUsingGun, AnimSpeedRate);
+		Character->MulticastRPCGunAttackAnimMont();
 	}
 
 	if (IsLocallyControlled())
@@ -127,8 +117,6 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 		}
 	}
 
-	UGameplayStatics::PlaySoundAtLocation(Character,Sound,Character->GetWeaponMuzzlePos());
-	
 	if (HasAuthority(&CurrentActivationInfo))
 	{
 		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReduceAmmoCntEffect);

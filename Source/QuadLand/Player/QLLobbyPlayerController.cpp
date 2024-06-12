@@ -6,3 +6,8 @@
 AQLLobbyPlayerController::AQLLobbyPlayerController()
 {
 }
+
+void AQLLobbyPlayerController::ServerRPCReady_Implementation(bool InReady)
+{
+	bIsReady = InReady;
+}

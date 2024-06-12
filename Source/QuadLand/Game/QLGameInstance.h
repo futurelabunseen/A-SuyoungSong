@@ -14,10 +14,15 @@ class QUADLAND_API UQLGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 public:
-	void SetNickname(FString InNickname) { TmpNickname = InNickname; }
-	FString GetNickname() { return TmpNickname; }
+	
+	void SetGenderType(int InGenderType) { GenderType = InGenderType; }
+	void SetGemType(int MatType) { GemMatType = MatType; }
+
+
+	int GetGenderType() { return GenderType; }
+	int GetGemMatType() { return GemMatType; }
 protected:
 
-	UPROPERTY(Transient, VisibleAnywhere, BlueprintReadOnly, Category = Nickname, Meta = (AllowPrivateAccess = "true"))
-	FString TmpNickname;
+	int GenderType;
+	int GemMatType;
 };

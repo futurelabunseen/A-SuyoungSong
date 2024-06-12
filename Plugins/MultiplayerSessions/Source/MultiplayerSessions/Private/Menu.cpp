@@ -10,6 +10,7 @@
 #include "Components/TextBlock.h"
 #include "QuadLand/Game/QLGameInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "QuadLand/Player/QLLobbyPlayerState.h"
 
 void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch, FString LobbyPath)
 {
@@ -78,27 +79,25 @@ void UMenu::NativeDestruct()
 void UMenu::NativeConstruct()
 {
 	Super::NativeConstruct();
-	TxtError->SetVisibility(ESlateVisibility::Hidden);
+	if (TxtError)
+	{
+		TxtError->SetVisibility(ESlateVisibility::Hidden);
+	}
+
 }
 
 void UMenu::OnCreateSession(bool bWasSuccessful)
 {
 	if (bWasSuccessful)
 	{
-		FTimerHandle StartTimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &UMenu::GameStart, 5.0f, false);
+		UWorld* World = GetWorld();
+		if (World)
+		{
+			World->ServerTravel(PathToLobby);
+		}
 	}
 	else
 	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Red,
-				FString(TEXT("Failed to create session!"))
-			);
-		}
 		HostButton->SetIsEnabled(true);
 	}
 }
@@ -160,11 +159,11 @@ void UMenu::OnStartSession(bool bWasSuccessful)
 
 }
 
-
 void UMenu::HiddenError()
 {
 	TxtError->SetVisibility(ESlateVisibility::Hidden);
 }
+
 
 void UMenu::GameStart()
 {

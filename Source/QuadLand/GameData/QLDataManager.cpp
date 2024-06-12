@@ -5,6 +5,8 @@
 #include "GameData/QLItemDataset.h"
 #include "GameData/QLWeaponDataset.h"
 #include "GameData/QLItemData.h"
+#include "GameData/QLSelectionData.h"
+#include "GameData/QLGemData.h"
 
 UQLDataManager::UQLDataManager()
 {
@@ -21,6 +23,13 @@ UQLDataManager::UQLDataManager()
 	{
 		WeaponStatManager = WeaponDataManagerClassRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UQLSelectionData> SelectionDataClassRef(TEXT("/Script/QuadLand.QLSelectionData'/Game/QuadLand/GameData/StartData/DAQL_SelectionData.DAQL_SelectionData'"));
+
+	if (SelectionDataClassRef.Object)
+	{
+		InitDataManager = SelectionDataClassRef.Object;
+	}
 }
 
 const UQLWeaponStat* UQLDataManager::GetWeaponStat(ECharacterAttackType AttackType)
@@ -36,6 +45,25 @@ UQLItemData* UQLDataManager::GetItem(EItemType ItemId)
 TSubclassOf<class AQLItemBox> UQLDataManager::GetItemBoxClass(EItemType ItemId)
 {
 	return ItemDataManager->GetItemBoxClass(ItemId);
+}
+
+USkeletalMesh *UQLDataManager::GetSkeletalMesh(int Idx)
+{
+
+	if (InitDataManager->GenderMeshData[Idx])
+	{
+		if (InitDataManager->GenderMeshData[Idx].IsPending())
+		{
+			InitDataManager->GenderMeshData[Idx].LoadSynchronous();
+		}
+	}
+
+	return InitDataManager->GenderMeshData[Idx].Get();
+}
+
+const UQLGemData* UQLDataManager::GetGemData(int Idx)
+{
+	return InitDataManager->GemData[Idx];
 }
 
 void UQLDataManager::Initialize(FSubsystemCollectionBase& Collection)

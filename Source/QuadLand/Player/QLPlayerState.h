@@ -20,7 +20,8 @@ public:
 	AQLPlayerState();
 
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	
+
+
 	void SetAmmoStat(float AmmoCnt);
 	void BulletWaste(float DiscardedCount);
 	void SetWeaponStat(const class UQLWeaponStat* Stat);
@@ -28,6 +29,7 @@ public:
 	void AddStaminaStat(float Stamina);
 	void ResetWeaponStat(const class UQLWeaponStat* Stat);
 	void UseGlassesItem(float Time);
+	void SetType(int InGenderType = 0, int InGemType = 0) { GenderType = InGenderType; GemType = InGemType; };
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetbIsWin() { return bIsWin; }
@@ -125,7 +127,26 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Battle)
 	TSubclassOf<class AQLPlayerLifeStone> LifeStoneClass;
+
+	UPROPERTY(EditAnywhere,Category = Battle)
+	TObjectPtr<class UMaterialInterface> LifeStoneMaterial;
+
 	friend class AQLCharacterPlayer;
+
+	UPROPERTY(Replicated,Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
+	int GenderType;
+
+	UPROPERTY(Replicated,Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
+	int GemType;
+
+
+protected:
+	
+	UFUNCTION(Server,Reliable)
+	void ServerRPCInitType(int InGenderType, int InGemType);
+
+
+
 };
 
 /*

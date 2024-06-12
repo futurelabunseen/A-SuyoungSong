@@ -325,12 +325,12 @@ void UQLInputComponent::FarmingItemPressed()
 				PC->ConcealLifeStone(); //만약.. 없다면 
 			}
 
-			if (Item->Stat->ItemType == EItemType::Weapon)
+			if (Character->bHasGun == false) //주웠으니까 있어짐.
 			{
 				PC->UpdateEquipWeaponUI();
 			}
 
-			if (Item->Stat->ItemType == EItemType::Bomb)
+			if (Character->GetInventoryCnt(EItemType::Bomb))
 			{
 				PC->UpdateEquipBombUI();
 			}
