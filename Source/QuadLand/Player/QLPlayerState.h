@@ -133,10 +133,10 @@ protected:
 
 	friend class AQLCharacterPlayer;
 
-	UPROPERTY(Replicated,Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(ReplicatedUsing = OnRep_InitGenderType,Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
 	int GenderType;
 
-	UPROPERTY(Replicated,Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(ReplicatedUsing = OnRep_InitGemType,Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
 	int GemType;
 
 
@@ -145,7 +145,11 @@ protected:
 	UFUNCTION(Server,Reliable)
 	void ServerRPCInitType(int InGenderType, int InGemType);
 
+	UFUNCTION()
+	void OnRep_InitGenderType();
 
+	UFUNCTION()
+	void OnRep_InitGemType();
 
 };
 

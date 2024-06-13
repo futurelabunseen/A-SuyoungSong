@@ -34,8 +34,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetHiddenHUD(EHUDType UItype);
 
-	const class UUserWidget* GetCrossHairUIWidget() const { return HUDs[EHUDType::CrossHair]; }
-	class UUserWidget* GetPlayerUIWidget() const { return HUDs[EHUDType::HUD]; }
+	const class UUserWidget* GetCrossHairUIWidget() const 
+	{
+		return HUDs[EHUDType::CrossHair]; 
+	}
+	class UUserWidget* GetPlayerUIWidget() const
+	{ 
+		return HUDs[EHUDType::HUD];
+	}
 
 	void CreateHUD();
 	/* 인벤토리 */
@@ -83,6 +89,9 @@ public:
 	void ClientRPCUpdateLivePlayer(int16 InLivePlayer); //GameMode로부터 ClientRPC로 전달받음.
 
 	void SettingNickname();
+
+
+	void InitPawn(int Type);
 
 protected:
 

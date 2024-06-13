@@ -7,6 +7,7 @@
 #include "GameData/QLItemData.h"
 #include "GameData/QLSelectionData.h"
 #include "GameData/QLGemData.h"
+#include "Character/QLCharacterPlayer.h"
 
 UQLDataManager::UQLDataManager()
 {
@@ -47,18 +48,9 @@ TSubclassOf<class AQLItemBox> UQLDataManager::GetItemBoxClass(EItemType ItemId)
 	return ItemDataManager->GetItemBoxClass(ItemId);
 }
 
-USkeletalMesh *UQLDataManager::GetSkeletalMesh(int Idx)
+TSubclassOf<AQLCharacterPlayer> UQLDataManager::GetSkeletalMesh(int Idx)
 {
-
-	if (InitDataManager->GenderMeshData[Idx])
-	{
-		if (InitDataManager->GenderMeshData[Idx].IsPending())
-		{
-			InitDataManager->GenderMeshData[Idx].LoadSynchronous();
-		}
-	}
-
-	return InitDataManager->GenderMeshData[Idx].Get();
+	return InitDataManager->GenderPawn[Idx];
 }
 
 const UQLGemData* UQLDataManager::GetGemData(int Idx)

@@ -21,6 +21,10 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Interface/QLAISpawnerInterface.h"
 #include "Net/UnrealNetwork.h"
+#include "GameData/QLDataManager.h"
+#include "GameFramework/PlayerStart.h"
+#include "Physics/QLCollision.h"
+#include "EngineUtils.h"
 
 AQLPlayerController::AQLPlayerController()
 {
@@ -32,7 +36,10 @@ void AQLPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ClientRPCGameStart();
+	if (HUDs.Num() == 0)
+	{
+		CreateHUD();
+	}
 }
 
 void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
@@ -168,6 +175,65 @@ void AQLPlayerController::SettingNickname()
 	{
 		UQLUserWidget* UserWidget = Cast< UQLUserWidget>(HUDs[EHUDType::HUD]);
 		UserWidget->SettingNickname(PS->GetPlayerName());
+	}
+}
+
+void AQLPlayerController::InitPawn(int Type)
+{
+
+	//스켈레탈을 바꾼다.
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+	AQLCharacterPlayer* NewPawn = nullptr;
+	if (DataManager)
+	{
+		for (const auto& Entry : FActorRange(GetWorld()))
+		{
+			APlayerStart* PlayerStart = Cast<APlayerStart>(Entry);
+
+			if (PlayerStart)
+			{
+				//PlayerStart 위치에서 라인트레이스를 쏘고, APawn이 없다면 그 위치에 Pawn 생성
+
+				FCollisionQueryParams CollisionParams(SCENE_QUERY_STAT(GroundCheckLineTrace), false, this); //식별자 
+
+				FHitResult OutHitResult;
+
+				FVector StartLocation = PlayerStart->GetActorLocation();
+
+				FVector EndLocation = StartLocation + 150.0f * PlayerStart->GetActorUpVector() * -1;
+
+				bool bResult = GetWorld()->SweepSingleByChannel(
+					OutHitResult,
+					StartLocation,
+					EndLocation,
+					FQuat::Identity,
+					CCHANNEL_QLACTION, // 트레이스 채널 (적절한 채널로 변경 가능)
+					FCollisionShape::MakeSphere(80.0f),
+					CollisionParams
+				);
+
+				if (bResult == false)
+				{
+					const FTransform SpawnTransform(StartLocation + FVector::UpVector * 88.0f);
+					AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+					
+					FActorSpawnParameters SpawnParams;
+
+					NewPawn = GetWorld()->SpawnActorDeferred<AQLCharacterPlayer>(DataManager->GetSkeletalMesh(Type), SpawnTransform);;
+					
+					if (NewPawn)
+					{
+						NewPawn->FinishSpawning(SpawnTransform);
+
+						Possess(NewPawn);
+
+						NewPawn->EnableInput(this);
+					}
+					break;
+				}
+
+			}
+		}
 	}
 }
 

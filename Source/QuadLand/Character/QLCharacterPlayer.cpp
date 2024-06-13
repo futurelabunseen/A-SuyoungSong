@@ -120,7 +120,6 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 	}
 	InitializeAttributes();
 
-	
 	if (ASC)
 	{
 		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
@@ -157,10 +156,12 @@ void AQLCharacterPlayer::OnRep_Controller()
 
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
 
-	if (PlayerController)
+	if (PlayerController->HUDNum() == 0)
 	{
 		PlayerController->CreateHUD();
 	}
+
+
 }
 
 
@@ -171,6 +172,7 @@ void AQLCharacterPlayer::BeginPlay()
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
 	if (PlayerController)
 	{
+		UE_LOG(LogTemp, Log, TEXT("Enable Input"));
 		EnableInput(PlayerController);
 	}
 
@@ -232,6 +234,8 @@ void AQLCharacterPlayer::InitializeAttributes()
 void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);	
+
+	QL_LOG(QLLog, Log, TEXT("1"));
 	QLInputComponent->InitPlayerImputComponent(PlayerInputComponent);
 }
 
@@ -239,11 +243,14 @@ void AQLCharacterPlayer::SetCharacterControl()
 {
 
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
-	
+
+	QL_LOG(QLLog, Log, TEXT("1"));
 	if (PlayerController)
 	{
+		QL_LOG(QLLog, Log, TEXT("2"));
 		if (UEnhancedInputLocalPlayerSubsystem* SubSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
+			QL_LOG(QLLog, Log, TEXT("3"));
 
 			SubSystem->ClearAllMappings(); //모든 매핑 취소
 			UInputMappingContext* NewMappingContext = InputMappingContext;
@@ -432,13 +439,19 @@ void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 
 void AQLCharacterPlayer::GetAmmo(AQLItem* ItemInfo)
 {
-	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
-	UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
 
-	UQLAmmoData* AmmoItem = Cast<UQLAmmoData>(ItemData);
-	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	PS->SetAmmoStat(AmmoItem->AmmoCnt);
-	GetItem(ItemInfo);
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
+	if (DataManager)
+	{
+		UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
+
+		UQLAmmoData* AmmoItem = Cast<UQLAmmoData>(ItemData);
+		AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
+		PS->SetAmmoStat(AmmoItem->AmmoCnt);
+		GetItem(ItemInfo);
+	}
+	
 }
 
 FVector AQLCharacterPlayer::CalPlayerLocalCameraStartPos()
@@ -460,12 +473,17 @@ void AQLCharacterPlayer::UpdateAmmoTemp()
 
 void AQLCharacterPlayer::ClientRPCUpdateAmmoUI_Implementation()
 {
-	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
-	UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
-	AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+	
+	if (DataManager)
+	{
+		UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
+		AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
 
-	PC->UpdateItemEntry(ItemData, 0);
-	QLInventory->InventoryItem[EItemType::Ammo] = 0;
+		PC->UpdateItemEntry(ItemData, 0);
+		QLInventory->InventoryItem[EItemType::Ammo] = 0;
+	}
+	
 }
 
 
@@ -476,7 +494,8 @@ void AQLCharacterPlayer::UpdateAmmo(const FGameplayTag CallbackTag, int32 NewCou
 		AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 		AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
 
-		UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+		UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
 		UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
 
 		uint32 ItemCnt = FMath::RoundToInt((PS->GetMaxAmmoCnt() + PS->GetCurrentAmmoCnt()) / PS->GetAmmoCnt());
@@ -569,7 +588,8 @@ void AQLCharacterPlayer::ServerRPCSwitchAttackType_Implementation(ECharacterAtta
 		return;
 	}
 
-	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
 
 	//ECharacterAttackType::BombAttack
 	const UQLWeaponStat* WeaponStat = DataManager->GetWeaponStat(InputKey);
@@ -740,7 +760,8 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 	GroundItem->SetPhysics();
 	CurrentAttackType = ECharacterAttackType::HookAttack;
 
-	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 	
 	const UQLWeaponStat* WeaponStat = DataManager->GetWeaponStat(CurrentAttackType);
@@ -781,22 +802,7 @@ int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 
 void AQLCharacterPlayer::ServerRPCInitCharacter_Implementation()
 {
-	MulticastRPCInitCharacter();
-}
 
-void AQLCharacterPlayer::MulticastRPCInitCharacter_Implementation()
-{
-	//스켈레탈을 바꾼다.
-	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
-	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	USkeletalMesh* Skeletal = DataManager->GetSkeletalMesh(PS->GenderType);
-
-	QL_LOG(QLLog, Warning, TEXT("%d"), PS->GenderType);
-
-	if (Skeletal)
-	{
-		GetMesh()->SetSkeletalMesh(Skeletal);
-	}
 }
 
 void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)

@@ -241,17 +241,24 @@ void AQLPlayerState::UpdateStorageWidget(FName InNickname, AQLLifestoneStorageBo
     MulticastRPCUpdateStorageWidget(InNickname, StorageBox);
 }
 
+void AQLPlayerState::OnRep_InitGenderType()
+{
+}
+
+void AQLPlayerState::OnRep_InitGemType()
+{
+}
+
 void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGemType)
 {
     GenderType = InGenderType;
-    GemType = InGemType;
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
 
-    AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetPawn());
-
-    if (Player)
+    if (PC)
     {
-        Player->MulticastRPCInitCharacter();
+        PC->InitPawn(GenderType);
     }
+    GemType = InGemType;
 }
 
 void AQLPlayerState::MulticastRPCUpdateStorageWidget_Implementation(FName InNickname, AQLLifestoneStorageBox* StorageBox)

@@ -3,8 +3,9 @@
 
 #include "Gimmick/QLAISpawner.h"
 #include "GameFramework/PlayerStart.h"
-#include "Character/QLCharacterNonPlayer.h"
 #include "EngineUtils.h"
+#include "Character/QLCharacterNonPlayer.h"
+
 #include "Game/QLGameMode.h"
 #include "Physics/QLCollision.h"
 
