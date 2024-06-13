@@ -25,6 +25,7 @@
 #include "GameFramework/PlayerStart.h"
 #include "Physics/QLCollision.h"
 #include "EngineUtils.h"
+#include "Game/QLGameInstance.h"
 
 AQLPlayerController::AQLPlayerController()
 {
@@ -181,7 +182,6 @@ void AQLPlayerController::SettingNickname()
 void AQLPlayerController::InitPawn(int Type)
 {
 
-
 	//½ºÄÌ·¹Å»À» ¹Ù²Û´Ù.
 	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
 	AQLCharacterPlayer* NewPawn = nullptr;
@@ -233,6 +233,17 @@ void AQLPlayerController::InitPawn(int Type)
 
 			}
 		}
+	}
+}
+
+void AQLPlayerController::InitStoneTexture(int GemType)
+{
+	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
+	if (UserWidget)
+	{
+		UserWidget->SettingStoneImg(DataManager->GemTexture(GemType));
 	}
 }
 
@@ -333,6 +344,13 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::Win);
 	SetHiddenHUD(EHUDType::Death);
 	SetHiddenHUD(EHUDType::Loading);
+	UQLGameInstance* GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
+
+	if (GameInstance)
+	{
+		InitStoneTexture(GameInstance->GetGemMatType());
+	}
+
 
 	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 	if (QLCharacter)

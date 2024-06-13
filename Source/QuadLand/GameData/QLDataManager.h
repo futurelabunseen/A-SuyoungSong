@@ -24,7 +24,10 @@ public:
 	TSubclassOf<class AQLItemBox> GetItemBoxClass(EItemType ItemId);
 
 	TSubclassOf<class AQLCharacterPlayer> GetSkeletalMesh(int Idx);
-	const class UQLGemData* GetGemData(int Idx);
+	
+	class UTexture2D* GemTexture(int Type);
+	
+	class UMaterialInterface* GemColor(int Type);
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 

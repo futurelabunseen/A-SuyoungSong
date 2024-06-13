@@ -130,7 +130,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Battle)
 	TSubclassOf<class AQLPlayerLifeStone> LifeStoneClass;
 
-	UPROPERTY(EditAnywhere,Category = Battle)
+	UPROPERTY(Replicated, Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UMaterialInterface> LifeStoneMaterial;
 
 	friend class AQLCharacterPlayer;

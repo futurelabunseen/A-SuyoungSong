@@ -72,7 +72,7 @@ public:
 
 	void BlinkBag();
 
-
+	void InitStoneTexture(int GemType);
 	void Win();
 	void Loose();
 

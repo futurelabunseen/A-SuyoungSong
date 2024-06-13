@@ -53,10 +53,16 @@ TSubclassOf<AQLCharacterPlayer> UQLDataManager::GetSkeletalMesh(int Idx)
 	return InitDataManager->GenderPawn[Idx];
 }
 
-const UQLGemData* UQLDataManager::GetGemData(int Idx)
+UTexture2D* UQLDataManager::GemTexture(int Type)
 {
-	return InitDataManager->GemData[Idx];
+	return InitDataManager->GemData[Type]->GetTexture();
 }
+
+UMaterialInterface* UQLDataManager::GemColor(int Type)
+{
+	return InitDataManager->GemData[Type]->GetMaterial();
+}
+
 
 void UQLDataManager::Initialize(FSubsystemCollectionBase& Collection)
 {

@@ -161,7 +161,6 @@ void AQLCharacterPlayer::OnRep_Controller()
 		PlayerController->CreateHUD();
 	}
 
-
 }
 
 
@@ -235,7 +234,6 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);	
 
-	QL_LOG(QLLog, Log, TEXT("1"));
 	QLInputComponent->InitPlayerImputComponent(PlayerInputComponent);
 }
 
@@ -244,14 +242,10 @@ void AQLCharacterPlayer::SetCharacterControl()
 
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
 
-	QL_LOG(QLLog, Log, TEXT("1"));
 	if (PlayerController)
 	{
-		QL_LOG(QLLog, Log, TEXT("2"));
 		if (UEnhancedInputLocalPlayerSubsystem* SubSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			QL_LOG(QLLog, Log, TEXT("3"));
-
 			SubSystem->ClearAllMappings(); //모든 매핑 취소
 			UInputMappingContext* NewMappingContext = InputMappingContext;
 
@@ -261,7 +255,7 @@ void AQLCharacterPlayer::SetCharacterControl()
 			}
 		}
 
-		if (HasAuthority())
+		if (HasAuthority() && PlayerController->HUDNum() == 0)
 		{
 			PlayerController->CreateHUD();
 		}

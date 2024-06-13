@@ -42,6 +42,9 @@ public:
 	void UpdateProgressTime(const FString &InTime);
 
 	void SettingNickname(const FString& InNickname);
+
+	void SettingStoneImg(class UTexture2D* StoneImg);
+
 protected:
 	virtual void NativeConstruct() override;
 	FTimerHandle HiddenTimer;
