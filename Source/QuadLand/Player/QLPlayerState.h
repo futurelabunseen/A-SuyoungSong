@@ -72,6 +72,8 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCPutLifeStone(); //서버에게 눌렀음을 전달
+
+	void InitPawn();
 protected:
 
 	UPROPERTY(EditAnywhere, Category = GAS)
@@ -133,10 +135,10 @@ protected:
 
 	friend class AQLCharacterPlayer;
 
-	UPROPERTY(ReplicatedUsing = OnRep_InitGenderType,Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Replicated,Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
 	int GenderType;
 
-	UPROPERTY(ReplicatedUsing = OnRep_InitGemType,Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Replicated,Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
 	int GemType;
 
 
@@ -144,12 +146,6 @@ protected:
 	
 	UFUNCTION(Server,Reliable)
 	void ServerRPCInitType(int InGenderType, int InGemType);
-
-	UFUNCTION()
-	void OnRep_InitGenderType();
-
-	UFUNCTION()
-	void OnRep_InitGemType();
 
 };
 

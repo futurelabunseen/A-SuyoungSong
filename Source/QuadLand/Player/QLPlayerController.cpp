@@ -181,6 +181,7 @@ void AQLPlayerController::SettingNickname()
 void AQLPlayerController::InitPawn(int Type)
 {
 
+
 	//½ºÄÌ·¹Å»À» ¹Ù²Û´Ù.
 	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
 	AQLCharacterPlayer* NewPawn = nullptr;
@@ -214,20 +215,18 @@ void AQLPlayerController::InitPawn(int Type)
 
 				if (bResult == false)
 				{
-					const FTransform SpawnTransform(StartLocation + FVector::UpVector * 88.0f);
+					const FTransform SpawnTransform(StartLocation);
 					AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-					
+
 					FActorSpawnParameters SpawnParams;
 
 					NewPawn = GetWorld()->SpawnActorDeferred<AQLCharacterPlayer>(DataManager->GetSkeletalMesh(Type), SpawnTransform);;
-					
+
 					if (NewPawn)
 					{
 						NewPawn->FinishSpawning(SpawnTransform);
-
-						Possess(NewPawn);
-
 						NewPawn->EnableInput(this);
+						Possess(NewPawn);
 					}
 					break;
 				}

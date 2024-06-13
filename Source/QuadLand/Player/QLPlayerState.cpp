@@ -146,6 +146,7 @@ void AQLPlayerState::BeginPlay()
             ServerRPCInitType(GameInstance->GetGenderType(), GameInstance->GetGemMatType());
         }
     }
+
 }
 
 
@@ -241,24 +242,35 @@ void AQLPlayerState::UpdateStorageWidget(FName InNickname, AQLLifestoneStorageBo
     MulticastRPCUpdateStorageWidget(InNickname, StorageBox);
 }
 
-void AQLPlayerState::OnRep_InitGenderType()
-{
-}
-
-void AQLPlayerState::OnRep_InitGemType()
-{
-}
-
 void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGemType)
 {
     GenderType = InGenderType;
+    GemType = InGemType;
+    //NextTick
+
+
+    FTimerHandle InitPawnTimer;
+    GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+        {
+            AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+
+            QL_LOG(QLLog, Log, TEXT("Gender Type %d"), GenderType);
+            if (PC)
+            {
+                PC->InitPawn(GenderType);
+            }
+        });
+}
+
+void AQLPlayerState::InitPawn()
+{
     AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
 
+    QL_LOG(QLLog, Log, TEXT("Gender Type %d"), GenderType);
     if (PC)
     {
         PC->InitPawn(GenderType);
     }
-    GemType = InGemType;
 }
 
 void AQLPlayerState::MulticastRPCUpdateStorageWidget_Implementation(FName InNickname, AQLLifestoneStorageBox* StorageBox)
