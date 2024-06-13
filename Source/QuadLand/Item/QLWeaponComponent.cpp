@@ -28,7 +28,8 @@ void UQLWeaponComponent::SpawnBomb()
 		return;
 	}
 
-	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
 	UQLBombStat* Stat = Cast<UQLBombStat>(DataManager->GetItem(EItemType::Bomb));
 	ACharacter* Character = Cast<ACharacter>(GetOwner());
 	if (DataManager&& Character)

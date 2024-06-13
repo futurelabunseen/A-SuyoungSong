@@ -21,6 +21,11 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Interface/QLAISpawnerInterface.h"
 #include "Net/UnrealNetwork.h"
+#include "GameData/QLDataManager.h"
+#include "GameFramework/PlayerStart.h"
+#include "Physics/QLCollision.h"
+#include "EngineUtils.h"
+#include "Game/QLGameInstance.h"
 
 AQLPlayerController::AQLPlayerController()
 {
@@ -32,7 +37,10 @@ void AQLPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ClientRPCGameStart();
+	if (HUDs.Num() == 0)
+	{
+		CreateHUD();
+	}
 }
 
 void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
@@ -171,6 +179,74 @@ void AQLPlayerController::SettingNickname()
 	}
 }
 
+void AQLPlayerController::InitPawn(int Type)
+{
+
+	//스켈레탈을 바꾼다.
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+	AQLCharacterPlayer* NewPawn = nullptr;
+	if (DataManager)
+	{
+		for (const auto& Entry : FActorRange(GetWorld()))
+		{
+			APlayerStart* PlayerStart = Cast<APlayerStart>(Entry);
+
+			if (PlayerStart)
+			{
+				//PlayerStart 위치에서 라인트레이스를 쏘고, APawn이 없다면 그 위치에 Pawn 생성
+
+				FCollisionQueryParams CollisionParams(SCENE_QUERY_STAT(GroundCheckLineTrace), false, this); //식별자 
+
+				FHitResult OutHitResult;
+
+				FVector StartLocation = PlayerStart->GetActorLocation();
+
+				FVector EndLocation = StartLocation + 150.0f * PlayerStart->GetActorUpVector() * -1;
+
+				bool bResult = GetWorld()->SweepSingleByChannel(
+					OutHitResult,
+					StartLocation,
+					EndLocation,
+					FQuat::Identity,
+					CCHANNEL_QLACTION, // 트레이스 채널 (적절한 채널로 변경 가능)
+					FCollisionShape::MakeSphere(80.0f),
+					CollisionParams
+				);
+
+				if (bResult == false)
+				{
+					const FTransform SpawnTransform(StartLocation);
+					AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+
+					FActorSpawnParameters SpawnParams;
+
+					NewPawn = GetWorld()->SpawnActorDeferred<AQLCharacterPlayer>(DataManager->GetSkeletalMesh(Type), SpawnTransform);;
+
+					if (NewPawn)
+					{
+						NewPawn->FinishSpawning(SpawnTransform);
+						NewPawn->EnableInput(this);
+						Possess(NewPawn);
+					}
+					break;
+				}
+
+			}
+		}
+	}
+}
+
+void AQLPlayerController::InitStoneTexture(int GemType)
+{
+	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
+	if (UserWidget)
+	{
+		UserWidget->SettingStoneImg(DataManager->GemTexture(GemType));
+	}
+}
+
 void AQLPlayerController::ClientRPCUpdateLivePlayer_Implementation(int16 InLivePlayer)
 {
 	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
@@ -268,6 +344,13 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::Win);
 	SetHiddenHUD(EHUDType::Death);
 	SetHiddenHUD(EHUDType::Loading);
+	UQLGameInstance* GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
+
+	if (GameInstance)
+	{
+		InitStoneTexture(GameInstance->GetGemMatType());
+	}
+
 
 	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 	if (QLCharacter)

@@ -167,3 +167,11 @@ void UQLUserWidget::SettingNickname(const FString& InNickname)
 		TxtNickname->SetText(FText::FromString(InNickname));
 	}
 }
+
+void UQLUserWidget::SettingStoneImg(UTexture2D *StoneImg)
+{
+	if (IMGStone)
+	{
+		IMGStone->SetBrushFromTexture(StoneImg);
+	}
+}

@@ -18,6 +18,11 @@ class QUADLAND_API AQLGameMode : public AGameMode , public IQLAISpawnerInterface
 public:
 	AQLGameMode();
 
+
+	virtual void SetPlayerDefaults(APawn* PlayerPawn) override;
+
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
 	virtual void SpawnAI() override;
 
 	bool GetPlayerState(FName Name) { return PlayerDieStatus[Name]; }
@@ -31,7 +36,6 @@ public:
 	UFUNCTION()
 	void AddPlayer(FName PlayerName);
 
-	virtual void HandleSeamlessTravelPlayer(AController*& C) override;
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	int32 LivePlayerCount;

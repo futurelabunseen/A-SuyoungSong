@@ -22,6 +22,8 @@
 #include "Game/QLGameInstance.h"
 #include "GameFramework/GameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameData/QLDataManager.h"
+
 AQLPlayerState::AQLPlayerState()
 {
     ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
@@ -139,7 +141,7 @@ void AQLPlayerState::BeginPlay()
 
     if (GameInstance)
     {
-        APlayerController* PC = Cast<APlayerController>(GetOwner());
+        AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner());
 
         if (PC && PC->IsLocalController())
         {
@@ -147,6 +149,7 @@ void AQLPlayerState::BeginPlay()
         }
     }
 }
+
 
 
 void AQLPlayerState::OnChangedStamina(const FOnAttributeChangeData& Data)
@@ -245,13 +248,27 @@ void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGe
 {
     GenderType = InGenderType;
     GemType = InGemType;
+    UQLGameInstance* GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
+    UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
 
-    AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetPawn());
-
-    if (Player)
+    if (DataManager)
     {
-        Player->MulticastRPCInitCharacter();
+        LifeStoneMaterial = DataManager->GemColor(GameInstance->GetGemMatType());
     }
+
+    FTimerHandle InitPawnTimer;
+    GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+        {
+            AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+
+            QL_LOG(QLLog, Log, TEXT("Gender Type %d"), GenderType);
+            if (PC)
+            {
+                PC->InitPawn(GenderType);
+            }
+        });
+
+
 }
 
 void AQLPlayerState::MulticastRPCUpdateStorageWidget_Implementation(FName InNickname, AQLLifestoneStorageBox* StorageBox)
@@ -323,6 +340,10 @@ void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
         FActorSpawnParameters Params;
         Params.Owner = this;
         LifeStone = GetWorld()->SpawnActor<AQLPlayerLifeStone>(LifeStoneClass,Location, FRotator::ZeroRotator, Params);
+        GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+            {
+                LifeStone->GetMesh()->SetMaterial(0, LifeStoneMaterial);
+            });
         LifeStone->InitPosition();
         ClientRPCConcealLifeStoneUI();
         bHasLifeStone = false;
@@ -417,4 +438,5 @@ void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     DOREPLIFETIME(AQLPlayerState, bHasLifeStone);
     DOREPLIFETIME(AQLPlayerState, GenderType);
     DOREPLIFETIME(AQLPlayerState, GemType);
+    DOREPLIFETIME(AQLPlayerState, LifeStoneMaterial);
 }

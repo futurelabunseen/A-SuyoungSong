@@ -78,9 +78,6 @@ public:
 	UFUNCTION(Server,Reliable)
 	void ServerRPCInitCharacter();
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastRPCInitCharacter();
-
 protected:
 
 	uint8 bIsProning : 1;

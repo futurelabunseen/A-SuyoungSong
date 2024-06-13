@@ -12,16 +12,11 @@
 #include "GameplayTag/GamplayTags.h"
 #include "GameFramework/Character.h"
 #include "Character/QLCharacterNonPlayer.h"
+#include "Character/QLCharacterPlayer.h"
 #include "EngineUtils.h"
 
 AQLGameMode::AQLGameMode()
 {
-	static ConstructorHelpers::FClassFinder<APawn> DefaultPawnClassRef(TEXT("/Game/QuadLand/Blueprints/BPQL_Player.BPQL_Player_C"));
-
-	if (DefaultPawnClassRef.Class)
-	{
-		DefaultPawnClass = DefaultPawnClassRef.Class;
-	}
 
 	static ConstructorHelpers::FClassFinder <AQLPlayerController> PlayerControllerClassRef(TEXT("/Game/QuadLand/Blueprints/BPQL_PlayerController.BPQL_PlayerController_C"));
 	if (PlayerControllerClassRef.Class)
@@ -36,6 +31,43 @@ AQLGameMode::AQLGameMode()
 	LivePlayerCount = 0;
 }
 
+
+void AQLGameMode::SetPlayerDefaults(APawn* PlayerPawn)
+{
+	Super::SetPlayerDefaults(PlayerPawn);
+
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(PlayerPawn);
+
+	if (Player)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Possess 1"));
+		AQLPlayerController* PC = Player->GetController<AQLPlayerController>();
+		if (PC)
+		{
+			PC->ClientRPCGameStart();
+		}
+	}
+}
+
+void AQLGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+	AQLPlayerController* PC = Cast<AQLPlayerController>(NewPlayer);
+
+	if (PC == nullptr)
+	{
+		QL_LOG(QLNetLog, Error, TEXT("PlayerController Error %s"), *PC->GetName());
+		return;
+	}
+
+
+	AQLPlayerState* PS = PC->GetPlayerState<AQLPlayerState>();
+
+	if (PS)
+	{
+		AddPlayer(FName(PS->GetName()));
+	}
+}
 
 void AQLGameMode::SpawnAI()
 {
@@ -134,27 +166,6 @@ void AQLGameMode::AddPlayer(FName PlayerName)
 {
 	PlayerDieStatus.Add(PlayerName, false);
 	LivePlayerCount++;
-}
-
-void AQLGameMode::HandleSeamlessTravelPlayer(AController*& C)
-{
-	Super::HandleSeamlessTravelPlayer(C);
-
-	AQLPlayerController* PC = Cast<AQLPlayerController>(C);
-
-	if (PC == nullptr)
-	{
-		QL_LOG(QLNetLog, Error, TEXT("PlayerController Error %s"), *PC->GetName());
-		return;
-	}
-
-	
-	AQLPlayerState* PS = C->GetPlayerState<AQLPlayerState>();
-
-	if (PS)
-	{
-		AddPlayer(FName(PS->GetName()));
-	}
 }
 
 void AQLGameMode::GameStart()

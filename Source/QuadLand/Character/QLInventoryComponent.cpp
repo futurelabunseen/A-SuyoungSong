@@ -79,7 +79,8 @@ void UQLInventoryComponent::ServerRPCRemoveItem_Implementation(EItemType InItemI
 	{
 		return;
 	}
-	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
 	//아이템을 보관하고 있는 Manager 가져온다.
 
 	//이부분 새로 생성해서 전달하도록 변경 했음.
@@ -122,7 +123,8 @@ void UQLInventoryComponent::ClientRPCRemoveItem_Implementation(EItemType InItemI
 		return;
 	}
 
-	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
 	UQLItemData* ItemData = DataManager->GetItem(InItemId);
 
 	InventoryItem[InItemId] = ItemCnt;
@@ -214,7 +216,8 @@ void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EI
 						{
 							return;
 						}
-						UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+						UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
 						UQLItemData* Data = DataManager->GetItem(ItemId);
 						IQLGetItemStat* ItemStat = CastChecked<IQLGetItemStat>(Data);
 						PS->SetAmmoStat(ItemStat->GetStat());
@@ -297,7 +300,8 @@ void UQLInventoryComponent::ServerRPCAddGroundByDraggedItem_Implementation(EItem
 		return;
 	}
 
-	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
 	//아이템을 보관하고 있는 Manager 가져온다.
 
 	//이부분 새로 생성해서 전달하도록 변경 했음.
@@ -333,7 +337,8 @@ void UQLInventoryComponent::ClientRPCAddItem_Implementation(EItemType ItemId, in
 		return;
 	}
 
-	UQLDataManager* DataManager = GetWorld()->GetSubsystem<UQLDataManager>();
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
 	UQLItemData* ItemData = DataManager->GetItem(ItemId);
 
 	if (GetNetMode() == ENetMode::NM_Client)

@@ -5,14 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameData/WeaponType.h"
 #include "GameData/QLItemType.h"
-#include "Subsystems/WorldSubsystem.h"
+#include "Subsystems/GameInstanceSubsystem.h"
 #include "QLDataManager.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class QUADLAND_API UQLDataManager : public UWorldSubsystem
+class QUADLAND_API UQLDataManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 	
@@ -23,9 +23,11 @@ public:
 	class UQLItemData* GetItem(EItemType ItemId);
 	TSubclassOf<class AQLItemBox> GetItemBoxClass(EItemType ItemId);
 
-
-	class  USkeletalMesh* GetSkeletalMesh(int Idx);
-	const class UQLGemData* GetGemData(int Idx);
+	TSubclassOf<class AQLCharacterPlayer> GetSkeletalMesh(int Idx);
+	
+	class UTexture2D* GemTexture(int Type);
+	
+	class UMaterialInterface* GemColor(int Type);
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
