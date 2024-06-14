@@ -11,6 +11,7 @@
 #include "GameplayTag/GamplayTags.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "QuadLand.h"
+
 UQLGA_TakenDamage::UQLGA_TakenDamage()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -27,7 +28,6 @@ void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	if (IsLocallyControlled() && PC)
 	{
 		PC->BlinkBloodWidget();
-		QL_GASLOG(QLNetLog, Log, TEXT("this?"));
 	}
 	
 	
@@ -43,7 +43,6 @@ void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		{
 			BC->SetValueAsObject(TEXT("TargetActor"), Cast<UObject>(TriggerEventData->Instigator));
 		}
-	
 	}
 	OnCompletedCallback();
 }

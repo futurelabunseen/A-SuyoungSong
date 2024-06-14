@@ -27,7 +27,7 @@ public:
 	
 	class UTexture2D* GemTexture(int Type);
 	
-	class UMaterialInterface* GemColor(int Type);
+	TSubclassOf<class AQLPlayerLifeStone> GetLifeStoneClass(int Type);
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 

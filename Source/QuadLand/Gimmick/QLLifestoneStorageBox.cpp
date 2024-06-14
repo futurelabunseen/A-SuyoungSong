@@ -10,6 +10,7 @@
 #include "Interface/QLLifestoneContainerInterface.h"
 #include "QuadLand.h"
 #include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AQLLifestoneStorageBox::AQLLifestoneStorageBox()
@@ -38,17 +39,30 @@ AQLLifestoneStorageBox::AQLLifestoneStorageBox()
 
 	AlertComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("AlertPanel"));
 	AlertComponent->SetupAttachment(Mesh);
-	AlertComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 150.0f));
+	AlertComponent->AttachToComponent(Mesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("head"));
+
+	FVector RelativeLocation(0.f, 0.f, 150.f);
+
+	AlertComponent->SetRelativeLocation(RelativeLocation);
+	//AlertComponent->SetRelativeRotation(RelativeRotation);
+
 	static ConstructorHelpers::FClassFinder<UQLAlertPanel> AlertPanelClassRef(TEXT("/Game/QuadLand/UI/WBQL_AlertPanel.WBQL_AlertPanel_C"));
 
 	if (AlertPanelClassRef.Class)
 	{
-		AlertComponent->SetWidgetSpace(EWidgetSpace::Screen); //2D변경
+		AlertComponent->SetWidgetSpace(EWidgetSpace::World); //2D변경
 		AlertComponent->SetDrawSize(FVector2D(250.0f, 60.0f));
 		AlertComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		AlertComponent->SetWidgetClass(AlertPanelClassRef.Class);
 	}
 	AlertComponent->SetHiddenInGame(true);
+}
+
+void AQLLifestoneStorageBox::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	RotateStorageBox();
 }
 
 void AQLLifestoneStorageBox::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -77,6 +91,22 @@ void AQLLifestoneStorageBox::OnComponentEndOverlap(UPrimitiveComponent* Overlapp
 	{
 		LifeStoneInterface->CheckBoxOverlap();
 	}
+}
+void AQLLifestoneStorageBox::RotateStorageBox()
+{
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	if (!PlayerController || !PlayerController->PlayerCameraManager)
+	{
+		return;
+	}
+
+	FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation(); //현재 자신의 카메라의 위치 
+	FVector ActorLocation = GetActorLocation(); // 액터의 이동 위치
+
+	FRotator LookAtRotation = (CameraLocation - ActorLocation).Rotation(); //둘이 바라보는 위치를 빼면, Rotate 값이 나오고, 위젯 자체가 회전하는 중임.
+	LookAtRotation.Pitch = 0;  // Keep the widget upright
+
+	AlertComponent->SetWorldRotation(LookAtRotation);
 }
 
 void AQLLifestoneStorageBox::UpdateAlertPanel(FName InPlayerStateName)

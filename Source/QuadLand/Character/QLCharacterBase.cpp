@@ -54,9 +54,14 @@ AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) 
 
 	// 닉네임 생성
 	NicknameComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Nickname"));
-	NicknameComponent->SetupAttachment(GetMesh());
-	FVector Location =GetMesh()->GetSocketLocation(TEXT("head")) + FVector(0.f, 0.f, 200.f);
-	NicknameComponent->SetRelativeLocationAndRotation(Location,FRotator(0.f,-90.f,0.f));
+	NicknameComponent->SetupAttachment(GetMesh(), TEXT("head"));
+	NicknameComponent->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("head"));
+
+	FVector RelativeLocation(40.f, 0.f, 0.f);
+	FRotator RelativeRotation(0.f, -90.f, 0.f);
+
+	NicknameComponent->SetRelativeLocation(RelativeLocation);
+	NicknameComponent->SetRelativeRotation(RelativeRotation);
 
 	static ConstructorHelpers::FClassFinder<UQLNicknameWidget> NicknameRef(TEXT("/Game/QuadLand/UI/WBQL_Nickname.WBQL_Nickname_C"));
 
@@ -67,6 +72,11 @@ AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) 
 		NicknameComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		NicknameComponent->SetWidgetClass(NicknameRef.Class);
 	}
+}
+
+void AQLCharacterBase::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 bool AQLCharacterBase::bIsUsingGun()

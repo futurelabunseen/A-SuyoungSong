@@ -48,12 +48,9 @@ void UQLListItemEntry::SetItemCntTxt(int32 ItemCnt)
 
 void UQLListItemEntry::SetItemImgTexture(UTexture2D* Texture)
 {
-	UE_LOG(LogTemp, Log, TEXT("1"));
 	if (ItemImage)
 	{
-		UE_LOG(LogTemp, Log, TEXT("2"));
 		ItemImage->SetBrushFromTexture(Texture);
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("3"));
 }

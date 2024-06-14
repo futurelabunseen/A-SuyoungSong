@@ -23,4 +23,5 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Equipment)
 	TSubclassOf<class AQLBullet> BulletClass;
+
 };

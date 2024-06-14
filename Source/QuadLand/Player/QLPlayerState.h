@@ -73,6 +73,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPCPutLifeStone(); //서버에게 눌렀음을 전달
 
+	UFUNCTION(Client, Reliable)
+	void ClientRPCInitLifeStone(int InGemType);
+
 	void InitPawn();
 protected:
 
@@ -129,9 +132,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Battle)
 	TSubclassOf<class AQLPlayerLifeStone> LifeStoneClass;
-
-	UPROPERTY(Replicated, Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UMaterialInterface> LifeStoneMaterial;
 
 	friend class AQLCharacterPlayer;
 
