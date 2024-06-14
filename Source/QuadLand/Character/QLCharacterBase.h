@@ -41,10 +41,14 @@ public:
 	FORCEINLINE void SetIsReload(bool Reload) { bIsReload = Reload; }
 	FORCEINLINE void SetIsDead(bool InDead) { bIsDead = InDead; }
 	FORCEINLINE bool GetIsCrunching() const { return bIsCrouched; }
+
+	void SetNickname(const FString& Nickname);
 	UFUNCTION(Server, Reliable)
 	void ServerRPCReload(); //Reload ÇàÀ§´Â Reliable
-	FVector GetWeaponMuzzlePos();
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastRPCInitNickname(const FString& Nickname);
+	FVector GetWeaponMuzzlePos();
 	//ASC
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -94,7 +98,7 @@ protected:
 	//Turning in Place Section
 protected:
 	ETurningPlaceType TurningInPlace;
-
+	void RotateNicknameSetting();
 	void RotateBornSetting(float DeltaTime);
 	void TurnInPlace(float DeltaTime);
 
@@ -110,4 +114,10 @@ public:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastRPCGunAttackAnimMont();
+
+protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Nickname, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UWidgetComponent> NicknameComponent;
+
 };

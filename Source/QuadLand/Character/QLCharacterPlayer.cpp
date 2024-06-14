@@ -34,7 +34,8 @@
 #include "Character/QLInputComponent.h"
 #include "Character/QLInventoryComponent.h"
 #include "Game/QLGameMode.h"
-
+#include "UI/QLNicknameWidget.h"
+#include "Components/WidgetComponent.h"
 #include "QuadLand.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer) :
@@ -102,6 +103,11 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	{
 		GetMesh()->SetAnimClass(AnimInstanceRef.Class);
 	}
+
+	BombPath = CreateDefaultSubobject<USplineComponent>(TEXT("BombPath"));
+	BombPath->SetupAttachment(GetMesh(), TEXT("Bomb"));
+	BombPath->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+	BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
 }
 
 /// <summary>
@@ -111,13 +117,8 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 void AQLCharacterPlayer::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
-	AQLPlayerState* QLPlayerState = Cast<AQLPlayerState>(GetPlayerState());
-
-	if (QLPlayerState)
-	{
-		SetupStartAbilities();
-	}
+	
+	SetupStartAbilities();
 	InitializeAttributes();
 
 	if (ASC)
@@ -179,14 +180,6 @@ void AQLCharacterPlayer::BeginPlay()
 
 	Weapon->Weapon->SetHiddenInGame(true); //Mesh 게임에서 안보이도록 해놓음
 
-	if (IsLocallyControlled())
-	{
-		BombPath = NewObject<USplineComponent>(this, TEXT("BombPath"));
-		BombPath->SetupAttachment(GetMesh(), TEXT("Bomb"));
-		BombPath->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
-		BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
-	}
-
 	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AQLCharacterPlayer::OnPlayMontageNotifyBegin);
 
 	if (!HorizontalRecoil || !VerticalRecoil)
@@ -205,6 +198,7 @@ void AQLCharacterPlayer::BeginPlay()
 
 	StartHeight = GetActorLocation().Z;
 
+	ServerRPCInitNickname();
 }
 
 void AQLCharacterPlayer::InitializeAttributes()
@@ -228,6 +222,11 @@ void AQLCharacterPlayer::InitializeAttributes()
 	{
 		FActiveGameplayEffectHandle ActiveGEHandle = ASC->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), ASC.Get());
 	}
+}
+
+void RotateWidgetComponent()
+{
+
 }
 
 void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -258,6 +257,7 @@ void AQLCharacterPlayer::SetCharacterControl()
 		if (HasAuthority() && PlayerController->HUDNum() == 0)
 		{
 			PlayerController->CreateHUD();
+			AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
 		}
 	}
 
@@ -452,6 +452,7 @@ FVector AQLCharacterPlayer::CalPlayerLocalCameraStartPos()
 {
 	return  Camera->GetComponentLocation() + GetCameraForward() * CameraSpringArm->TargetArmLength;
 }
+
 
 FVector AQLCharacterPlayer::GetCameraForward()
 {
@@ -794,9 +795,13 @@ int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 	return QLInventory->GetInventoryCnt(ItemType);
 }
 
-void AQLCharacterPlayer::ServerRPCInitCharacter_Implementation()
+void AQLCharacterPlayer::ServerRPCInitNickname_Implementation()
 {
-
+	AQLPlayerState* PS = Cast<AQLPlayerState>(GetPlayerState());
+	if (PS)
+	{
+		MulticastRPCInitNickname(PS->GetPlayerName());
+	}
 }
 
 void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)

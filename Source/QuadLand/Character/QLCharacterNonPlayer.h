@@ -64,8 +64,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AttackOffset)
 	FVector2D ZRandOffset;
 	
-
 	UFUNCTION()
 	void PerceptionUpdated(const TArray<AActor*>& UpdatedActors);
+
+	
+	UPROPERTY(EditAnywhere, Category = Nicknames)
+	TObjectPtr<class UQLNickname> Nicknames;
 
 };

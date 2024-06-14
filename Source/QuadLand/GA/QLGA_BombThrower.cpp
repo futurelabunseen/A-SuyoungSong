@@ -30,9 +30,13 @@ void UQLGA_BombThrower::InputPressed(const FGameplayAbilitySpecHandle Handle, co
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
 
-	if (Player)
+	if (Player && IsLocallyControlled())
 	{
-		Player->GetBombPath()->SetHiddenInGame(false);
+		USplineComponent* BombPath = Player->GetBombPath();
+		if (BombPath)
+		{
+			BombPath->SetHiddenInGame(false);
+		}
 	}
 }
 
@@ -48,8 +52,8 @@ void UQLGA_BombThrower::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	
 	AnimSpeedRate = 1.0f;
 	GrapAndThrowMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("ThrowAnimMontage"), ThrowAnimMontage, AnimSpeedRate, FName("Grap"));
-	//GrapAndThrowMontage->OnCompleted.AddDynamic(this, &UQLGA_BombThrower::OnCompletedCallback);
-	//GrapAndThrowMontage->OnInterrupted.AddDynamic(this, &UQLGA_BombThrower::OnInterruptedCallback);
+	GrapAndThrowMontage->OnCompleted.AddDynamic(this, &UQLGA_BombThrower::OnCompletedCallback);
+	GrapAndThrowMontage->OnInterrupted.AddDynamic(this, &UQLGA_BombThrower::OnInterruptedCallback);
 	GrapAndThrowMontage->ReadyForActivation();
 
 }
@@ -73,6 +77,8 @@ void UQLGA_BombThrower::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {	
+	ServerRPCAttackHitCheck();
+
 	MontageJumpToSection(FName("Throw"));
 	FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
@@ -82,11 +88,12 @@ void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, c
 	Player->GetInventory()->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType));
 	if (Player)
 	{
-		Player->GetBombPath()->SetHiddenInGame(true);
+		USplineComponent* BombPath = Player->GetBombPath();
+		if (BombPath)
+		{
+			BombPath->SetHiddenInGame(true);
+		}
 	}
-
-	ServerRPCAttackHitCheck();
-	OnCompletedCallback();
 }
 
 void UQLGA_BombThrower::OnCompletedCallback()
@@ -110,10 +117,17 @@ void UQLGA_BombThrower::OnInterruptedCallback()
 void UQLGA_BombThrower::ServerRPCAttackHitCheck_Implementation()
 {
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
-	Player->GetWeapon()->OnDestoryBomb.ExecuteIfBound();
-
+	
+	const UQLWeaponComponent* WeaponComp = Player->GetWeapon();
+	if (WeaponComp)
+	{
+		if (WeaponComp->OnDestoryBomb.IsBound())
+		{
+			WeaponComp->OnDestoryBomb.ExecuteIfBound();
+		}
+	}
+	
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
 	ASC->TryActivateAbilitiesByTag(TargetTag);
-	OnCompletedCallback();
 }

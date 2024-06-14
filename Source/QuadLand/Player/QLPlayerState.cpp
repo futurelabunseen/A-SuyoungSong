@@ -244,6 +244,32 @@ void AQLPlayerState::UpdateStorageWidget(FName InNickname, AQLLifestoneStorageBo
     MulticastRPCUpdateStorageWidget(InNickname, StorageBox);
 }
 
+void AQLPlayerState::OnRep_PlayerName()
+{
+    Super::OnRep_PlayerName();
+
+    AQLCharacterBase* Character = GetPawn<AQLCharacterBase>();
+
+    if (Character)
+    {
+        Character->SetNickname(GetPlayerName());
+    }
+}
+
+void AQLPlayerState::SetPlayerName(const FString& S)
+{
+    Super::SetPlayerName(S);
+    AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
+
+    QL_LOG(QLLog, Log, TEXT("Player Name 1"));
+    if (Character)
+    {
+
+        QL_LOG(QLLog, Log, TEXT("Player Name 2"));
+        Character->SetNickname(S);
+    }
+}
+
 void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGemType)
 {
     GenderType = InGenderType;
@@ -256,15 +282,15 @@ void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGe
         LifeStoneMaterial = DataManager->GemColor(GameInstance->GetGemMatType());
     }
 
+    TObjectPtr<AQLPlayerState> PS = this;
     FTimerHandle InitPawnTimer;
-    GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+    GetWorld()->GetTimerManager().SetTimerForNextTick([PS]()
         {
-            AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+            AQLPlayerController* PC = Cast<AQLPlayerController>(PS->GetOwner()); //소유권은 PC가 가짐
 
-            QL_LOG(QLLog, Log, TEXT("Gender Type %d"), GenderType);
             if (PC)
             {
-                PC->InitPawn(GenderType);
+                PC->InitPawn(PS->GenderType);
             }
         });
 

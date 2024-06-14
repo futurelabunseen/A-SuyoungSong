@@ -56,6 +56,7 @@ public:
 	void AddGroundByDraggedItem(EItemType ItemIdx, int32 CurrentItemCnt);
 	void ConcealLifeStone();
 
+	virtual void OnPossess(APawn* aPawn) override;
 	UFUNCTION(BlueprintCallable)
 	void CloseHUD(EHUDType UItype);
 

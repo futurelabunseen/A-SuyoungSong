@@ -12,6 +12,8 @@
 #include "Item/QLWeaponComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+#include "Components/WidgetComponent.h"
+#include "UI/QLNicknameWidget.h"
 #include "QuadLand.h"
 AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), CurrentAttackType(ECharacterAttackType::GunAttack)
 {
@@ -48,6 +50,23 @@ AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) 
 	// Mesh Component
 	Weapon = CreateDefaultSubobject<UQLWeaponComponent>(TEXT("Weapon"));
 	Weapon->Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
+
+
+	// 닉네임 생성
+	NicknameComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Nickname"));
+	NicknameComponent->SetupAttachment(GetMesh());
+	FVector Location =GetMesh()->GetSocketLocation(TEXT("head")) + FVector(0.f, 0.f, 200.f);
+	NicknameComponent->SetRelativeLocationAndRotation(Location,FRotator(0.f,-90.f,0.f));
+
+	static ConstructorHelpers::FClassFinder<UQLNicknameWidget> NicknameRef(TEXT("/Game/QuadLand/UI/WBQL_Nickname.WBQL_Nickname_C"));
+
+	if (NicknameRef.Class)
+	{
+		NicknameComponent->SetWidgetSpace(EWidgetSpace::World); //2D변경
+		NicknameComponent->SetDrawSize(FVector2D(250.0f, 30.0f));
+		NicknameComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		NicknameComponent->SetWidgetClass(NicknameRef.Class);
+	}
 }
 
 bool AQLCharacterBase::bIsUsingGun()
@@ -58,6 +77,24 @@ bool AQLCharacterBase::bIsUsingGun()
 UAbilitySystemComponent* AQLCharacterBase::GetAbilitySystemComponent() const
 {
 	return ASC;
+}
+
+void AQLCharacterBase::SetNickname(const FString& Nickname)
+{
+	UQLNicknameWidget* Panel = Cast<UQLNicknameWidget>(NicknameComponent->GetWidget());
+
+	QL_LOG(QLLog, Log, TEXT("Player Name 3"));
+	if (Panel)
+	{
+
+		QL_LOG(QLLog, Log, TEXT("Player Name 4"));
+		Panel->SetNickname(Nickname);
+	}
+}
+
+void AQLCharacterBase::MulticastRPCInitNickname_Implementation(const FString &Nickname)
+{
+	SetNickname(Nickname);
 }
 
 FVector AQLCharacterBase::GetWeaponMuzzlePos()
@@ -82,7 +119,24 @@ void AQLCharacterBase::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	RotateBornSetting(DeltaSeconds);
+	RotateNicknameSetting();
+}
 
+void AQLCharacterBase::RotateNicknameSetting()
+{
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	if (!PlayerController || !PlayerController->PlayerCameraManager)
+	{
+		return;
+	}
+
+	FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation(); //현재 자신의 카메라의 위치 
+	FVector ActorLocation = GetActorLocation(); // 액터의 이동 위치
+
+	FRotator LookAtRotation = (CameraLocation - ActorLocation).Rotation(); //둘이 바라보는 위치를 빼면, Rotate 값이 나오고, 위젯 자체가 회전하는 중임.
+	LookAtRotation.Pitch = 0;  // Keep the widget upright
+
+	NicknameComponent->SetWorldRotation(LookAtRotation);
 }
 
 void AQLCharacterBase::RotateBornSetting(float DeltaTime)

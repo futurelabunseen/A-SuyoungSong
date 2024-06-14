@@ -54,7 +54,6 @@ public:
 	 virtual void Tick(float DeltaSeconds) override;
 	//Attack을 위한 카메라 위치 가져오기
 	FVector CalPlayerLocalCameraStartPos();
-	
 	FVector GetCameraForward();
 
 	//const class UQLWeaponStat* GetWeaponStat() const;
@@ -74,10 +73,9 @@ public:
 	class UQLInventoryComponent* GetInventory() { return QLInventory; }
 
 	int GetInventoryCnt(EItemType ItemType);
-	
-	UFUNCTION(Server,Reliable)
-	void ServerRPCInitCharacter();
 
+	UFUNCTION(Server,Unreliable)
+	void ServerRPCInitNickname();
 protected:
 
 	uint8 bIsProning : 1;
@@ -111,6 +109,9 @@ protected:
 
 	UFUNCTION(Server, Unreliable)
 	void ServerRPCSwitchAttackType(ECharacterAttackType InputKey);
+
+
+	void RotateWidgetComponent();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastRPCSwitchAttackType(ECharacterAttackType InputKey);

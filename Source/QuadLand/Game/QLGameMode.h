@@ -18,7 +18,6 @@ class QUADLAND_API AQLGameMode : public AGameMode , public IQLAISpawnerInterface
 public:
 	AQLGameMode();
 
-
 	virtual void SetPlayerDefaults(APawn* PlayerPawn) override;
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
