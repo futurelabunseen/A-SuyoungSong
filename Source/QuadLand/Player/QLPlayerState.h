@@ -147,6 +147,9 @@ protected:
 	UFUNCTION(Server,Reliable)
 	void ServerRPCInitType(int InGenderType, int InGemType);
 
+	virtual void OnRep_PlayerName() override;
+	/** set the player name to S */
+	virtual void SetPlayerName(const FString& S) override;
 };
 
 /*

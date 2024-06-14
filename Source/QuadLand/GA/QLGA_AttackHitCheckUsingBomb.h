@@ -38,6 +38,10 @@ protected:
 	void SpawnFire();
 
 
-	UFUNCTION(NetMulticast, Unreliable)
+	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRPCShowGameplayCue();
+
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCShowGameplayCue();
 };

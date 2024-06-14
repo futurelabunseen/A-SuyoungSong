@@ -123,20 +123,13 @@ void UQLGA_AttackHitCheckUsingBomb::OnCompletedCallback()
 	}
 	
 
-	if (HasAuthority(&CurrentActivationInfo))
-	{
-		AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(CurrentActorInfo->AvatarActor.Get());
-		if (Character)
-		{
-			MulticastRPCShowGameplayCue();
-		}
-	}
+	ServerRPCShowGameplayCue();
 
 }
 
 void UQLGA_AttackHitCheckUsingBomb::SpawnFire()
 {
-	if (HasAuthority(&CurrentActivationInfo)&& Bomb.IsValid())
+	if (HasAuthority(&CurrentActivationInfo)&& Bomb.IsValid() && Bomb!=nullptr)
 	{
 		FCollisionQueryParams Params(SCENE_QUERY_STAT(FireCollision), false);
 		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
@@ -176,12 +169,17 @@ void UQLGA_AttackHitCheckUsingBomb::SpawnFire()
 			}
 
 		}
+		Bomb->SetLifeSpan(0.5f);
 	}
-
 
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = false;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UQLGA_AttackHitCheckUsingBomb::ServerRPCShowGameplayCue_Implementation()
+{
+	MulticastRPCShowGameplayCue();
 }
 
 void UQLGA_AttackHitCheckUsingBomb::MulticastRPCShowGameplayCue_Implementation()

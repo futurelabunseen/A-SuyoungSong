@@ -26,7 +26,7 @@
 #include "Physics/QLCollision.h"
 #include "EngineUtils.h"
 #include "Game/QLGameInstance.h"
-
+#include "GameFramework/GameModeBase.h"
 AQLPlayerController::AQLPlayerController()
 {
 	bStartGame = false;
@@ -55,6 +55,16 @@ void AQLPlayerController::SetVisibilityHUD(EHUDType UItype)
 	if (IsLocalController() && HUDs.Find(UItype))
 	{
 		HUDs[UItype]->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void AQLPlayerController::OnPossess(APawn* aPawn)
+{
+	Super::OnPossess(aPawn);
+
+	if (aPawn)
+	{
+		aPawn->EnableInput(this);
 	}
 }
 
@@ -181,6 +191,13 @@ void AQLPlayerController::SettingNickname()
 
 void AQLPlayerController::InitPawn(int Type)
 {
+	
+	AQLCharacterPlayer *OriginalPawn = GetPawn< AQLCharacterPlayer>();
+
+	if (OriginalPawn)
+	{
+		OriginalPawn->Destroy();
+	}
 
 	//½ºÄÌ·¹Å»À» ¹Ù²Û´Ù.
 	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
@@ -218,10 +235,11 @@ void AQLPlayerController::InitPawn(int Type)
 					const FTransform SpawnTransform(StartLocation);
 					AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
 
+
 					FActorSpawnParameters SpawnParams;
-
-					NewPawn = GetWorld()->SpawnActorDeferred<AQLCharacterPlayer>(DataManager->GetSkeletalMesh(Type), SpawnTransform);;
-
+					
+					NewPawn = GetWorld()->SpawnActorDeferred<AQLCharacterPlayer>(DataManager->GetSkeletalMesh(Type), SpawnTransform);
+					
 					if (NewPawn)
 					{
 						NewPawn->FinishSpawning(SpawnTransform);
@@ -547,6 +565,12 @@ void AQLPlayerController::SetHUDTime()
 						if (AISpawnerInterface)
 						{
 							AISpawnerInterface->SpawnAI();
+
+							AQLCharacterPlayer* CharacterPlayer = GetPawn<AQLCharacterPlayer>();
+							if (CharacterPlayer)
+							{
+								CharacterPlayer->ServerRPCInitNickname();
+							}
 						}
 
 						SetHiddenHUD(EHUDType::Loading);

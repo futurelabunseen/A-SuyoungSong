@@ -40,7 +40,6 @@ void AQLGameMode::SetPlayerDefaults(APawn* PlayerPawn)
 
 	if (Player)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Possess 1"));
 		AQLPlayerController* PC = Player->GetController<AQLPlayerController>();
 		if (PC)
 		{

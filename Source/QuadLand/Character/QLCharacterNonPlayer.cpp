@@ -14,6 +14,7 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Game/QLGameMode.h"
 #include "QuadLand.h"
+#include "GameData/QLNickname.h"
 #include "Math/NumericLimits.h"
 
 AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -86,6 +87,13 @@ void AQLCharacterNonPlayer::BeginPlay()
 	Super::BeginPlay();
 	ASC->RegisterGameplayTagEvent(CHARACTER_ATTACK_TAKENDAMAGE, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterNonPlayer::AQLCharacterNonPlayer::AttachTakeDamageTag);
 	ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterNonPlayer::Dead);
+
+
+	int Idx = FMath::RandRange(0, Nicknames->Nickname.Num());
+	if (Nicknames->Nickname.Num() > Idx)
+	{
+		MulticastRPCInitNickname(Nicknames->Nickname[Idx]);
+	}
 }
 
 
