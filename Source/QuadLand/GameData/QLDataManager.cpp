@@ -8,6 +8,7 @@
 #include "GameData/QLSelectionData.h"
 #include "GameData/QLGemData.h"
 #include "Character/QLCharacterPlayer.h"
+#include "Player/QLPlayerLifeStone.h"
 
 UQLDataManager::UQLDataManager()
 {
@@ -58,9 +59,9 @@ UTexture2D* UQLDataManager::GemTexture(int Type)
 	return InitDataManager->GemData[Type]->GetTexture();
 }
 
-UMaterialInterface* UQLDataManager::GemColor(int Type)
+TSubclassOf<AQLPlayerLifeStone> UQLDataManager::GetLifeStoneClass(int Type)
 {
-	return InitDataManager->GemData[Type]->GetMaterial();
+	return InitDataManager->GemData[Type]->GetLifeStoneClass();
 }
 
 

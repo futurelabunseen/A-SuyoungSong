@@ -18,6 +18,7 @@ public:
 	// Sets default values for this character's properties
 	AQLCharacterBase(const FObjectInitializer& ObjectInitializer);
 
+	virtual void BeginPlay() override;
 	uint8 bHasGun : 1;
 
 	/*AI와 같이 사용, InputAction*/
