@@ -84,7 +84,7 @@ protected:
 	TMap<ECharacterAttackType, TObjectPtr<class UAnimMontage>> AttackAnimMontage;
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<class UGameplayEffect> DefaultAttributes;
+	TSubclassOf<class UGameplayEffect> DefaultEffects;
 
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TArray<TSubclassOf<class UGameplayAbility>> StartAbilities;

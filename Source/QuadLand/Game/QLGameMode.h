@@ -35,10 +35,13 @@ public:
 	UFUNCTION()
 	void AddPlayer(FName PlayerName);
 
+
+	UFUNCTION()
+	void SpawnPlayerPawn(APlayerController*Contoller,int Type);
+
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	int32 LivePlayerCount;
-
 private:
 
 	void GameStart();

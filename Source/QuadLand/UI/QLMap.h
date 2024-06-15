@@ -24,6 +24,7 @@ public:
 
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
+	void ResetPlayer();
 protected:
 	
 	FTimerHandle ShowTimerHandle;

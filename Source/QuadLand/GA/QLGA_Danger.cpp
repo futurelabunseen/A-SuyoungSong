@@ -36,14 +36,29 @@ void UQLGA_Danger::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
+void UQLGA_Danger::ServerRPCDead_Implementation()
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+
+	FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
+	
+	if (ASC && ASC->HasAnyMatchingGameplayTags(TargetTag))
+	{
+		ASC->TryActivateAbilitiesByTag(TargetTag);
+	}
+}
+
 void UQLGA_Danger::OnCompleted()
 {
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
-	if (ASC)
+	FGameplayTagContainer TagContainer(CHARACTER_STATE_DEAD);
+	if (ASC && ASC->HasAnyMatchingGameplayTags(TagContainer))
 	{
-		ASC->AddLooseGameplayTag(CHARACTER_STATE_DEAD);
+		ASC->TryActivateAbilitiesByTag(TagContainer);
 	}
+
+	ServerRPCDead();
 
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = true;

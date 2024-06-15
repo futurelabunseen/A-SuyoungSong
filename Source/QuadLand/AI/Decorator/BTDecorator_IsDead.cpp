@@ -36,6 +36,5 @@ bool UBTDecorator_IsDead::CalculateRawConditionValue(UBehaviorTreeComponent& Own
 	}
 
 	FGameplayTagContainer TagContainer(CHARACTER_STATE_DEAD);
-
 	return ASC->HasAnyMatchingGameplayTags(TagContainer);
 }

@@ -22,7 +22,7 @@ void UQLReturnToLobby::SetupUI()
 	{
 		MultiplayerSessionSubsystem = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
 
-		if (MultiplayerSessionSubsystem)
+		if (MultiplayerSessionSubsystem && !MultiplayerSessionSubsystem->MultiplayerOnDestroySessionComplete.IsBound())
 		{
 			MultiplayerSessionSubsystem->MultiplayerOnDestroySessionComplete.AddDynamic(this, &UQLReturnToLobby::OnDestorySession);
 		}

@@ -36,10 +36,12 @@ public:
 
 	const class UUserWidget* GetCrossHairUIWidget() const 
 	{
+		if (HUDs.Find(EHUDType::CrossHair) == 0) return nullptr;
 		return HUDs[EHUDType::CrossHair]; 
 	}
 	class UUserWidget* GetPlayerUIWidget() const
 	{ 
+		if (HUDs.Find(EHUDType::HUD) == 0) return nullptr;
 		return HUDs[EHUDType::HUD];
 	}
 
@@ -81,6 +83,7 @@ public:
 	void CloseInventroy();
 
 	void SwitchWeaponStyle(ECharacterAttackType AttackType);
+	void SetUpdateLivePlayer(int16 InLivePlayer);
 
 	FOnDeathCheckDelegate OnDeathCheckDelegate;
 
@@ -91,8 +94,11 @@ public:
 
 	void SettingNickname();
 
-
-	void InitPawn(int Type);
+	UFUNCTION(Client, Reliable)
+	void ClientRPCCreateWidget();
+	
+	UFUNCTION(Server, Reliable)
+	void ServerRPCInitPawn(int Type);
 
 protected:
 
@@ -103,6 +109,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
 	TMap<EHUDType, TObjectPtr<class UUserWidget>> HUDs;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
+	TMap<EHUDType, TSubclassOf<class UUserWidget>> LateHUDClass;
+
 
 	FTimerHandle DeathTimerHandle;
 	

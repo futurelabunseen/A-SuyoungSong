@@ -6,8 +6,6 @@
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "Player/QLPlayerController.h"
-
-
 #include "AbilitySystemComponent.h"
 #include "GameplayTag/GamplayTags.h"
 #include "QuadLand.h"
@@ -41,9 +39,8 @@ AQLPlayerState::AQLPlayerState()
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Dead);
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_WIN, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Win);
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_NOTRUN, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::CoolTimeStamina);
-
-    
     ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
+
     bHasLifeStone = true; 
 }
 
@@ -136,17 +133,12 @@ void AQLPlayerState::BeginPlay()
         MaxStaminaChangedDeleagteHandle= ASC->GetGameplayAttributeValueChangeDelegate(PlayerStatInfo->GetMaxStaminaAttribute()).AddUObject(this, &AQLPlayerState::OnChangedMaxStamina);
     }
 
-
     UQLGameInstance* GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
 
     if (GameInstance)
     {
-        AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner());
-
-        if (PC && PC->IsLocalController())
-        {
-            ServerRPCInitType(GameInstance->GetGenderType(), GameInstance->GetGemMatType());
-        }
+        ServerRPCInitType(GameInstance->GetGenderType(), GameInstance->GetGemMatType());
+        
     }
 }
 
@@ -172,7 +164,10 @@ void AQLPlayerState::OnChangedStamina(const FOnAttributeChangeData& Data)
     {
         //Player의 QLPlayerHpBarWidget 가져옴
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        Widget->ChangedStaminaPercentage(CurrentStamina, GetMaxStamina());
+        if (Widget)
+        {
+            Widget->ChangedStaminaPercentage(CurrentStamina, GetMaxStamina());
+        }
     }
 }
 
@@ -186,12 +181,16 @@ void AQLPlayerState::OnChangedMaxStamina(const FOnAttributeChangeData& Data)
     {
         //Player의 QLPlayerHpBarWidget 가져옴
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        Widget->ChangedStaminaPercentage(GetStamina(), CurrentMaxStamina);
+        if (Widget)
+        {
+            Widget->ChangedStaminaPercentage(GetStamina(), CurrentMaxStamina);
+        }
     }
 }
 
 void AQLPlayerState::OnChangedHp(const FOnAttributeChangeData& Data)
 {
+
     float CurrentHP = Data.NewValue;
 
     AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
@@ -200,7 +199,10 @@ void AQLPlayerState::OnChangedHp(const FOnAttributeChangeData& Data)
     {
         //Player의 QLPlayerHpBarWidget 가져옴
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        Widget->ChangedHPPercentage(CurrentHP, GetMaxHealth());
+        if (Widget)
+        {
+            Widget->ChangedHPPercentage(CurrentHP, GetMaxHealth());
+        }
     }
 }
 
@@ -215,7 +217,11 @@ void AQLPlayerState::OnChangedMaxHp(const FOnAttributeChangeData& Data)
     {
         //Player의 QLPlayerHUDWidget 가져옴 -> 이름변경해야할 각이보인다;;
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        Widget->ChangedHPPercentage(GetHealth(), MaxHp);
+
+        if (Widget)
+        {
+            Widget->ChangedHPPercentage(GetHealth(), MaxHp);
+        }
     }
 }
 
@@ -229,7 +235,10 @@ void AQLPlayerState::OnChangedAmmoCnt(const FOnAttributeChangeData& Data)
     {
         //Player의 QLPlayerHUDWidget 가져옴 -> 이름변경해야할 각이보인다;;
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        Widget->ChangedAmmoCnt(CurrentAmmo);
+        if (Widget)
+        {
+            Widget->ChangedAmmoCnt(CurrentAmmo);
+        }
     }
 }
 
@@ -243,7 +252,11 @@ void AQLPlayerState::OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data)
     {
         //Player의 QLPlayerHUDWidget 가져옴 -> 이름변경해야할 각이보인다;;
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        Widget->ChangedRemainingAmmo(MaxAmmo);
+        if (Widget)
+        {
+            Widget->ChangedRemainingAmmo(MaxAmmo);
+
+        }
     }
 }
 
@@ -252,32 +265,6 @@ void AQLPlayerState::UpdateStorageWidget(FName InNickname, AQLLifestoneStorageBo
 {
     //MulticastRPC 호출
     MulticastRPCUpdateStorageWidget(InNickname, StorageBox);
-}
-
-void AQLPlayerState::OnRep_PlayerName()
-{
-    Super::OnRep_PlayerName();
-
-    AQLCharacterBase* Character = GetPawn<AQLCharacterBase>();
-
-    if (Character)
-    {
-        Character->SetNickname(GetPlayerName());
-    }
-}
-
-void AQLPlayerState::SetPlayerName(const FString& S)
-{
-    Super::SetPlayerName(S);
-    AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
-
-    QL_LOG(QLLog, Log, TEXT("Player Name 1"));
-    if (Character)
-    {
-
-        QL_LOG(QLLog, Log, TEXT("Player Name 2"));
-        Character->SetNickname(S);
-    }
 }
 
 void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGemType)
@@ -291,20 +278,19 @@ void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGe
         LifeStoneClass = DataManager->GetLifeStoneClass(GemType);
 
         ClientRPCInitLifeStone(GemType);
-    }
-
-    TObjectPtr<AQLPlayerState> PS = this;
-    GetWorld()->GetTimerManager().SetTimerForNextTick([PS]()
-        {
-            AQLPlayerController* PC = Cast<AQLPlayerController>(PS->GetOwner()); //소유권은 PC가 가짐
-
-            if (PC)
+        TObjectPtr<AQLPlayerState> PS = this;
+        GetWorld()->GetTimerManager().SetTimerForNextTick([PS]()
             {
-                PC->InitPawn(PS->GenderType);
-            }
-        });
+                AQLPlayerController* PC = Cast<AQLPlayerController>(PS->GetOwner()); //소유권은 PC가 가짐
+
+                if (PC)
+                {
+                    PC->ServerRPCInitPawn(PS->GenderType);
+                }
+            });
 
 
+    }
 }
 
 void AQLPlayerState::MulticastRPCUpdateStorageWidget_Implementation(FName InNickname, AQLLifestoneStorageBox* StorageBox)
@@ -424,19 +410,23 @@ void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
 
 void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 {
-    AQLCharacterBase* Player = Cast<AQLCharacterBase>(GetPawn());
-    if (Player && Player->GetIsDead() == false)
+    if (NewCount == 1)
     {
-        FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
-        ASC->TryActivateAbilitiesByTag(TargetTag);
-    }
-    if (HasAuthority())
-    {
-        if (Player)
+        AQLCharacterBase* Player = Cast<AQLCharacterBase>(GetPawn());
+        if (Player && Player->GetIsDead() == false)
         {
-            Player->SetIsDead(!Player->GetIsDead());
+            FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
+            ASC->TryActivateAbilitiesByTag(TargetTag);
+        }
+        if (HasAuthority())
+        {
+            if (Player)
+            {
+                Player->SetIsDead(!Player->GetIsDead());
+            }
         }
     }
+
 }
 
 void AQLPlayerState::CoolTimeStamina(const FGameplayTag CallbackTag, int32 NewCount)

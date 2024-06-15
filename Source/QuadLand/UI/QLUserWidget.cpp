@@ -38,11 +38,13 @@ void UQLUserWidget::SwitchWeaponStyle(ECharacterAttackType AttackType)
 
 void UQLUserWidget::VisibleShootingMethodUI(bool InbIsSemiAutomatic,bool Hidden)
 {
+
 	if (HiddenTimer.IsValid())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(HiddenTimer);
 		HiddenTimer.Invalidate();
 	}
+
 	if (InbIsSemiAutomatic!=bIsSemiAutomatic)
 	{ 
 		if (InbIsSemiAutomatic)
@@ -133,10 +135,8 @@ void UQLUserWidget::NativeConstruct()
 	ensure(HpBar);
 	CharacterStat = Cast<UQLPlayerHUDWidget>(GetWidgetFromName(TEXT("WidgetAmmoCnt")));//WidgetAmmoCnt
 	ensure(CharacterStat);
-
 	SwitchWeapon = Cast<UQLSwitchWeaponWidget>(GetWidgetFromName(TEXT("WidgetSwitchWeapon")));
 	ensure(SwitchWeapon);
-
 	TxtShootingMethod = Cast<UTextBlock>(GetWidgetFromName(TEXT("TxtShootingMethod")));
 	ensure(TxtShootingMethod);
 

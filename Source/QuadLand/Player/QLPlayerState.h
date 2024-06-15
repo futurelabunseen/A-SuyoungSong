@@ -12,10 +12,10 @@
  * 
  */
 UCLASS()
-class QUADLAND_API AQLPlayerState : public APlayerState , public IAbilitySystemInterface
+class QUADLAND_API AQLPlayerState : public APlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
-	
+
 public:
 	AQLPlayerState();
 
@@ -42,10 +42,12 @@ public:
 	float GetMaxAmmoCnt();
 	float GetAmmoCnt();
 
-	FORCEINLINE void SetHasLifeStone(bool InHasLifeStone) 
+	int GetGenderType() { return GenderType; }
+
+	FORCEINLINE void SetHasLifeStone(bool InHasLifeStone)
 	{
 		ClientRPCConcealLifeStoneUI();
-		bHasLifeStone = InHasLifeStone; 
+		bHasLifeStone = InHasLifeStone;
 	}
 	FORCEINLINE bool GetHasLifeStone() { return bHasLifeStone; }
 
@@ -65,9 +67,9 @@ public:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(Server, Reliable)
-	void ServerRPCConcealLifeStone(const FString &InNickname);
+	void ServerRPCConcealLifeStone(const FString& InNickname);
 
-	UFUNCTION(Client,Unreliable)
+	UFUNCTION(Client, Unreliable)
 	void ClientRPCConcealLifeStoneUI();
 
 	UFUNCTION(Server, Reliable)
@@ -77,7 +79,15 @@ public:
 	void ClientRPCInitLifeStone(int InGemType);
 
 	void InitPawn();
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCInitType(int InGenderType, int InGemType);
+
+	bool GetUpdateAttribute() { return bIsFirstAttributeUpdate; }
+	void SetUpdateAttribute() { bIsFirstAttributeUpdate = true; }
 protected:
+
+	uint8 bIsFirstAttributeUpdate :1;
 
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<class UAbilitySystemComponent> ASC;
@@ -93,7 +103,7 @@ protected:
 
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bIsWin : 1;
-			
+
 	//void SetHasLifeStone(bool InGetStone) { bHasLifeStone = true; }
 	//HUD Update Section
 protected:
@@ -117,7 +127,7 @@ protected:
 	virtual void OnChangedAmmoCnt(const FOnAttributeChangeData& Data);
 
 	virtual void OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data);
-//LifeStone Section
+	//LifeStone Section
 protected:
 	void UpdateStorageWidget(FName Nickname, class AQLLifestoneStorageBox* StorageBox);
 
@@ -135,23 +145,10 @@ protected:
 
 	friend class AQLCharacterPlayer;
 
-	UPROPERTY(Replicated,Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Replicated, Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
 	int GenderType;
 
-	UPROPERTY(Replicated,Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Replicated, Transient, VisibleAnywhere, BlueprintReadOnly, Category = Type, Meta = (AllowPrivateAccess = "true"))
 	int GemType;
 
-
-protected:
-	
-	UFUNCTION(Server,Reliable)
-	void ServerRPCInitType(int InGenderType, int InGemType);
-
-	virtual void OnRep_PlayerName() override;
-	/** set the player name to S */
-	virtual void SetPlayerName(const FString& S) override;
 };
-
-/*
-
-*/

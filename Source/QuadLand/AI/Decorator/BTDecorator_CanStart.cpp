@@ -22,6 +22,5 @@ bool UBTDecorator_CanStart::CalculateRawConditionValue(UBehaviorTreeComponent& O
 		return false;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("UBTDecorator_CanStart %d"), AIController->GetCanStartForAI());
 	return AIController->GetCanStartForAI();
 }

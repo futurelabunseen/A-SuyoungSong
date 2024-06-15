@@ -184,7 +184,7 @@ protected:
 protected:
 
 	UFUNCTION()
-	void InitializeAttributes();
+	void InitializeGAS();
 
 protected:
 
