@@ -16,6 +16,7 @@
 #include "QuadLand.h"
 #include "GameData/QLNickname.h"
 #include "Math/NumericLimits.h"
+#include "Character/QLSpectatorPawn.h"
 
 AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -39,7 +40,6 @@ AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectIni
 
 	Weapon->Weapon->SetSkeletalMesh(GunMesh);
 	
-//	AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AQLCharacterNonPlayer::UpdateTargetPerception);
 	AIPerception->OnPerceptionUpdated.AddDynamic(this, &AQLCharacterNonPlayer::PerceptionUpdated);
 	AIControllerClass = AQLAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -221,7 +221,8 @@ void AQLCharacterNonPlayer::PerceptionUpdated(const TArray<AActor*>& UpdatedActo
 
 	for (const auto TargetActor : UpdatedActors)
 	{
-		if (TargetActor == this) continue;
+		AQLSpectatorPawn* SpectatorPawn = Cast<AQLSpectatorPawn>(TargetActor);
+		if (TargetActor == this || TargetActor == SpectatorPawn) continue;
 
 		FVector TargetPos = TargetActor->GetActorLocation();
 
@@ -236,9 +237,20 @@ void AQLCharacterNonPlayer::PerceptionUpdated(const TArray<AActor*>& UpdatedActo
 		}
 	}
 
-	if (Target != nullptr)
+	AQLSpectatorPawn* SpectatorPawn = Cast<AQLSpectatorPawn>(Target);
+
+	if (SpectatorPawn != nullptr)
 	{
-		//Å¸°Ù À¯Áö
-		BC->SetValueAsObject(TEXT("TargetActor"), Target);
+		BC->SetValueAsObject(TEXT("TargetActor"), nullptr);
 	}
+	else
+	{
+		if (Target != nullptr)
+		{
+			//Å¸°Ù À¯Áö
+			BC->SetValueAsObject(TEXT("TargetActor"), Target);
+		}
+
+	}
+
 }

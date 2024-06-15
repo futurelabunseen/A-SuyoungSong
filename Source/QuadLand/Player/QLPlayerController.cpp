@@ -182,15 +182,10 @@ void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)
 
 void AQLPlayerController::SetUpdateLivePlayer(int16 InLivePlayer)
 {
-	QL_LOG(QLLog, Log, TEXT("1"));
 	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 
 	if (UserWidget)
 	{
-		QL_LOG(QLLog, Log, TEXT("2"));
-
-
-		QL_LOG(QLLog, Log, TEXT("begin"));
 		UserWidget->UpdateLivePlayer(InLivePlayer);
 	}
 }
@@ -342,7 +337,7 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::KeyGuide);
 	SetHiddenHUD(EHUDType::Win);
 	SetHiddenHUD(EHUDType::Death);
-	SetHiddenHUD(EHUDType::Loading);
+	//SetHiddenHUD(EHUDType::Loading);
 	UQLGameInstance* GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
 
 	if (GameInstance)
