@@ -133,6 +133,7 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 //Client Only 
 void AQLCharacterPlayer::OnRep_PlayerState()
 {
+
 	Super::OnRep_PlayerState();
 
 	AQLPlayerState* QLPlayerState = GetPlayerState<AQLPlayerState>();
@@ -148,11 +149,11 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
 	ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 
-	//CHARACTER_STATE_RELOAD
 }
 
 void AQLCharacterPlayer::OnRep_Controller()
 {
+
 	Super::OnRep_Controller();
 
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
@@ -167,6 +168,7 @@ void AQLCharacterPlayer::OnRep_Controller()
 
 void AQLCharacterPlayer::BeginPlay()
 {
+
 	Super::BeginPlay();
 
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
@@ -199,6 +201,7 @@ void AQLCharacterPlayer::BeginPlay()
 	StartHeight = GetActorLocation().Z;
 
 	ServerRPCInitNickname();
+
 }
 
 void AQLCharacterPlayer::InitializeAttributes()

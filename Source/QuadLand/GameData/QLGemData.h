@@ -18,12 +18,12 @@ public:
 
 	class UTexture2D* GetTexture() { return GemUITexture; }
 
-	class UMaterialInterface* GetMaterial() { return GemMaterial; }
+	TSubclassOf<class AQLPlayerLifeStone> GetLifeStoneClass() { return GemClass; }
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
 	TObjectPtr<class UTexture2D> GemUITexture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
-	TObjectPtr<class UMaterialInterface> GemMaterial;
+	TSubclassOf<class AQLPlayerLifeStone> GemClass;
 	
 };

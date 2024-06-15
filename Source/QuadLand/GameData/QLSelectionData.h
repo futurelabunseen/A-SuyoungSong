@@ -16,7 +16,7 @@ class QUADLAND_API UQLSelectionData : public UDataAsset
 	
 public:
 
-	class UMaterialInterface* GetMaterial(int Idx);
+	TSubclassOf<class AQLPlayerLifeStone> GetLifeStoneClass(int Idx);
 	class UTexture2D* GetTexture(int Idx);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Mesh)
 	TArray<TSubclassOf<class AQLCharacterPlayer>> GenderPawn; //나중엔 TMap을 사용해서 상위클래스 - 하위클래스로 두거나, 인터페이스로 묶어서 관리

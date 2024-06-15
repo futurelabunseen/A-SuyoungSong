@@ -150,6 +150,16 @@ void AQLPlayerState::BeginPlay()
     }
 }
 
+void AQLPlayerState::ClientRPCInitLifeStone_Implementation(int InGemType)
+{
+    UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
+    if (DataManager)
+    {
+        LifeStoneClass = DataManager->GetLifeStoneClass(InGemType);
+    }
+}
+
 
 
 void AQLPlayerState::OnChangedStamina(const FOnAttributeChangeData& Data)
@@ -274,16 +284,16 @@ void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGe
 {
     GenderType = InGenderType;
     GemType = InGemType;
-    UQLGameInstance* GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
     UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
 
     if (DataManager)
     {
-        LifeStoneMaterial = DataManager->GemColor(GameInstance->GetGemMatType());
+        LifeStoneClass = DataManager->GetLifeStoneClass(GemType);
+
+        ClientRPCInitLifeStone(GemType);
     }
 
     TObjectPtr<AQLPlayerState> PS = this;
-    FTimerHandle InitPawnTimer;
     GetWorld()->GetTimerManager().SetTimerForNextTick([PS]()
         {
             AQLPlayerController* PC = Cast<AQLPlayerController>(PS->GetOwner()); //소유권은 PC가 가짐
@@ -366,10 +376,6 @@ void AQLPlayerState::ServerRPCPutLifeStone_Implementation()
         FActorSpawnParameters Params;
         Params.Owner = this;
         LifeStone = GetWorld()->SpawnActor<AQLPlayerLifeStone>(LifeStoneClass,Location, FRotator::ZeroRotator, Params);
-        GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
-            {
-                LifeStone->GetMesh()->SetMaterial(0, LifeStoneMaterial);
-            });
         LifeStone->InitPosition();
         ClientRPCConcealLifeStoneUI();
         bHasLifeStone = false;
@@ -464,5 +470,4 @@ void AQLPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     DOREPLIFETIME(AQLPlayerState, bHasLifeStone);
     DOREPLIFETIME(AQLPlayerState, GenderType);
     DOREPLIFETIME(AQLPlayerState, GemType);
-    DOREPLIFETIME(AQLPlayerState, LifeStoneMaterial);
 }

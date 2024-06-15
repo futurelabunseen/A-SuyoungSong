@@ -3,12 +3,12 @@
 
 #include "GameData/QLSelectionData.h"
 #include "Engine/Texture2D.h"
-#include "Materials/MaterialInterface.h"
 #include "GameData/QLGemData.h"
+#include "Player/QLPlayerLifeStone.h"
 
-UMaterialInterface* UQLSelectionData::GetMaterial(int Idx)
+TSubclassOf<class AQLPlayerLifeStone> UQLSelectionData::GetLifeStoneClass(int Idx)
 {
-    return GemData[Idx]->GetMaterial();
+    return GemData[Idx]->GetLifeStoneClass();
 }
 
 UTexture2D* UQLSelectionData::GetTexture(int Idx)

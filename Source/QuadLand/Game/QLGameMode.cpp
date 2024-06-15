@@ -70,6 +70,7 @@ void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 
 void AQLGameMode::SpawnAI()
 {
+
 	AQLAISpawner *AISpawner = GetWorld()->SpawnActor<AQLAISpawner>(AISpawnerClass);
 
 	if (AISpawner)
@@ -77,7 +78,6 @@ void AQLGameMode::SpawnAI()
 		AISpawner->SetLifeSpan(5.0f);
 	}
 
-	//GameState를 가져온다.
 }
 
 void AQLGameMode::DeadNonPlayer(FName NonPlayerName)

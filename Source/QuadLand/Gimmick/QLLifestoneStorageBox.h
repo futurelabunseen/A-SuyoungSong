@@ -18,8 +18,11 @@ public:
 	// Sets default values for this actor's properties
 	AQLLifestoneStorageBox();
 
+	virtual void Tick(float DeltaSeconds) override;
+
 	bool GetAlreadyHidden() { return bIsAlreadyHidden; }
 	void UpdateAlertPanel(FName InPlayerStateName);
+	void RotateStorageBox();
 
 	FORCEINLINE const FVector2D& GetStorageWidgetLocation() {
 		return StorageWidgetLocation; 
