@@ -106,8 +106,9 @@ void UQLMap::NativeConstruct()
 		}
 
 	}
-	Player = Cast<ACharacter>(GetOwningPlayerPawn());
+	//Player = Cast<ACharacter>(GetOwningPlayerPawn());
 }
+
 
 void UQLMap::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
@@ -140,4 +141,10 @@ void UQLMap::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 		IMGPlayer->SetRenderTranslation(FVector2D(MagnitudeX, MagnitudeY));
 	}
+}
+
+void UQLMap::ResetPlayer()
+{
+	Player = Cast<ACharacter>(GetOwningPlayerPawn());
+
 }

@@ -27,6 +27,8 @@
 #include "EngineUtils.h"
 #include "Game/QLGameInstance.h"
 #include "GameFramework/GameModeBase.h"
+#include "Game/QLGameMode.h"
+
 AQLPlayerController::AQLPlayerController()
 {
 	bStartGame = false;
@@ -62,9 +64,9 @@ void AQLPlayerController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
 
-	if (aPawn)
+	if (IsLocalController()&&HUDs.Num() == 0)
 	{
-		aPawn->EnableInput(this);
+		CreateHUD();
 	}
 }
 
@@ -178,6 +180,16 @@ void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)
 	}
 }
 
+void AQLPlayerController::SetUpdateLivePlayer(int16 InLivePlayer)
+{
+	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+
+	if (UserWidget)
+	{
+		UserWidget->UpdateLivePlayer(InLivePlayer);
+	}
+}
+
 void AQLPlayerController::SettingNickname()
 {
 	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
@@ -189,70 +201,45 @@ void AQLPlayerController::SettingNickname()
 	}
 }
 
-void AQLPlayerController::InitPawn(int Type)
+void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)
 {
-	
-	AQLCharacterPlayer *OriginalPawn = GetPawn< AQLCharacterPlayer>();
-
-	if (OriginalPawn)
+	AQLGameMode* GameMode = GetWorld()->GetAuthGameMode<AQLGameMode>();
+	if (GameMode != nullptr)
 	{
-		OriginalPawn->Destroy();
-	}
-
-	//스켈레탈을 바꾼다.
-	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
-	AQLCharacterPlayer* NewPawn = nullptr;
-	if (DataManager)
-	{
-		for (const auto& Entry : FActorRange(GetWorld()))
+		GameMode->SpawnPlayerPawn(this, Type);
+		ClientRPCCreateWidget(); 
+		AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+		if (QLCharacter)
 		{
-			APlayerStart* PlayerStart = Cast<APlayerStart>(Entry);
-
-			if (PlayerStart)
-			{
-				//PlayerStart 위치에서 라인트레이스를 쏘고, APawn이 없다면 그 위치에 Pawn 생성
-
-				FCollisionQueryParams CollisionParams(SCENE_QUERY_STAT(GroundCheckLineTrace), false, this); //식별자 
-
-				FHitResult OutHitResult;
-
-				FVector StartLocation = PlayerStart->GetActorLocation();
-
-				FVector EndLocation = StartLocation + 150.0f * PlayerStart->GetActorUpVector() * -1;
-
-				bool bResult = GetWorld()->SweepSingleByChannel(
-					OutHitResult,
-					StartLocation,
-					EndLocation,
-					FQuat::Identity,
-					CCHANNEL_QLACTION, // 트레이스 채널 (적절한 채널로 변경 가능)
-					FCollisionShape::MakeSphere(80.0f),
-					CollisionParams
-				);
-
-				if (bResult == false)
-				{
-					const FTransform SpawnTransform(StartLocation);
-					AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-
-
-					FActorSpawnParameters SpawnParams;
-					
-					NewPawn = GetWorld()->SpawnActorDeferred<AQLCharacterPlayer>(DataManager->GetSkeletalMesh(Type), SpawnTransform);
-					
-					if (NewPawn)
-					{
-						NewPawn->FinishSpawning(SpawnTransform);
-						NewPawn->EnableInput(this);
-						Possess(NewPawn);
-					}
-					break;
-				}
-
-			}
+			QLCharacter->ServerRPCInitNickname();
 		}
 	}
 }
+
+void AQLPlayerController::ClientRPCCreateWidget_Implementation()
+{
+	//내생각에 서버만 하면됨
+	if (HUDs.Find(EHUDType::HUD))
+	{
+		UQLUserWidget* Widget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+
+		AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+		if (Widget && QLCharacter)
+		{
+			QLCharacter->OnChangeShootingMethod.BindUObject(Widget, &UQLUserWidget::VisibleShootingMethodUI);
+		}
+	}
+
+	//Map 위치도 재선정
+	if (HUDs.Find(EHUDType::Map))
+	{
+		UQLMap* Map = Cast<UQLMap>(HUDs[EHUDType::Map]);
+
+		Map->ResetPlayer();
+	}
+
+}
+
 
 void AQLPlayerController::InitStoneTexture(int GemType)
 {
@@ -267,12 +254,7 @@ void AQLPlayerController::InitStoneTexture(int GemType)
 
 void AQLPlayerController::ClientRPCUpdateLivePlayer_Implementation(int16 InLivePlayer)
 {
-	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
-
-	if (UserWidget)
-	{
-		UserWidget->UpdateLivePlayer(InLivePlayer);
-	}
+	SetUpdateLivePlayer(InLivePlayer);
 }
 
 void AQLPlayerController::ClientRPCGameStart_Implementation()
@@ -352,7 +334,7 @@ void AQLPlayerController::CreateHUD()
 		Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
 		SettingNickname();
 	}
-	
+	//SetHiddenHUD(EHUDType::HUD);
 	SetHiddenHUD(EHUDType::Inventory);
 	SetHiddenHUD(EHUDType::Map);
 	SetHiddenHUD(EHUDType::DeathTimer);
@@ -361,7 +343,8 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::KeyGuide);
 	SetHiddenHUD(EHUDType::Win);
 	SetHiddenHUD(EHUDType::Death);
-	SetHiddenHUD(EHUDType::Loading);
+	//SetHiddenHUD(EHUDType::Story);
+	//SetHiddenHUD(EHUDType::Loading);
 	UQLGameInstance* GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
 
 	if (GameInstance)
@@ -369,12 +352,6 @@ void AQLPlayerController::CreateHUD()
 		InitStoneTexture(GameInstance->GetGemMatType());
 	}
 
-
-	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
-	if (QLCharacter)
-	{
-		QLCharacter->OnChangeShootingMethod.BindUObject(Widget, &UQLUserWidget::VisibleShootingMethodUI);
-	}
 }
 
 void AQLPlayerController::UpdateNearbyItemEntry(UObject* Item)
@@ -402,23 +379,23 @@ void AQLPlayerController::UpdateItemEntry(UObject* Item, int32 CurrentItemCnt)
 }
 
 
-void AQLPlayerController::UpdateEquipWeaponUI()
+void AQLPlayerController::UpdateEquipWeaponUI(bool InVisible)
 {
 	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 	
 	if (UserWidget)
 	{
-		UserWidget->UpdateEquipWeaponUI();
+		UserWidget->UpdateEquipWeaponUI(InVisible);
 	}
 }
 
-void AQLPlayerController::UpdateEquipBombUI()
+void AQLPlayerController::UpdateEquipBombUI(bool InVisible)
 {
 	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 
 	if (UserWidget)
 	{
-		UserWidget->UpdateEquipBombUI();
+		UserWidget->UpdateEquipBombUI(InVisible);
 	}
 }
 
@@ -565,15 +542,11 @@ void AQLPlayerController::SetHUDTime()
 						if (AISpawnerInterface)
 						{
 							AISpawnerInterface->SpawnAI();
-
-							AQLCharacterPlayer* CharacterPlayer = GetPawn<AQLCharacterPlayer>();
-							if (CharacterPlayer)
-							{
-								CharacterPlayer->ServerRPCInitNickname();
-							}
 						}
-
-						SetHiddenHUD(EHUDType::Loading);
+						if (HUDs.Find(EHUDType::Loading))
+						{
+							SetHiddenHUD(EHUDType::Loading);
+						}
 						bStartGame = true;
 						StartTime = GetServerTime();
 					}

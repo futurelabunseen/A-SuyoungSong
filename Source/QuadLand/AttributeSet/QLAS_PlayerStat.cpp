@@ -58,7 +58,13 @@ void UQLAS_PlayerStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 
 	if ((GetHealth() <= 0.0f))
 	{
-		Data.Target.AddLooseGameplayTag(CHARACTER_STATE_DEAD); //Á¦°Å´Â RemoveLooseGameplayTag
+		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+
+		if (ASC)
+		{
+			FGameplayTagContainer TagContainer(CHARACTER_STATE_DEAD);
+			ASC->TryActivateAbilitiesByTag(TagContainer);
+		}
 	}
 }
 
@@ -72,6 +78,7 @@ void UQLAS_PlayerStat::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, MaxStamina, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UQLAS_PlayerStat, Damage, COND_None, REPNOTIFY_Always);
 }
+
 
 
 void UQLAS_PlayerStat::OnRep_Health(const FGameplayAttributeData& OldHealth)

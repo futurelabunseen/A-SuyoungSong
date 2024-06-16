@@ -22,6 +22,7 @@ AQLAIController::AQLAIController()
 		BTAsset = BehaviorTreeRef.Object;
 	}
 
+	bCanStartForAI = false;
 }
 
 void AQLAIController::RunAI()
@@ -29,12 +30,16 @@ void AQLAIController::RunAI()
 	//Backboard로부터 BlackboardComponent를 가져와야한다.
 	UBlackboardComponent *BCPtr = Blackboard.Get();
 
+	FTimerHandle WaitTimer;
 	if (UseBlackboard(BBAsset, BCPtr)) //BBAsset을 사용할 것으로 Blackboard 지정
 	{ 
 		Blackboard->SetValueAsVector(TEXT("HomePosition"), GetPawn()->GetActorLocation());
 		bool RunResult = RunBehaviorTree(BTAsset); //현재 Blackboard를 BehaviorTree가 실행하도록 함.
 		ensure(RunResult);
 	}
+
+	GetWorld()->GetTimerManager().SetTimer(WaitTimer, this, &AQLAIController::StartAI, DelayAITime, false);
+	//GameState를 가져온다.
 }
 
 void AQLAIController::StopAI()
@@ -57,7 +62,11 @@ const APawn* AQLAIController::GetTarget()
 
 	return nullptr;
 }
-
+void AQLAIController::StartAI()
+{
+	bCanStartForAI = true;
+	UE_LOG(LogTemp, Log, TEXT("Start AI"));
+}
 FVector AQLAIController::GetTargetPos()
 {
 	return TargetLocation;

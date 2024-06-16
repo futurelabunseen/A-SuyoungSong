@@ -13,6 +13,8 @@
 #include "GameFramework/Character.h"
 #include "Character/QLCharacterNonPlayer.h"
 #include "Character/QLCharacterPlayer.h"
+#include "GameData/QLDataManager.h"
+#include "Game/QLGameInstance.h"
 #include "EngineUtils.h"
 
 AQLGameMode::AQLGameMode()
@@ -59,17 +61,30 @@ void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 		return;
 	}
 
-
 	AQLPlayerState* PS = PC->GetPlayerState<AQLPlayerState>();
 
 	if (PS)
 	{
 		AddPlayer(FName(PS->GetName()));
 	}
+
+	QL_LOG(QLLog, Log, TEXT("begin"));
+
+	AQLPlayerState* NewPlayerState = NewPlayer->GetPlayerState<AQLPlayerState>();
+	if (NewPlayerState)
+	{
+		UAbilitySystemComponent* ASC = NewPlayerState->GetAbilitySystemComponent();
+		if (ASC)
+		{
+			ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLGameMode::GetWinner);
+		}
+	}
+
 }
 
 void AQLGameMode::SpawnAI()
 {
+
 	AQLAISpawner *AISpawner = GetWorld()->SpawnActor<AQLAISpawner>(AISpawnerClass);
 
 	if (AISpawner)
@@ -77,7 +92,6 @@ void AQLGameMode::SpawnAI()
 		AISpawner->SetLifeSpan(5.0f);
 	}
 
-	//GameState를 가져온다.
 }
 
 void AQLGameMode::DeadNonPlayer(FName NonPlayerName)
@@ -87,14 +101,11 @@ void AQLGameMode::DeadNonPlayer(FName NonPlayerName)
 	{
 		PlayerDieStatus[NonPlayerName] = true;
 		LivePlayerCount--;
-
-		QL_LOG(QLNetLog, Log, TEXT("Non Player Death %s"), *NonPlayerName.ToString());
 	}
 
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
 	{
 		const auto PC = Cast<AQLPlayerController>(It->Get());
-
 		PC->ClientRPCUpdateLivePlayer(LivePlayerCount);
 	}
 }
@@ -108,7 +119,6 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 	//승리자가 한명 남았을 때 승리자 태그를 부착한다.
 	//GetWorld에 있는 플레이어 스테이트 가져오기
 
-
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
 	{
 		AQLPlayerState* PlayerState = CastChecked<AQLPlayerState>(It->Get()->PlayerState);
@@ -121,13 +131,12 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 			if (PlayerDieStatus[PlayerName] == false)
 			{
 				LivePlayerCount--; //처음 죽음
-				const auto PC = Cast<AQLPlayerController>(It->Get());
-				PC->ClientRPCUpdateLivePlayer(LivePlayerCount);
-				QL_LOG(QLNetLog, Log, TEXT("Player Death %s"), *PlayerName.ToString());
 			}
 			PlayerDieStatus[PlayerName] = true;
 		}
 
+		const auto PC = Cast<AQLPlayerController>(It->Get());
+		PC->ClientRPCUpdateLivePlayer(LivePlayerCount);
 	}
 
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
@@ -140,15 +149,11 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 		{
 			if (PlayerDieStatus[PlayerName] == false)
 			{
-				QL_LOG(QLNetLog, Log, TEXT("Player Win %s"), *PlayerName.ToString());
-
 				//PlayerState를 사용해서 MulticastRPC 전송
-
+				//GameMode 에게 전달해야함
+				//ServerRPC를 사용해서 승리자 플레이어 전달
 				FGameplayTagContainer TargetTag(CHARACTER_STATE_WIN);
 				ASC->TryActivateAbilitiesByTag(TargetTag);
-				//GameMode 에게 전달해야함.
-
-				//ServerRPC를 사용해서 승리자 플레이어 전달
 			}
 			else
 			{
@@ -157,14 +162,48 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 			}
 		}
 	}
-
-
 }
 
 void AQLGameMode::AddPlayer(FName PlayerName)
 {
 	PlayerDieStatus.Add(PlayerName, false);
 	LivePlayerCount++;
+}
+
+void AQLGameMode::SpawnPlayerPawn(APlayerController* Player,int Type)
+{
+	if (Player == nullptr)
+		return;
+
+	// 현재 Pawn을 가져옵니다.
+	APawn* OldPawn = Player->GetPawn();
+	if (OldPawn != nullptr)
+	{
+		// 기존 Pawn 제거
+		OldPawn->Destroy();
+		Player->UnPossess(); // 기존의 소유 상태 해제
+	}
+
+	// 새로운 Pawn 생성
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Owner = Player;
+	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	AActor *StartSpot = ChoosePlayerStart(Player);
+
+	if (StartSpot)
+	{
+		UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+	
+		APawn* ResultPawn = GetWorld()->SpawnActor<APawn>(DataManager->GetSkeletalMesh(Type), StartSpot->GetActorLocation(),StartSpot->GetActorRotation(), SpawnInfo);
+
+		if (ResultPawn)
+		{
+			Player->Possess(ResultPawn);
+			Player->ClientRestart(ResultPawn);
+		}
+	}
+
 }
 
 void AQLGameMode::GameStart()

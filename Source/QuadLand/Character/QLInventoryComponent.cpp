@@ -130,9 +130,9 @@ void UQLInventoryComponent::ClientRPCRemoveItem_Implementation(EItemType InItemI
 	InventoryItem[InItemId] = ItemCnt;
 	ItemData->CurrentItemCnt = ItemCnt;
 
-	if (InItemId == EItemType::Bomb && InventoryItem[InItemId] <= 0.0f)
+	if (InItemId == EItemType::Bomb && InventoryItem[InItemId] <= 0)
 	{
-		PC->UpdateEquipBombUI();
+		PC->UpdateEquipBombUI(false);
 	}
 	PC->UpdateItemEntry(ItemData, ItemCnt);
 }
@@ -151,14 +151,14 @@ void UQLInventoryComponent::AddInventoryByDraggedItem(EItemType InItemId, int32 
 	{
 		AddItem(InItemId,InItemCnt);
 	}
+	//UI변경
+	if (InItemId == EItemType::Bomb)
+	{
+		PC->UpdateEquipBombUI(true);
+	}
 	//실제로 아이템이 있는지 검사하기 위해서 서버에게 요청해야함;
 	PC->BlinkBag();
 	ServerRPCAddInventoryByDraggedItem(InItemId, InItemCnt);
-
-	if (InItemId == EItemType::Bomb && GetInventoryCnt(InItemId) <= 1.0f)
-	{
-		PC->UpdateEquipBombUI();
-	}
 }
 
 void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EItemType ItemId, int32 ItemCnt)
@@ -256,7 +256,7 @@ void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId, int32 ItemC
 	if (ItemId == EItemType::Bomb)
 	{
 		AQLPlayerController* PC = GetController<AQLPlayerController>();
-		PC->UpdateEquipBombUI();
+		PC->UpdateEquipBombUI(false);
 	}
 	//Server RPC 전송 -> Server 아이템 생성 및 아이템 조정 
 	ServerRPCAddGroundByDraggedItem(ItemId, ItemCnt);

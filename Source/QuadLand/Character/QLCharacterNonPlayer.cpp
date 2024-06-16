@@ -16,6 +16,7 @@
 #include "QuadLand.h"
 #include "GameData/QLNickname.h"
 #include "Math/NumericLimits.h"
+#include "Character/QLSpectatorPawn.h"
 
 AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -39,7 +40,6 @@ AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectIni
 
 	Weapon->Weapon->SetSkeletalMesh(GunMesh);
 	
-//	AIPerception->OnTargetPerceptionUpdated.AddDynamic(this, &AQLCharacterNonPlayer::UpdateTargetPerception);
 	AIPerception->OnPerceptionUpdated.AddDynamic(this, &AQLCharacterNonPlayer::PerceptionUpdated);
 	AIControllerClass = AQLAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -55,7 +55,7 @@ void AQLCharacterNonPlayer::PossessedBy(AController* NewController)
 		return;
 	}
 
-	if (!DefaultAttributes) //Gameplay Effect를 통해서 모든 어트리뷰트 기본값으로 초기화
+	if (!DefaultEffects) //Gameplay Effect를 통해서 모든 어트리뷰트 기본값으로 초기화
 	{
 		return;
 	}
@@ -71,7 +71,7 @@ void AQLCharacterNonPlayer::PossessedBy(AController* NewController)
 	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 	EffectContext.AddSourceObject(this);
 
-	FGameplayEffectSpecHandle NewHandle = ASC->MakeOutgoingSpec(DefaultAttributes, 1, EffectContext);
+	FGameplayEffectSpecHandle NewHandle = ASC->MakeOutgoingSpec(DefaultEffects, 1, EffectContext);
 
 	if (NewHandle.IsValid())
 	{
@@ -87,7 +87,6 @@ void AQLCharacterNonPlayer::BeginPlay()
 	Super::BeginPlay();
 	ASC->RegisterGameplayTagEvent(CHARACTER_ATTACK_TAKENDAMAGE, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterNonPlayer::AQLCharacterNonPlayer::AttachTakeDamageTag);
 	ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterNonPlayer::Dead);
-
 
 	int Idx = FMath::RandRange(0, Nicknames->Nickname.Num());
 	if (Nicknames->Nickname.Num() > Idx)
@@ -222,7 +221,8 @@ void AQLCharacterNonPlayer::PerceptionUpdated(const TArray<AActor*>& UpdatedActo
 
 	for (const auto TargetActor : UpdatedActors)
 	{
-		if (TargetActor == this) continue;
+		AQLSpectatorPawn* SpectatorPawn = Cast<AQLSpectatorPawn>(TargetActor);
+		if (TargetActor == this || TargetActor == SpectatorPawn) continue;
 
 		FVector TargetPos = TargetActor->GetActorLocation();
 
@@ -237,9 +237,20 @@ void AQLCharacterNonPlayer::PerceptionUpdated(const TArray<AActor*>& UpdatedActo
 		}
 	}
 
-	if (Target != nullptr)
+	AQLSpectatorPawn* SpectatorPawn = Cast<AQLSpectatorPawn>(Target);
+
+	if (SpectatorPawn != nullptr)
 	{
-		//타겟 유지
-		BC->SetValueAsObject(TEXT("TargetActor"), Target);
+		BC->SetValueAsObject(TEXT("TargetActor"), nullptr);
 	}
+	else
+	{
+		if (Target != nullptr)
+		{
+			//타겟 유지
+			BC->SetValueAsObject(TEXT("TargetActor"), Target);
+		}
+
+	}
+
 }

@@ -109,7 +109,6 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	BombPath->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 	BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
 }
-
 /// <summary>
 /// PossessedBy 자체가 서버에서만 호출되기 때문에, 아래 Ability System 등록은 서버에서만 수행
 /// </summary>
@@ -118,9 +117,10 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	
-	SetupStartAbilities();
-	InitializeAttributes();
+	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
 
+	SetupStartAbilities();
+	InitializeGAS();
 	if (ASC)
 	{
 		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
@@ -128,6 +128,7 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
 		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 	}
+
 }
 
 //Client Only 
@@ -143,12 +144,14 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 		ASC = Cast<UAbilitySystemComponent>(QLPlayerState->GetAbilitySystemComponent());
 		ASC->InitAbilityActorInfo(QLPlayerState, this);
 	}
-	InitializeAttributes();
-	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
-	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
-	ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
-	ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
-
+	InitializeGAS();
+	if (ASC)
+	{
+		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
+		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_GUNTYPEA, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetEquipTypeA);
+		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
+		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
+	}
 }
 
 void AQLCharacterPlayer::OnRep_Controller()
@@ -161,6 +164,7 @@ void AQLCharacterPlayer::OnRep_Controller()
 	if (PlayerController->HUDNum() == 0)
 	{
 		PlayerController->CreateHUD();
+		PlayerController->ClientRPCCreateWidget();
 	}
 
 }
@@ -199,27 +203,34 @@ void AQLCharacterPlayer::BeginPlay()
 	RecoilTimeline.AddInterpFloat(VerticalRecoil, YRecoilCurve);
 
 	StartHeight = GetActorLocation().Z;
-
 	ServerRPCInitNickname();
 
 }
 
-void AQLCharacterPlayer::InitializeAttributes()
+void AQLCharacterPlayer::InitializeGAS()
 {
 	if (!ASC)
 	{
 		return;
 	}
 
-	if (!DefaultAttributes) //Gameplay Effect를 통해서 모든 어트리뷰트 기본값으로 초기화
+	if (!DefaultEffects) //Gameplay Effect를 통해서 모든 어트리뷰트 기본값으로 초기화
 	{
 		return;
 	}
 
+	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+
+	if (PS==nullptr || PS->GetUpdateAttribute())
+	{
+		return;
+	}
+	PS->SetUpdateAttribute();
+
 	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 	EffectContext.AddSourceObject(this);
 
-	FGameplayEffectSpecHandle NewHandle = ASC->MakeOutgoingSpec(DefaultAttributes, 1, EffectContext);
+	FGameplayEffectSpecHandle NewHandle = ASC->MakeOutgoingSpec(DefaultEffects, 1, EffectContext);
 
 	if (NewHandle.IsValid())
 	{
@@ -227,10 +238,6 @@ void AQLCharacterPlayer::InitializeAttributes()
 	}
 }
 
-void RotateWidgetComponent()
-{
-
-}
 
 void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -260,7 +267,7 @@ void AQLCharacterPlayer::SetCharacterControl()
 		if (HasAuthority() && PlayerController->HUDNum() == 0)
 		{
 			PlayerController->CreateHUD();
-			AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+			PlayerController->ClientRPCCreateWidget();
 		}
 	}
 
@@ -406,6 +413,7 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 		Weapon->Weapon->SetSkeletalMesh(GunStat->WeaponMesh.Get());
 		bHasGun = true;
 	}
+	
 }
 
 void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
@@ -797,6 +805,7 @@ int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 {
 	return QLInventory->GetInventoryCnt(ItemType);
 }
+
 
 void AQLCharacterPlayer::ServerRPCInitNickname_Implementation()
 {

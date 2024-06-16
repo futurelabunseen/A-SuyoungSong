@@ -4,6 +4,7 @@
 #include "Game/QLLobbyGameMode.h"
 #include "GameFramework/GameState.h"
 #include "Player/QLLobbyPlayerController.h"
+#include "GameFramework/GameStateBase.h"
 AQLLobbyGameMode::AQLLobbyGameMode()
 {
 
@@ -20,27 +21,24 @@ AQLLobbyGameMode::AQLLobbyGameMode()
 void AQLLobbyGameMode::PostLogin(APlayerController* NewPC)
 {
 	Super::PostLogin(NewPC);
-	int32 NumberOfPlayers = GameState.Get()->PlayerArray.Num();
+}
 
-	if (NumberOfPlayers >= 2)
+void AQLLobbyGameMode::ReadyPlayer()
+{
+	ReadyPlayers++;
+
+	if (GameState)
 	{
-		GetWorld()->GetTimerManager().ClearTimer(StartTimerHandle);
-		StartTimerHandle.Invalidate();
-	//	GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLLobbyGameMode::GameStart, 3.0f, false);
+		if (ReadyPlayers == GameState->PlayerArray.Num())
+		{
+			GameStart();
+		}
 	}
-	
-
-	//if (StartTimerHandle.IsValid() == false)
-	//{
-	//	UE_LOG(LogTemp, Log, TEXT("1"));
-	//	GetWorld()->GetTimerManager().SetTimer(StartTimerHandle, this, &AQLLobbyGameMode::GameStart, 5.0f, false);
-	//}
 }
 
 void AQLLobbyGameMode::GameStart()
 {
 
-	UE_LOG(LogTemp, Log, TEXT("2"));
 	UWorld* World = GetWorld();
 
 	if (World)
@@ -48,30 +46,4 @@ void AQLLobbyGameMode::GameStart()
 		World->ServerTravel(FString("/Game/QuadLand/Maps/Main?listen"));
 	}
 
-}
-
-void AQLLobbyGameMode::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	if (bIsFirstCondition == false)
-	{
-		bool bIsCheck = true;
-		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
-		{
-			AQLLobbyPlayerController* PC = Cast<AQLLobbyPlayerController>(It->Get());
-
-			if (PC->GetIsReady() == false)
-			{
-				bIsCheck = false;
-			}
-		}
-
-		if (bIsCheck)
-		{
-			//바로 시작안하고 로딩 시간 넣을 예정.
-			GameStart();
-			bIsFirstCondition = true;
-		}
-	}
 }

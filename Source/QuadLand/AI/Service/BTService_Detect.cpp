@@ -6,6 +6,10 @@
 #include "AIController.h"
 #include "Physics/QLCollision.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "Game/QLGameMode.h"
+#include "AI/QLAIController.h"
+#include "Character/QLCharacterNonPlayer.h"
 
 UBTService_Detect::UBTService_Detect()
 {
@@ -17,71 +21,32 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
+	AQLAIController* Controller = Cast<AQLAIController>(OwnerComp.GetAIOwner()->GetPawn());
 
-	if (ControllingPawn == nullptr)
+	if (Controller == nullptr)
 	{
 		return;
 	}
 
-	FVector Center = ControllingPawn->GetActorLocation(); //현재 위치에서 다른 Pawn 찾기
-	UWorld* World = ControllingPawn->GetWorld();
-
-	if (World == nullptr)
+	AQLCharacterNonPlayer* ControllingPawn = Cast<AQLCharacterNonPlayer>(OwnerComp.GetAIOwner()->GetPawn());
+	if (nullptr == ControllingPawn)
 	{
 		return;
 	}
 
-	TArray<FOverlapResult> OverlapResults;
-	FCollisionQueryParams CollisionQueryParams(SCENE_QUERY_STAT(Detect), false, ControllingPawn);
+	AQLGameMode* GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
 
-	bool bResult = World->OverlapMultiByChannel(
-		OverlapResults,
-		Center,
-		FQuat::Identity,
-		CCHANNEL_QLACTION,
-		FCollisionShape::MakeSphere(800.0f),
-		CollisionQueryParams
-	);
-
-	bool bReset = false;
-	if (bResult)
+	if (GameMode == nullptr)
 	{
-		for (const auto& OverlapResult : OverlapResults)
-		{
-			APawn* Pawn = Cast<APawn>(OverlapResult.GetActor());
-			
-			if (Pawn)
-			{
-				FVector TargetVector = Pawn->GetActorLocation();
-				TargetVector.Z = 0.f;
-
-				FVector OriginVector = ControllingPawn->GetActorLocation();
-				OriginVector.Z = 0.f;
-
-				FVector DeltaVector = UKismetMathLibrary::GetDirectionUnitVector(OriginVector, TargetVector);
-				float JugmentVal=FVector::DotProduct(ControllingPawn->GetActorForwardVector(), DeltaVector);
-				
-				if (JugmentVal >= 0)
-				{
-					OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), Pawn);
-					return;
-				}
-				float Dist = FVector::Dist(Pawn->GetActorLocation(), ControllingPawn->GetActorLocation());
-
-				bReset = bReset || Dist <= 100.f;
-			}
-		}
-
-		if (bReset)
-		{
-			OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), nullptr);
-		}
-
+		return;
 	}
-	else
+	
+	bool bLiveTarget = GameMode->GetPlayerState(FName(ControllingPawn->GetName()));
+
+	if (bLiveTarget == false)
 	{
 		OwnerComp.GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), nullptr);
 	}
 
+	return;
 }

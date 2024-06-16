@@ -36,20 +36,23 @@ public:
 
 	const class UUserWidget* GetCrossHairUIWidget() const 
 	{
+		if (HUDs.Find(EHUDType::CrossHair) == 0) return nullptr;
 		return HUDs[EHUDType::CrossHair]; 
 	}
 	class UUserWidget* GetPlayerUIWidget() const
 	{ 
+		if (HUDs.Find(EHUDType::HUD) == 0) return nullptr;
 		return HUDs[EHUDType::HUD];
 	}
 
 	void CreateHUD();
+
 	/* 인벤토리 */
 	void UpdateNearbyItemEntry(UObject* Item); //아이템이 생김 - Stat을 넘기자
 	void UpdateItemEntry(UObject* Item, int32 CurrentItemCnt);
 
-	void UpdateEquipWeaponUI();
-	void UpdateEquipBombUI();
+	void UpdateEquipWeaponUI(bool InVisible);
+	void UpdateEquipBombUI(bool InVisible);
 
 	void AddInventoryByDraggedItem(EItemType ItemIdx,int32 CurrentItemCnt);
 	void RemoveItemEntry(EItemType ItemIdx); //선택된 arr값 - id를 넘겨서 제거하자
@@ -81,6 +84,7 @@ public:
 	void CloseInventroy();
 
 	void SwitchWeaponStyle(ECharacterAttackType AttackType);
+	void SetUpdateLivePlayer(int16 InLivePlayer);
 
 	FOnDeathCheckDelegate OnDeathCheckDelegate;
 
@@ -91,8 +95,11 @@ public:
 
 	void SettingNickname();
 
-
-	void InitPawn(int Type);
+	UFUNCTION(Client, Reliable)
+	void ClientRPCCreateWidget();
+	
+	UFUNCTION(Server, Reliable)
+	void ServerRPCInitPawn(int Type);
 
 protected:
 
@@ -103,6 +110,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
 	TMap<EHUDType, TObjectPtr<class UUserWidget>> HUDs;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
+	TMap<EHUDType, TSubclassOf<class UUserWidget>> LateHUDClass;
+
 
 	FTimerHandle DeathTimerHandle;
 	
@@ -138,7 +149,7 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 private:
-	float MatchTime = 2.f;
+	float MatchTime = 5.f;
 
 	uint32 CountDownInt = 0;
 

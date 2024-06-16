@@ -76,27 +76,28 @@ void UQLSwitchWeaponWidget::SwitchWeaponStyle(ECharacterAttackType AttackType)
 	}
 }
 
-void UQLSwitchWeaponWidget::UpdateEquipWeaponUI()
+
+void UQLSwitchWeaponWidget::UpdateEquipWeaponUI(bool bIsVisible)
 {
-	if (IMGGun->IsVisible())
-	{
-		IMGGun->SetVisibility(ESlateVisibility::Hidden);
-	}
-	else
+	if (bIsVisible)
 	{
 		IMGGun->SetVisibility(ESlateVisibility::Visible);
 	}
+	else
+	{
+		IMGGun->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
-void UQLSwitchWeaponWidget::UpdateEquipBombUI()
+void UQLSwitchWeaponWidget::UpdateEquipBombUI(bool bIsVisible)
 {
-	if (IMGBomb->IsVisible())
+	if (bIsVisible)
 	{
-		IMGBomb->SetVisibility(ESlateVisibility::Hidden);
+		IMGBomb->SetVisibility(ESlateVisibility::Visible);
 	}
 	else
 	{
-		IMGBomb->SetVisibility(ESlateVisibility::Visible);
+		IMGBomb->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 

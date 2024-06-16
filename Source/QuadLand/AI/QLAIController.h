@@ -24,10 +24,13 @@ public:
 	virtual const APawn* GetTarget() override;
 	virtual FVector GetTargetPos() override;
 	virtual void SetTargetPos() override;
+	void StartAI();
+	bool GetCanStartForAI() { return bCanStartForAI; }
 protected:
 
 	virtual void OnPossess(APawn* InPawn) override;
 
+	uint8 bCanStartForAI : 1;
 protected:
 
 	FVector TargetPos;
@@ -38,6 +41,8 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UBehaviorTree> BTAsset;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
+	float DelayAITime = 20.0f;
 
 	FVector TargetLocation;
 };

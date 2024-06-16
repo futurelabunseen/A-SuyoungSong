@@ -17,15 +17,9 @@ class QUADLAND_API AQLGameState : public AGameState
 public:
 
 	AQLGameState();
+
 	virtual void AddPlayerState(APlayerState* PlayerState) override;
 
 	UFUNCTION()
 	void GetWinner(const FGameplayTag CallbackTag, int32 NewCount);
-
-protected:
-
-	int LivePlayerCount; //PlayerDieStatus.Num 값이랑 동일
-
-	TMap<FName, bool> PlayerDieStatus;
-
 };
