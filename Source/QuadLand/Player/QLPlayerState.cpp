@@ -31,8 +31,8 @@ AQLPlayerState::AQLPlayerState()
     PlayerStatInfo = CreateDefaultSubobject<UQLAS_PlayerStat>(TEXT("PlayerStat"));
     WeaponStatInfo = CreateDefaultSubobject<UQLAS_WeaponStat>(TEXT("WeaponStat"));
    
-    //Event µî·ÏÇÑ´Ù -> EquipÀ» °¡Áú¶§
-    //Event µî·ÏÇÑ´Ù -> Equip¾øÀ» ¶§
+    //Event ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½ -> Equipï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    //Event ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½ -> Equipï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
     NetUpdateFrequency = 30.0f;
 
     //TagEvent - Delegates
@@ -54,9 +54,9 @@ void AQLPlayerState::SetAmmoStat(float RemainingAmmoCnt)
 {
     if (HasAuthority() && RemainingAmmoCnt !=0.0f)
     {
-        //ÇöÀç ÀÖ´Â °³¼ö + RemainigAmmoCnt 
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ + RemainigAmmoCnt 
         float MaxAmmo = WeaponStatInfo->GetMaxAmmoCnt() + RemainingAmmoCnt;
-        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAmmoCntAttribute(), MaxAmmo); //ÇöÀç ³²¾ÆÀÖ´Â Ammo ¾÷µ¥ÀÌÆ®
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAmmoCntAttribute(), MaxAmmo); //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ Ammo ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
     }
 }
 
@@ -64,9 +64,9 @@ void AQLPlayerState::BulletWaste(float DiscardedCount)
 {
     if (HasAuthority())
     {
-        //ÇöÀç ÀÖ´Â °³¼ö + RemainigAmmoCnt 
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ + RemainigAmmoCnt 
         float MaxAmmo = WeaponStatInfo->GetMaxAmmoCnt() - DiscardedCount;
-        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAmmoCntAttribute(), MaxAmmo); //ÇöÀç ³²¾ÆÀÖ´Â Ammo ¾÷µ¥ÀÌÆ®
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetMaxAmmoCntAttribute(), MaxAmmo); //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ Ammo ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
     }
 }
 
@@ -74,7 +74,7 @@ void AQLPlayerState::SetWeaponStat(const UQLWeaponStat* Stat)
 {
     if (HasAuthority()&& Stat && ASC)
     {
-        //¿ø·¡ Base°ª..
+        //ï¿½ï¿½ï¿½ï¿½ Baseï¿½ï¿½..
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDamageAttribute(), Stat->Damage);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDistanceAttribute(), Stat->AttackDist);
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackSpeedAttribute(), Stat->AttackSpeed);
@@ -87,7 +87,7 @@ void AQLPlayerState::AddHPStat(float HP)
     if (HasAuthority() && ASC)
     {
         float NewHp = FMath::Clamp(GetHealth() + HP, 0.0f, GetMaxHealth());
-        //¿ø·¡ Base°ª..
+        //ï¿½ï¿½ï¿½ï¿½ Baseï¿½ï¿½..
         ASC->SetNumericAttributeBase(UQLAS_PlayerStat::GetHealthAttribute(), NewHp);
     }
 
@@ -96,7 +96,7 @@ void AQLPlayerState::AddStaminaStat(float Stamina)
 {
     if (HasAuthority() && ASC)
     {
-        //¿ø·¡ Base°ª.. -> ÀÏ´Ü ÀÌ·¸°Ô µÎ°í ¼öÁ¤ÇÏ´Â ¹æÇâÀ¸·Î °¥ ¿¹Á¤ 
+        //ï¿½ï¿½ï¿½ï¿½ Baseï¿½ï¿½.. -> ï¿½Ï´ï¿½ ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½Î°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
         FGameplayTagContainer Tag(STAT_STAMINA_STATUS_REDUCE);
         ASC->RemoveActiveEffectsWithTags(Tag);
 
@@ -106,16 +106,16 @@ void AQLPlayerState::ResetWeaponStat(const UQLWeaponStat* Stat)
 {
     if (HasAuthority() && Stat && ASC)
     {
-        //¿ø·¡ Base°ª..
-        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDamageAttribute(), 10.0f); //Default Attack - Àá½Ã¸¸ ÇÏµåÄÚµù
+        //ï¿½ï¿½ï¿½ï¿½ Baseï¿½ï¿½..
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDamageAttribute(), 10.0f); //Default Attack - ï¿½ï¿½Ã¸ï¿½ ï¿½Ïµï¿½ï¿½Úµï¿½
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDistanceAttribute(), WeaponStatInfo->GetAttackDistance() - Stat->AttackDist);
-        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), WeaponStatInfo->GetAmmoCnt() - Stat->AmmoCnt); //ÇöÀç °¡Áö°íÀÖ´Â ÃÑ¾ËÀº º¯ÇÏÁö ¾ÊÀ½ (´ë½Å Á¶°Ç ºÎÂø, ÃÑÀÌ ¾ø´Ù!!!!)
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), WeaponStatInfo->GetAmmoCnt() - Stat->AmmoCnt); //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½Ñ¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!!!!)
     }
 }
 
-void AQLPlayerState::UseGlassesItem(float Time) //ÀÌÄ£±¸´Â Å¬¶óÀÌ¾ðÆ®¿¡¼­ »ç¿ëµÇ¾î¾ßÇÔ.
+void AQLPlayerState::UseGlassesItem(float Time) //ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½.
 {
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //¼ÒÀ¯±ÇÀº PC°¡ °¡Áü
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     PC->ClientRPCShowLifestoneWidget(Time);
 }
 
@@ -152,17 +152,27 @@ void AQLPlayerState::ClientRPCInitLifeStone_Implementation(int InGemType)
     }
 }
 
+void AQLPlayerState::ClientRPCInitLifeStone_Implementation(int InGemType)
+{
+    UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
+    if (DataManager)
+    {
+        LifeStoneClass = DataManager->GetLifeStoneClass(InGemType);
+    }
+}
+
 
 
 void AQLPlayerState::OnChangedStamina(const FOnAttributeChangeData& Data)
 {
     float CurrentStamina = Data.NewValue;
 
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //¼ÒÀ¯±ÇÀº PC°¡ °¡Áü
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
     if (PC && PC->IsLocalController())
     {
-        //PlayerÀÇ QLPlayerHpBarWidget °¡Á®¿È
+        //Playerï¿½ï¿½ QLPlayerHpBarWidget ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
         if (Widget)
         {
@@ -175,11 +185,11 @@ void AQLPlayerState::OnChangedMaxStamina(const FOnAttributeChangeData& Data)
 {
     float CurrentMaxStamina = Data.NewValue;
 
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //¼ÒÀ¯±ÇÀº PC°¡ °¡Áü
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
     if (PC && PC->IsLocalController())
     {
-        //PlayerÀÇ QLPlayerHpBarWidget °¡Á®¿È
+        //Playerï¿½ï¿½ QLPlayerHpBarWidget ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
         if (Widget)
         {
@@ -193,11 +203,11 @@ void AQLPlayerState::OnChangedHp(const FOnAttributeChangeData& Data)
 
     float CurrentHP = Data.NewValue;
 
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //¼ÒÀ¯±ÇÀº PC°¡ °¡Áü
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     
     if (PC && PC->IsLocalController())
     {
-        //PlayerÀÇ QLPlayerHpBarWidget °¡Á®¿È
+        //Playerï¿½ï¿½ QLPlayerHpBarWidget ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
         if (Widget)
         {
@@ -208,14 +218,14 @@ void AQLPlayerState::OnChangedHp(const FOnAttributeChangeData& Data)
 
 void AQLPlayerState::OnChangedMaxHp(const FOnAttributeChangeData& Data)
 {
-    //¾ÆÀÌÅÛ µµÀÔµÇ¸é ½ÃÀÛÇÒ ¿¹Á¤(´ÙÀ½ÁÖ)
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÔµÇ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
     float MaxHp = Data.NewValue;
 
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //¼ÒÀ¯±ÇÀº PC°¡ °¡Áü
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
     if (PC && PC->IsLocalController())
     {
-        //PlayerÀÇ QLPlayerHUDWidget °¡Á®¿È -> ÀÌ¸§º¯°æÇØ¾ßÇÒ °¢ÀÌº¸ÀÎ´Ù;;
+        //Playerï¿½ï¿½ QLPlayerHUDWidget ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -> ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½Î´ï¿½;;
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
 
         if (Widget)
@@ -229,11 +239,11 @@ void AQLPlayerState::OnChangedAmmoCnt(const FOnAttributeChangeData& Data)
 {
     float CurrentAmmo = Data.NewValue;
 
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //¼ÒÀ¯±ÇÀº PC°¡ °¡Áü
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
     if (PC && PC->IsLocalController())
     {
-        //PlayerÀÇ QLPlayerHUDWidget °¡Á®¿È -> ÀÌ¸§º¯°æÇØ¾ßÇÒ °¢ÀÌº¸ÀÎ´Ù;;
+        //Playerï¿½ï¿½ QLPlayerHUDWidget ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -> ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½Î´ï¿½;;
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
         if (Widget)
         {
@@ -246,11 +256,11 @@ void AQLPlayerState::OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data)
 {
     float MaxAmmo = Data.NewValue;
 
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //¼ÒÀ¯±ÇÀº PC°¡ °¡Áü
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
     if (PC && PC->IsLocalController())
     {
-        //PlayerÀÇ QLPlayerHUDWidget °¡Á®¿È -> ÀÌ¸§º¯°æÇØ¾ßÇÒ °¢ÀÌº¸ÀÎ´Ù;;
+        //Playerï¿½ï¿½ QLPlayerHUDWidget ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -> ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºï¿½ï¿½Î´ï¿½;;
         UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
         if (Widget)
         {
@@ -260,10 +270,10 @@ void AQLPlayerState::OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data)
     }
 }
 
-//Multicast È£Ãâ
+//Multicast È£ï¿½ï¿½
 void AQLPlayerState::UpdateStorageWidget(FName InNickname, AQLLifestoneStorageBox* StorageBox)
 {
-    //MulticastRPC È£Ãâ
+    //MulticastRPC È£ï¿½ï¿½
     MulticastRPCUpdateStorageWidget(InNickname, StorageBox);
 }
 
@@ -283,7 +293,7 @@ void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGe
         (
             [PS]()
             {
-                AQLPlayerController* PC = Cast<AQLPlayerController>(PS->GetOwner()); //¼ÒÀ¯±ÇÀº PC°¡ °¡Áü
+                AQLPlayerController* PC = Cast<AQLPlayerController>(PS->GetOwner()); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
                 if (PC)
                 {
@@ -303,7 +313,7 @@ void AQLPlayerState::MulticastRPCUpdateStorageWidget_Implementation(FName InNick
 
 void AQLPlayerState::ClientRPCConcealLifeStoneUI_Implementation()
 {
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //¼ÒÀ¯±ÇÀº PC°¡ °¡Áü
+    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
     if (PC && bHasLifeStone)
     {
@@ -314,10 +324,10 @@ void AQLPlayerState::ClientRPCConcealLifeStoneUI_Implementation()
 void AQLPlayerState::ServerRPCConcealLifeStone_Implementation(const FString &InNickname)
 {
    
-    //¶óÀÎÆ®·¹ÀÌ½º¸¦ ½î¾Æ¼­ °¡Àå °¡±îÀÌ ÀÖ´Â ¿ÀºêÁ§Æ®¸¦ Ã¼Å©ÇÑ´Ù.
-    //±×¸®°í ±× ¿ÀºêÁ§Æ®¿¡°Ô ÇöÀç ¶óÀÌÇÁ ½ºÅæÀ» ÀúÀåÇÑ ÇÃ·¹ÀÌ¾î ÄÁÆ®·Ñ·¯°¡ ´©±¸ÀÎÁö¸¦ Àü´ÞÇÔ.
-    //ÇöÀç ¼û°ÜÁø ¿ÀºêÁ§Æ®¸¦ ÀúÀåÇÑ´Ù.
-    //¼­¹ö¿¡¼­¸¸ Àû¿ë
+    //ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ Ã¼Å©ï¿½Ñ´ï¿½.
+    //ï¿½×¸ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½Æ®ï¿½Ñ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+    //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     FCollisionQueryParams Params(TEXT("DetectionItem"), false, this);
     FVector SearchLocation = GetPawn()->GetActorLocation();
     FHitResult NearbyItem;
@@ -342,9 +352,9 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation(const FString &InN
         {
             if (bHasLifeStone)
             {
-                //ÀÌ¸§À» Àü´ÞÇØ¾ßÇÏ°Åµç? ÀÌ°Í ¶ÇÇÑ, °°Àº ÀÎÅÍÆäÀÌ½º¸¦ »ç¿ë
+                //ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ï°Åµï¿½? ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 
-                if (StorageBox->GetAlreadyHidden() == false)  //ÀÌ¹Ì ¼û°ÜÁ® ÀÖÁö ¾Ê´Ù¸é, ¿¬°á
+                if (StorageBox->GetAlreadyHidden() == false)  //ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½
                 {
                     StorageBox->OnLifespanDelegate.BindUObject(this, &AQLPlayerState::SetDead);
                     StorageBox->OnLifestoneChangedDelegate.BindUObject(this, &AQLPlayerState::SetHasLifeStone);
