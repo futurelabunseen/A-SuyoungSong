@@ -128,6 +128,7 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
 		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 	}
+
 }
 
 //Client Only 
@@ -804,6 +805,7 @@ int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 {
 	return QLInventory->GetInventoryCnt(ItemType);
 }
+
 
 void AQLCharacterPlayer::ServerRPCInitNickname_Implementation()
 {

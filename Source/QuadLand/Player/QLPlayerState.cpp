@@ -279,7 +279,9 @@ void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGe
 
         ClientRPCInitLifeStone(GemType);
         TObjectPtr<AQLPlayerState> PS = this;
-        GetWorld()->GetTimerManager().SetTimerForNextTick([PS]()
+        GetWorld()->GetTimerManager().SetTimerForNextTick
+        (
+            [PS]()
             {
                 AQLPlayerController* PC = Cast<AQLPlayerController>(PS->GetOwner()); //소유권은 PC가 가짐
 
@@ -287,7 +289,8 @@ void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGe
                 {
                     PC->ServerRPCInitPawn(PS->GenderType);
                 }
-            });
+            }
+        );
 
 
     }

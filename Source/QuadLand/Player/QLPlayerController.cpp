@@ -207,7 +207,12 @@ void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)
 	if (GameMode != nullptr)
 	{
 		GameMode->SpawnPlayerPawn(this, Type);
-		ClientRPCCreateWidget();
+		ClientRPCCreateWidget(); 
+		AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+		if (QLCharacter)
+		{
+			QLCharacter->ServerRPCInitNickname();
+		}
 	}
 }
 
@@ -232,6 +237,7 @@ void AQLPlayerController::ClientRPCCreateWidget_Implementation()
 
 		Map->ResetPlayer();
 	}
+
 }
 
 
@@ -328,7 +334,7 @@ void AQLPlayerController::CreateHUD()
 		Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
 		SettingNickname();
 	}
-	
+	//SetHiddenHUD(EHUDType::HUD);
 	SetHiddenHUD(EHUDType::Inventory);
 	SetHiddenHUD(EHUDType::Map);
 	SetHiddenHUD(EHUDType::DeathTimer);
@@ -337,6 +343,7 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::KeyGuide);
 	SetHiddenHUD(EHUDType::Win);
 	SetHiddenHUD(EHUDType::Death);
+	//SetHiddenHUD(EHUDType::Story);
 	//SetHiddenHUD(EHUDType::Loading);
 	UQLGameInstance* GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
 
@@ -344,6 +351,7 @@ void AQLPlayerController::CreateHUD()
 	{
 		InitStoneTexture(GameInstance->GetGemMatType());
 	}
+
 }
 
 void AQLPlayerController::UpdateNearbyItemEntry(UObject* Item)
@@ -535,9 +543,6 @@ void AQLPlayerController::SetHUDTime()
 						{
 							AISpawnerInterface->SpawnAI();
 						}
-
-						AQLCharacterPlayer* CharacterPlayer = GetPawn<AQLCharacterPlayer>();
-						CharacterPlayer->ServerRPCInitNickname();
 						if (HUDs.Find(EHUDType::Loading))
 						{
 							SetHiddenHUD(EHUDType::Loading);

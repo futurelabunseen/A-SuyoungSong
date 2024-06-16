@@ -51,8 +51,27 @@ void UQLGA_AttackHitCheckUsingBomb::ActivateAbility(const FGameplayAbilitySpecHa
 
 void UQLGA_AttackHitCheckUsingBomb::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
+	TArray<AActor*> ChildActors;
+	Character->GetAttachedActors(ChildActors, true);
+	
+	for (const auto& AttachedChild : ChildActors)
+	{
+		Bomb = Cast<AQLBomb>(AttachedChild);
+
+		if (Bomb != nullptr)
+		{
+			Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			Bomb->Destroy();
+			Bomb = nullptr;
+			break;
+		}
+	}
 	Bomb = nullptr;
+
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
 }
 
 void UQLGA_AttackHitCheckUsingBomb::OnCompletedCallback()

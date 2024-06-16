@@ -151,6 +151,11 @@ void UQLInventoryComponent::AddInventoryByDraggedItem(EItemType InItemId, int32 
 	{
 		AddItem(InItemId,InItemCnt);
 	}
+	//UI변경
+	if (InItemId == EItemType::Bomb)
+	{
+		PC->UpdateEquipBombUI(true);
+	}
 	//실제로 아이템이 있는지 검사하기 위해서 서버에게 요청해야함;
 	PC->BlinkBag();
 	ServerRPCAddInventoryByDraggedItem(InItemId, InItemCnt);

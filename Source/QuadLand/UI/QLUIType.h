@@ -15,4 +15,5 @@ enum class EHUDType : uint8
 	KeyGuide,
 	Death,
 	Win,
+	Story,
 };

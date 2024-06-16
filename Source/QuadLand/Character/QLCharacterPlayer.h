@@ -76,6 +76,7 @@ public:
 
 	UFUNCTION(Server,Unreliable)
 	void ServerRPCInitNickname();
+
 protected:
 
 	uint8 bIsProning : 1;
