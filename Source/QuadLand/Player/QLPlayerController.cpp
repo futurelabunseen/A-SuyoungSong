@@ -371,23 +371,23 @@ void AQLPlayerController::UpdateItemEntry(UObject* Item, int32 CurrentItemCnt)
 }
 
 
-void AQLPlayerController::UpdateEquipWeaponUI()
+void AQLPlayerController::UpdateEquipWeaponUI(bool InVisible)
 {
 	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 	
 	if (UserWidget)
 	{
-		UserWidget->UpdateEquipWeaponUI();
+		UserWidget->UpdateEquipWeaponUI(InVisible);
 	}
 }
 
-void AQLPlayerController::UpdateEquipBombUI()
+void AQLPlayerController::UpdateEquipBombUI(bool InVisible)
 {
 	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 
 	if (UserWidget)
 	{
-		UserWidget->UpdateEquipBombUI();
+		UserWidget->UpdateEquipBombUI(InVisible);
 	}
 }
 

@@ -32,8 +32,8 @@ public:
 	void BlinkBag();
 	void ConcealLifeStone();
 
-	void UpdateEquipWeaponUI();
-	void UpdateEquipBombUI();
+	void UpdateEquipWeaponUI(bool InVisible);
+	void UpdateEquipBombUI(bool InVisible);
 
 	FORCEINLINE class UQLPlayerHUDWidget* GetStatHUD() { return CharacterStat; }
 	FORCEINLINE class UQLPlayerHpBarWidget* GetHpHUD() { return HpBar; }

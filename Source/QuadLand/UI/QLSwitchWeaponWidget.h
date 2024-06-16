@@ -21,8 +21,8 @@ public:
 	virtual void NativeConstruct() override;
 
 	void SwitchWeaponStyle(ECharacterAttackType AttackType);
-	void UpdateEquipWeaponUI();
-	void UpdateEquipBombUI();
+	void UpdateEquipWeaponUI(bool bIsVisible); //Gun UI 등장
+	void UpdateEquipBombUI(bool bIsVisible); //Bomb UI 등장 
 protected:
 
 	//UPROPERTY(BlueprintReadWrite, Transient, meta = (BindWidgetAnim))

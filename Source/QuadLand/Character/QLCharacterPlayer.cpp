@@ -412,6 +412,7 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 		Weapon->Weapon->SetSkeletalMesh(GunStat->WeaponMesh.Get());
 		bHasGun = true;
 	}
+	
 }
 
 void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)

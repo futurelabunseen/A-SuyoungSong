@@ -285,8 +285,6 @@ void UQLInputComponent::FarmingItemPressed()
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 	if (Character)
 	{
-		//몽타주 실행
-		Character->PlayAnimMontage(Character->PickupMontage);
 		//라인트레이스를 쏘아보고 없으면 return
 		FHitResult OutHitResult;
 
@@ -319,20 +317,21 @@ void UQLInputComponent::FarmingItemPressed()
 		
 		if (bResult)
 		{
+			//몽타주 실행
+			Character->PlayAnimMontage(Character->PickupMontage);
 
-			if (Item->Stat->ItemType == EItemType::Stone)
+			switch (Item->Stat->ItemType)
 			{
+			case EItemType::Stone:
 				PC->ConcealLifeStone(); //만약.. 없다면 
-			}
+				break;
 
-			if (Character->bHasGun == false) //주웠으니까 있어짐.
-			{
-				PC->UpdateEquipWeaponUI();
-			}
-
-			if (Character->GetInventoryCnt(EItemType::Bomb))
-			{
-				PC->UpdateEquipBombUI();
+			case EItemType::Weapon:
+				PC->UpdateEquipWeaponUI(true);
+				break;
+			case EItemType::Bomb:
+				PC->UpdateEquipBombUI(true);
+				break;
 			}
 
 			Character->ServerRPCFarming();
@@ -566,13 +565,16 @@ void UQLInputComponent::PutWeapon()
 	{
 		return;
 	}
-
-	if (HasAuthority())
+	else
 	{
-		Character->CurrentAttackType = ECharacterAttackType::HookAttack;
+		PC->UpdateEquipWeaponUI(false);
 	}
 
-	PC->UpdateEquipWeaponUI();
+	//if (HasAuthority())
+	//{
+	//	Character->CurrentAttackType = ECharacterAttackType::HookAttack;
+	//}
+
 	Character->ServerRPCPuttingWeapon();
 }
 

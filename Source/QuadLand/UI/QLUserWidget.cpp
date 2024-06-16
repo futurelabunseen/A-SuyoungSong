@@ -93,19 +93,19 @@ void UQLUserWidget::ConcealLifeStone()
 	}
 }
 
-void UQLUserWidget::UpdateEquipWeaponUI()
+void UQLUserWidget::UpdateEquipWeaponUI(bool InVisible)
 {
 	if (SwitchWeapon)
 	{
-		SwitchWeapon->UpdateEquipWeaponUI();
+		SwitchWeapon->UpdateEquipWeaponUI(InVisible);
 	}
 }
 
-void UQLUserWidget::UpdateEquipBombUI()
+void UQLUserWidget::UpdateEquipBombUI(bool InVisible)
 {
 	if (SwitchWeapon)
 	{
-		SwitchWeapon->UpdateEquipBombUI();
+		SwitchWeapon->UpdateEquipBombUI(InVisible);
 	}
 }
 
