@@ -186,7 +186,8 @@ protected:
 
 	UFUNCTION()
 	void InitializeGAS();
-
+	UFUNCTION()
+	void ServerInitializeGAS();
 protected:
 
 	UFUNCTION(Server,WithValidation, Reliable)

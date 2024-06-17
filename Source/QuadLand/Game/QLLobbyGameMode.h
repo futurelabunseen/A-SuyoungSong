@@ -19,12 +19,10 @@ public:
 
 	virtual void PostLogin(APlayerController* NewPC) override;
 
-	void ReadyPlayer();
 	void GameStart();
+
+	virtual void Tick(float DeltaSeconds) override;
 	FTimerHandle StartTimerHandle;
 
 	uint8 bIsFirstCondition : 1;
-
-
-	int16 ReadyPlayers;
 };

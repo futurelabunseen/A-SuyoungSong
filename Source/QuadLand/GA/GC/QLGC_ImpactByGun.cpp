@@ -7,6 +7,7 @@
 #include "Item/QLWeaponComponent.h"
 #include "Physics/QLCollision.h"
 #include "Kismet/GameplayStatics.h"
+#include "AttributeSet/QLAS_PlayerStat.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Item/QLBullet.h"
 
@@ -61,9 +62,21 @@ bool UQLGC_ImpactByGun::OnExecute_Implementation(AActor* Target, const FGameplay
 				FQuat Quat = UKismetMathLibrary::FindLookAtRotation(OutHitResult.Location, OutHitResult.TraceEnd).Quaternion();
 				BulletTransform.SetRotation(Quat);
 				GetWorld()->SpawnActor<AQLBullet>(BulletClass, BulletTransform);
+				
+				UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+
+				if (ASC)
+				{
+					const UQLAS_PlayerStat* PlayerStat = ASC->GetSet<UQLAS_PlayerStat>();
+					if (PlayerStat)
+					{
+						UE_LOG(LogTemp, Log, TEXT("%lf"), PlayerStat->GetDamage());
+					}
+				}
 			}
 			else
 			{
+
 				FQuat Quat = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetPos).Quaternion();
 				BulletTransform.SetRotation(Quat);
 				GetWorld()->SpawnActor<AQLBullet>(BulletClass, BulletTransform);

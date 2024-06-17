@@ -24,6 +24,8 @@ void UQLGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	ResultSocket = Cast<USkeletalMeshSocket>(TriggerEventData->OptionalObject);
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
 
+	QL_GASLOG(QLLog, Log, TEXT("Punch"));
+
 	if (Player)
 	{
 		FVector SocketPos = ResultSocket->GetSocketLocation(Player->GetMesh());

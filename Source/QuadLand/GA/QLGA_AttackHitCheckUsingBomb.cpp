@@ -124,7 +124,7 @@ void UQLGA_AttackHitCheckUsingBomb::OnCompletedCallback()
 
 					if (EffectSpecHandle.IsValid())
 					{
-						FGameplayEffectContextHandle EffectContextHandle = UAbilitySystemBlueprintLibrary::GetEffectContext(EffectSpecHandle);;
+						FGameplayEffectContextHandle EffectContextHandle = UAbilitySystemBlueprintLibrary::GetEffectContext(EffectSpecHandle);
 						EffectContextHandle.AddOrigin(Bomb->GetActorLocation()); //Origin 발생 위치를 저장한다.
 						EffectContextHandle.AddSourceObject(WeaponStat);
 

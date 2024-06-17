@@ -23,19 +23,6 @@ void AQLLobbyGameMode::PostLogin(APlayerController* NewPC)
 	Super::PostLogin(NewPC);
 }
 
-void AQLLobbyGameMode::ReadyPlayer()
-{
-	ReadyPlayers++;
-
-	if (GameState)
-	{
-		if (ReadyPlayers == GameState->PlayerArray.Num())
-		{
-			GameStart();
-		}
-	}
-}
-
 void AQLLobbyGameMode::GameStart()
 {
 
@@ -46,4 +33,29 @@ void AQLLobbyGameMode::GameStart()
 		World->ServerTravel(FString("/Game/QuadLand/Maps/Main?listen"));
 	}
 
+}
+void AQLLobbyGameMode::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (bIsFirstCondition == false)
+	{
+		bool bIsCheck = true;
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
+		{
+			AQLLobbyPlayerController* PC = Cast<AQLLobbyPlayerController>(It->Get());
+
+			if (PC->GetIsReady() == false)
+			{
+				bIsCheck = false;
+			}
+		}
+
+		if (bIsCheck)
+		{
+			//바로 시작안하고 로딩 시간 넣을 예정.
+			GameStart();
+			bIsFirstCondition = true;
+		}
+	}
 }
