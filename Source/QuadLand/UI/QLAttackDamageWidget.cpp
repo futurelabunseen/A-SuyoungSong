@@ -6,6 +6,7 @@
 
 void UQLAttackDamageWidget::SetDamage(float Damage)
 {
-	FString ItemCntTxt = FString::Printf(TEXT("%2lf"), Damage);
-	TxtAttackDamage->SetText(FText::FromString(ItemCntTxt));
+	uint32 Score = static_cast<uint8>(Damage);
+	FString DamageTxt = FString::Printf(TEXT("%d"), Score);
+	TxtAttackDamage->SetText(FText::FromString(DamageTxt));
 }

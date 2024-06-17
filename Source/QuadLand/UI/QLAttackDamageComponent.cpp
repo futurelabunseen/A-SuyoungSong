@@ -16,3 +16,14 @@ UQLAttackDamageComponent::UQLAttackDamageComponent()
 		SetWidgetClass(DamageRef.Class);
 	}
 }
+
+void UQLAttackDamageComponent::SetDamageText(const float InDamage)
+{
+	UQLAttackDamageWidget *DamageWidget = Cast<UQLAttackDamageWidget>(GetWidget());
+
+	if (DamageWidget)
+	{
+		UE_LOG(LogTemp, Log, TEXT("this? Component"));
+		DamageWidget->SetDamage(InDamage);
+	}
+}

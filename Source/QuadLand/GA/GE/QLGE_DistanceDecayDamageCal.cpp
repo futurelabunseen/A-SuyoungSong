@@ -6,7 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
-
+#include "GameplayTag/GamplayTags.h"
 void UQLGE_DistanceDecayDamageCal::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
 	Super::Execute_Implementation(ExecutionParams, OutExecutionOutput);
@@ -37,6 +37,11 @@ void UQLGE_DistanceDecayDamageCal::Execute_Implementation(const FGameplayEffectC
 			const float InvDamageRatio = 1.0f - Distance / AttackDistacne;
 			float Damage = InvDamageRatio * MaxDamage;
 
+			FGameplayCueParameters CueParams;
+			CueParams.EffectContext = ExecutionParams.GetOwningSpec().GetContext();
+			CueParams.RawMagnitude = Damage;
+			//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
+			TargetASC->ExecuteGameplayCue(GAMEPLAYCUE_CHARACTER_DAMAGESCORE, CueParams);
 			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UQLAS_PlayerStat::GetDamageAttribute(), EGameplayModOp::Additive, Damage));
 		}
 	}

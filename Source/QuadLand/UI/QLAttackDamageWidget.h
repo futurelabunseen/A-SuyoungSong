@@ -15,6 +15,8 @@ class QUADLAND_API UQLAttackDamageWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+
+	UFUNCTION(BlueprintCallable)
 	void SetDamage(float Damage);
 
 protected:

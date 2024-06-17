@@ -58,21 +58,6 @@ bool UQLGC_DamageEffect::OnExecute_Implementation(AActor* MyTarget, const FGamep
 			}
 			//DamageWidget
 			UGameplayStatics::SpawnSoundAtLocation(MyTarget, Sound, Parameters.Location, FRotator::ZeroRotator);
-			FActorSpawnParameters Params;
-			
-			if (Character->HasAuthority())
-			{
-				AActor *DamageActor=GetWorld()->SpawnActor<AActor>(DamageWidgetClass, Parameters.Location, FRotator::ZeroRotator, Params);
-				//UQLAS_PlayerStat *PS  = Parameters.
-
-
-				if (DamageActor)
-				{
-					DamageActor->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
-					FVector Loc = HitResult->Location + FVector(-25.f, -25.f, 50.f);
-					DamageActor->SetActorLocation(Loc);
-				}
-			}
 		
 		}
 		

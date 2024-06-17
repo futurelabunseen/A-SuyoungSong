@@ -33,7 +33,5 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GameplayCue)
 	TObjectPtr<class USoundWave> Sound;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Damage)
-	TSubclassOf<class AActor> DamageWidgetClass;
 
 };

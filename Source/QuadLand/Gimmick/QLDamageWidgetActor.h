@@ -14,8 +14,14 @@ class QUADLAND_API AQLDamageWidgetActor : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AQLDamageWidgetActor();
+
+	void SetDamage(const float &InDamage);
+
 protected:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Nickname, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UQLAttackDamageComponent> DamageWidgetComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Damage, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UWidgetComponent> DamageComponent;
+
+	UFUNCTION(NetMulticast,Unreliable)
+	void MulitcastRPCShowDamage(float InDamage);
 };
