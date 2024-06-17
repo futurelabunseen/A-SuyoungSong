@@ -20,16 +20,11 @@ void UQLGE_AttackUsingBomb::Execute_Implementation(const FGameplayEffectCustomEx
 	const UQLAS_WeaponStat* WeaponStat = Cast<UQLAS_WeaponStat>(EffectContextHandle.GetSourceObject());
 
 	UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
-	UE_LOG(LogTemp, Log, TEXT("AttackUsingBomb 1"));
 	if (TargetASC)
 	{
-
 		FVector Center = EffectContextHandle.GetOrigin(); //시작지점
-		UE_LOG(LogTemp, Log, TEXT("AttackUsingBomb %s"), *Center.ToString());
 
 		AActor* Actor = TargetASC->GetAvatarActor();
-
-		UE_LOG(LogTemp, Log, TEXT("AttackUsingBomb 2 %s"), *Actor->GetName());
 		//Max값
 		const float MaxDamage = WeaponStat->GetMaxDamage() + AddBombDamage;
 		const float AttackDistacne = WeaponStat->GetAttackDistance() + AddBombRadius;
@@ -37,7 +32,6 @@ void UQLGE_AttackUsingBomb::Execute_Implementation(const FGameplayEffectCustomEx
 		const float InvDamageRatio = 1.0f - Distance / AttackDistacne;
 
 		float Damage = InvDamageRatio * MaxDamage;
-		UE_LOG(LogTemp, Log, TEXT("AttackUsingBomb Damage %lf"), MaxDamage);
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UQLAS_PlayerStat::GetDamageAttribute(), EGameplayModOp::Additive, Damage));
 	}
 }

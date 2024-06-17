@@ -10,13 +10,5 @@ AQLLobbyPlayerController::AQLLobbyPlayerController()
 void AQLLobbyPlayerController::ServerRPCReady_Implementation(bool InReady)
 {
 	bIsReady = InReady;
-
-	AQLLobbyGameMode *GameMode =Cast<AQLLobbyGameMode>(GetWorld()->GetAuthGameMode());
-
-	if (GameMode)
-	{
-		GameMode->ReadyPlayer();
-	}
-
 	//GetPawn을 가져와서 스켈레탈 변경
 }

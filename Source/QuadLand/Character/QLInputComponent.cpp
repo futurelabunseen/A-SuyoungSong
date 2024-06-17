@@ -245,7 +245,7 @@ void UQLInputComponent::Move(const FInputActionValue& Value)
 		UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 
 		FGameplayTagContainer TagContainer(CHARACTER_STATE_STOP);
-		if (ASC->HasAnyMatchingGameplayTags(TagContainer))
+		if (ASC && ASC->HasAnyMatchingGameplayTags(TagContainer))
 		{
 			ASC->RemoveLooseGameplayTags(TagContainer);
 		}

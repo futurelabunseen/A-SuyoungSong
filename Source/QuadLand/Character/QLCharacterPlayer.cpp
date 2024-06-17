@@ -119,8 +119,10 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 	
 	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
 
+
 	SetupStartAbilities();
 	InitializeGAS();
+	
 	if (ASC)
 	{
 		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_NON, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetNotEquip);
@@ -236,6 +238,11 @@ void AQLCharacterPlayer::InitializeGAS()
 	{
 		FActiveGameplayEffectHandle ActiveGEHandle = ASC->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), ASC.Get());
 	}
+}
+
+void AQLCharacterPlayer::ServerInitializeGAS()
+{
+
 }
 
 
@@ -690,12 +697,12 @@ void AQLCharacterPlayer::SetupStartAbilities()
 	}
 
 	AQLPlayerState* QLPlayerState = Cast<AQLPlayerState>(GetPlayerState());
-
+	
 	if (QLPlayerState)
 	{
 		ASC = QLPlayerState->GetAbilitySystemComponent();
-
 		ASC->InitAbilityActorInfo(QLPlayerState, this);
+		ASC->ClearAllAbilities();
 
 		for (const auto& Ability : StartAbilities)
 		{

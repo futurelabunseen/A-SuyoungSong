@@ -24,7 +24,8 @@ UQLGA_AttackHitCheckUsingGun::UQLGA_AttackHitCheckUsingGun()
 void UQLGA_AttackHitCheckUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	
+
+	QL_GASLOG(QLLog, Log, TEXT("Gun"));
 	UQLAT_LineTrace* AttackLineTrace = UQLAT_LineTrace::CreateTask(this, AQLTA_LineTraceResult::StaticClass());
 	AttackLineTrace->OnCompleted.AddDynamic(this, &UQLGA_AttackHitCheckUsingGun::OnCompletedCallback);
 	AttackLineTrace->ReadyForActivation();
@@ -51,13 +52,25 @@ void UQLGA_AttackHitCheckUsingGun::OnCompletedCallback(const FGameplayAbilityTar
 
 		//Gameplay Effect를 실행한다.
 		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(AttackDamageEffect);
+		// CueContextHandle -> Params 감싸서 전달
+		FGameplayEffectContextHandle CueContextHandle = UAbilitySystemBlueprintLibrary::GetEffectContext(EffectSpecHandle);
+		CueContextHandle.AddHitResult(HitResult);
+		
+		AQLCharacterBase* Character = Cast<AQLCharacterBase>(CurrentActorInfo->AvatarActor.Get());
+
+		if (Character)
+		{
+			CueContextHandle.AddSourceObject(SourceAttributeSet);
+		}
 
 		if (EffectSpecHandle.IsValid()&&HitResult.GetActor())
 		{
-
+			EffectSpecHandle.Data->SetContext(CueContextHandle);
 			//발사
 			const IQLLifestoneContainerInterface* ReceivedCharacter = Cast<IQLLifestoneContainerInterface>(HitResult.GetActor()); //상속받은 캐릭터/몬스터만 데미지를 받을 수 있음 
 			UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitResult.GetActor());
+			/*총 일때 설정해야하는데?*/
+
 			if (ReceivedCharacter)
 			{
 				
@@ -77,34 +90,13 @@ void UQLGA_AttackHitCheckUsingGun::OnCompletedCallback(const FGameplayAbilityTar
 					UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(HitResult.GetActor(), CHARACTER_ATTACK_TAKENDAMAGE, Payload);
 				}
 
-
 				//Hit 위치 판정 헤드샷일 때 +10 더해준다.
 				//타겟 액터의 본 위치를 가져온다
-				ACharacter* TargetActor = Cast<ACharacter>(HitResult.GetActor());
-				FVector HeadBonePos = TargetActor->GetMesh()->GetBoneLocation(TEXT("head"));
-
-				//거리 판정 
-				FVector DistanceVector = HeadBonePos - HitResult.ImpactPoint; //벡터간의 거리
-				float Distance = DistanceVector.Size(); //그 크기
-				if (GetOwningActorFromActorInfo()->GetLocalRole() == ROLE_Authority)
-				{
-					double Damage = SourceAttributeSet->GetAttackDamage();
-
-					if (Distance < HeadDistThreshold)
-					{
-						Damage += 10.0f; //head 와 가까우면 데미지 +10
-					}
-
-					EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_DAMAGE, Damage);
-					ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
-				}
+				ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
 			}
+			
 		}
 
-		/*총 일때 설정해야하는데?*/
-		// CueContextHandle -> Params 감싸서 전달
-		FGameplayEffectContextHandle CueContextHandle = UAbilitySystemBlueprintLibrary::GetEffectContext(EffectSpecHandle);
-		CueContextHandle.AddHitResult(HitResult);
 		FGameplayCueParameters CueParam;
 		CueParam.EffectContext = CueContextHandle;
 

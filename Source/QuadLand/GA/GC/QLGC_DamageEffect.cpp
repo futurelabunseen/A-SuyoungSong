@@ -12,6 +12,7 @@
 #include "Components/AudioComponent.h"
 #include "Sound/SoundWave.h"
 #include "Gimmick/QLDamageWidgetActor.h"
+#include "AttributeSet/QLAS_PlayerStat.h"
 
 UQLGC_DamageEffect::UQLGC_DamageEffect()
 {
@@ -39,7 +40,6 @@ UQLGC_DamageEffect::UQLGC_DamageEffect()
 bool UQLGC_DamageEffect::OnExecute_Implementation(AActor* MyTarget, const FGameplayCueParameters& Parameters) const
 {
 	const FHitResult* HitResult = Parameters.EffectContext.GetHitResult();
-
 	//구조 변경
 	//해당 액터의 TArray<TObjectPtr<UDecalComponent>> 가지고 있는 놈 하나 만들고 부착할 때마다 추가 예정 
 	if (HitResult!=nullptr)
@@ -63,13 +63,14 @@ bool UQLGC_DamageEffect::OnExecute_Implementation(AActor* MyTarget, const FGamep
 			if (Character->HasAuthority())
 			{
 				AActor *DamageActor=GetWorld()->SpawnActor<AActor>(DamageWidgetClass, Parameters.Location, FRotator::ZeroRotator, Params);
-				
+				//UQLAS_PlayerStat *PS  = Parameters.
+
+
 				if (DamageActor)
 				{
 					DamageActor->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
 					FVector Loc = HitResult->Location + FVector(-25.f, -25.f, 50.f);
 					DamageActor->SetActorLocation(Loc);
-					UE_LOG(LogTemp, Log, TEXT("Current?"));
 				}
 			}
 		
