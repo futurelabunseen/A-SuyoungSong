@@ -11,6 +11,7 @@
 
 #define GAMEPLAYCUE_CHARACTER_FIREEFFECT FGameplayTag::RequestGameplayTag(FName("GameplayCue.Character.FireEffect"))
 #define GAMEPLAYCUE_CHARACTER_DAMAGEEFFECT FGameplayTag::RequestGameplayTag(FName("GameplayCue.Character.DamageEffect"))
+#define GAMEPLAYCUE_CHARACTER_DAMAGESCORE FGameplayTag::RequestGameplayTag(FName("GameplayCue.Character.DamageScore"))
 
 //Data 초기화 태그
 #define DATA_STAT_AMMOCNT FGameplayTag::RequestGameplayTag(FName("Stat.Data.AmmoCnt"))

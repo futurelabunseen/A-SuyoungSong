@@ -17,4 +17,7 @@ class QUADLAND_API UQLAttackDamageComponent : public UWidgetComponent
 public:
 
 	UQLAttackDamageComponent();
+
+	UFUNCTION(BlueprintCallable)
+	void SetDamageText(const float InDamage);
 };
