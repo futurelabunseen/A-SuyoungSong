@@ -50,7 +50,7 @@ void UQLAS_WeaponStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	//실제 사용 CurrentAmmo = CurrentAmmo -1
 	// CurrentAmmo = GetAmmoCnt
 	// MaxAmmoCnt = MaxAmmoCnt - GetAmmoCnt
-		//현재 태그가 Reload가 아니면 아래는 적용이 안되도록.
+	//현재 태그가 Reload가 아니면 아래는 적용이 안되도록.
 
 	if (Data.EvaluatedData.Attribute == GetCurrentAmmoAttribute())
 	{

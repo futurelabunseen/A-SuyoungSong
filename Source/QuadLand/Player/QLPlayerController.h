@@ -107,6 +107,8 @@ public:
 
 protected:
 
+	FString PlayerName;
+
 	uint8 bIsBlinkWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)

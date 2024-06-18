@@ -540,6 +540,7 @@ bool AQLCharacterPlayer::GetIsJumping()
 	return GetCharacterMovement()->IsFalling();
 }
 
+
 FVector AQLCharacterPlayer::GetVelocity() const
 {
 	FVector Velocity = Super::GetVelocity();
@@ -823,11 +824,34 @@ void AQLCharacterPlayer::ServerRPCInitNickname_Implementation()
 	}
 }
 
+void AQLCharacterPlayer::ServerRPCDetachBomb_Implementation()
+{
+	
+	TArray<AActor*> ChildActors;
+	GetAttachedActors(ChildActors, true);
+
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponent();
+	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
+
+	for (const auto& AttachedChild : ChildActors)
+	{
+		AQLBomb* Bomb = Cast<AQLBomb>(AttachedChild);
+
+		if (Bomb != nullptr)
+		{
+			Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			FVector OutVelocity = GetCameraForward() * WeaponStat->GetAttackSpeed();
+			Bomb->ThrowBomb(OutVelocity);
+			break;
+		}
+	}
+}
 void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload)
 {
 	if (IsLocallyControlled()&&NotifyName == FName(TEXT("ThrowAnimNofity")))
 	{
 		bThrowBomb = true;
+		ServerRPCDetachBomb();
 	}
 
 	if (NotifyName == FName(TEXT("StopProneMontage")))

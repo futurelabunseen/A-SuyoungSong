@@ -19,10 +19,9 @@ public:
 
 	const class USkeletalMeshComponent* GetWeaponMesh() const { return Weapon; }
 	void SpawnBomb();
-
 	FVector GetMuzzlePos();
 	void SetBombHiddenInGame(bool InHiddenInGame);
-	FOnDestoryBomb OnDestoryBomb;
+	void ResetBomb();
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
@@ -30,8 +29,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AQLItemBox> GroundWeapon;
-
-	void ResetBomb();
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))

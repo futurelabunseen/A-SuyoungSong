@@ -76,11 +76,14 @@ public:
 
 	UFUNCTION(Server,Unreliable)
 	void ServerRPCInitNickname();
+	UFUNCTION(Server, Unreliable)
 
+	void ServerRPCDetachBomb();
 protected:
 
 	uint8 bIsProning : 1;
 protected:
+
 	virtual FVector GetVelocity() const override;
 
 	float MovingThreshold;

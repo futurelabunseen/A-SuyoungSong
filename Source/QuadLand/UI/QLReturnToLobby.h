@@ -23,6 +23,12 @@ public:
 	UFUNCTION()
 	void ReturnButtonClicked();
 
+	UFUNCTION()
+	void SettingTxtPhase(const FString& Nickname);
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Standard)
+	FString Delimiter;
 private:
 
 	virtual void NativeConstruct() override;
@@ -34,4 +40,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<class APlayerController> PlayerController;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TxtPhrase;
+
+
 };

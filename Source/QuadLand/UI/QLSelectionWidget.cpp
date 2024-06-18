@@ -8,6 +8,7 @@
 #include "Player/QLLobbyPlayerController.h"
 void UQLSelectionWidget::NativeConstruct()
 {
+	Super::NativeConstruct();
 
 }
 

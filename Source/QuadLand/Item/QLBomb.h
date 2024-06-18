@@ -37,9 +37,17 @@ public:
 		Damage = InDamage;
 	}
 
-	FOnActorOverlapDelegate OnActorOverlapDelegate;
-
+	//Attack
+protected:
+	void PlayGameplayCue(const class AQLCharacterBase* Character);
+	void ExplodesBomb(const class AQLCharacterBase* Character);
+	void SpawnFire(const AQLCharacterBase* Character);
 	FVector TargetLoc;
+
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<class UGameplayEffect> AttackDamageEffect;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Bomb)
+	TSubclassOf<class AQLFirewall> Fire;
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
