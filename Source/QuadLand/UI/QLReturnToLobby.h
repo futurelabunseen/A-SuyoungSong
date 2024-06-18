@@ -25,7 +25,6 @@ public:
 
 private:
 
-
 	virtual void NativeConstruct() override;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> ReturnLobbyButton;

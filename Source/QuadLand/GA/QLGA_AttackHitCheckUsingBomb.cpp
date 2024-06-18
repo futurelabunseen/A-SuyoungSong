@@ -54,18 +54,21 @@ void UQLGA_AttackHitCheckUsingBomb::EndAbility(const FGameplayAbilitySpecHandle 
 
 	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
 	TArray<AActor*> ChildActors;
-	Character->GetAttachedActors(ChildActors, true);
-	
-	for (const auto& AttachedChild : ChildActors)
+	if (Character)
 	{
-		Bomb = Cast<AQLBomb>(AttachedChild);
+		Character->GetAttachedActors(ChildActors, true);
 
-		if (Bomb != nullptr)
+		for (const auto& AttachedChild : ChildActors)
 		{
-			Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-			Bomb->Destroy();
-			Bomb = nullptr;
-			break;
+			Bomb = Cast<AQLBomb>(AttachedChild);
+
+			if (Bomb != nullptr)
+			{
+				Bomb->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+				Bomb->Destroy();
+				Bomb = nullptr;
+				break;
+			}
 		}
 	}
 	Bomb = nullptr;

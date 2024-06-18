@@ -158,7 +158,7 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 			else
 			{
 				const auto PC = Cast<AQLPlayerController>(It->Get());
-				PC->Loose();
+				PC->ClientRPCLoose();
 			}
 		}
 	}

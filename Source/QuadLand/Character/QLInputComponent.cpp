@@ -673,7 +673,8 @@ void UQLInputComponent::SelectDefaultAttackType()
 void UQLInputComponent::SelectGunAttackType()
 {
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
-	if (Character == nullptr)
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+	if (Character == nullptr || PC==nullptr)
 	{
 		return;
 	}
@@ -687,6 +688,8 @@ void UQLInputComponent::SelectGunAttackType()
 		return; //같은 경우만 체크하면된다.
 	}
 	
+	PC->UpdateEquipWeaponUI(true);
+
 	Character->ServerRPCSwitchAttackType(ECharacterAttackType::GunAttack);
 }
 

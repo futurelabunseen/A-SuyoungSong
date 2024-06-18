@@ -71,6 +71,9 @@ public:
 	UFUNCTION(Client, Reliable)
 	void ClientRPCGameStart();
 
+	UFUNCTION(Server,Reliable)
+	void ServerRPCGoToLobby();
+
 	void BlinkBloodWidget();
 	void CancelBloodWidget();
 
@@ -78,7 +81,8 @@ public:
 
 	void InitStoneTexture(int GemType);
 	void Win();
-	void Loose();
+	UFUNCTION(Client,Reliable)
+	void ClientRPCLoose();
 
 	UFUNCTION(BlueprintCallable)
 	void CloseInventroy();

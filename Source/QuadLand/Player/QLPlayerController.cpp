@@ -94,6 +94,11 @@ void AQLPlayerController::ActivateDeathTimer(float Time)
 	GetWorld()->GetTimerManager().SetTimer(StopTimer, this, &AQLPlayerController::StopDeathSec, Time + 1.0f);
 }
 
+void AQLPlayerController::ServerRPCGoToLobby_Implementation()
+{
+	GetWorld()->ServerTravel(FString("/Game/QuadLand/Maps/Lobby?listen"));
+}
+
 void AQLPlayerController::BlinkBloodWidget()
 {
 	SetVisibilityHUD(EHUDType::Blood);
@@ -145,7 +150,7 @@ void AQLPlayerController::Win()
 	}
 }
 
-void AQLPlayerController::Loose()
+void AQLPlayerController::ClientRPCLoose_Implementation()
 {
 	SetVisibilityHUD(EHUDType::Death);
 	UQLReturnToLobby* UserWidget = Cast<UQLReturnToLobby>(HUDs[EHUDType::Death]);
@@ -238,6 +243,25 @@ void AQLPlayerController::ClientRPCCreateWidget_Implementation()
 		Map->ResetPlayer();
 	}
 
+	if (HUDs.Find(EHUDType::Win))
+	{
+		UQLReturnToLobby* Win = Cast<UQLReturnToLobby>(HUDs[EHUDType::Win]);
+		
+		if (Win)
+		{
+			Win->SetupUI();
+		}
+	}
+
+	if (HUDs.Find(EHUDType::Death))
+	{
+		UQLReturnToLobby* Loose = Cast<UQLReturnToLobby>(HUDs[EHUDType::Death]);
+		
+		if (Loose)
+		{
+			Loose->SetupUI();
+		}
+	}
 }
 
 
