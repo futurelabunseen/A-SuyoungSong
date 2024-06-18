@@ -7,7 +7,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "EngineUtils.h"
-
+#include "AttributeSet/QLAS_WeaponStat.h"
 #include "Character/QLCharacterPlayer.h"
 #include "Components/SplineComponent.h"
 #include "Item/QLWeaponComponent.h"
@@ -80,18 +80,14 @@ void UQLGA_BombThrower::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		ASC->AddLooseGameplayTags(Tag);
 	}
+
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
 }
 
 void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {	
-	ServerRPCAttackHitCheck();
-
 	MontageJumpToSection(FName("Throw"));
-	FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	ASC->TryActivateAbilitiesByTag(TargetTag);
 
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
 	Player->GetInventory()->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType));
@@ -122,21 +118,3 @@ void UQLGA_BombThrower::OnInterruptedCallback()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-
-void UQLGA_BombThrower::ServerRPCAttackHitCheck_Implementation()
-{
-	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
-	
-	const UQLWeaponComponent* WeaponComp = Player->GetWeapon();
-	if (WeaponComp)
-	{
-		if (WeaponComp->OnDestoryBomb.IsBound())
-		{
-			WeaponComp->OnDestoryBomb.ExecuteIfBound();
-		}
-	}
-	
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	FGameplayTagContainer TargetTag(CHARACTER_ATTACK_HITCHECK);
-	ASC->TryActivateAbilitiesByTag(TargetTag);
-}

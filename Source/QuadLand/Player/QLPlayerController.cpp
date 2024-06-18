@@ -146,6 +146,12 @@ void AQLPlayerController::Win()
 		FInputModeUIOnly UIOnlyInputMode;
 		SetInputMode(UIOnlyInputMode);
 		SetShowMouseCursor(true);
+		AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+
+		if (PS)
+		{
+			UserWidget->SettingTxtPhase(PS->GetName());
+		}
 		UserWidget->SetupUI();
 	}
 }
@@ -160,6 +166,12 @@ void AQLPlayerController::ClientRPCLoose_Implementation()
 		FInputModeUIOnly UIOnlyInputMode;
 		SetInputMode(UIOnlyInputMode);
 		SetShowMouseCursor(true);
+		AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+
+		if (PS)
+		{
+			UserWidget->SettingTxtPhase(PS->GetName());
+		}
 		UserWidget->SetupUI();
 	}
 }
@@ -201,6 +213,7 @@ void AQLPlayerController::SettingNickname()
 
 	if (PS)
 	{
+		PlayerName = PS->GetPlayerName();
 		UQLUserWidget* UserWidget = Cast< UQLUserWidget>(HUDs[EHUDType::HUD]);
 		UserWidget->SettingNickname(PS->GetPlayerName());
 	}

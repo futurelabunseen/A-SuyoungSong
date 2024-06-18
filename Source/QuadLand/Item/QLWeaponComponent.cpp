@@ -32,7 +32,7 @@ void UQLWeaponComponent::SpawnBomb()
 
 	UQLBombStat* Stat = Cast<UQLBombStat>(DataManager->GetItem(EItemType::Bomb));
 	ACharacter* Character = Cast<ACharacter>(GetOwner());
-	if (DataManager&& Character)
+	if (Character)
 	{
 		//나머지 클라이언트 생성
 		FActorSpawnParameters Params;
@@ -40,10 +40,6 @@ void UQLWeaponComponent::SpawnBomb()
 		//Bomb - Actor 생성
 		//클라이언트, 서버 생성 
 		Bomb = GetWorld()->SpawnActor<AQLBomb>(Stat->BombClass, Params);
-		if (Bomb)
-		{
-			OnDestoryBomb.BindUObject(this, &UQLWeaponComponent::ResetBomb);
-		}
 		Bomb->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, FName("Bomb"));
 	}
 }

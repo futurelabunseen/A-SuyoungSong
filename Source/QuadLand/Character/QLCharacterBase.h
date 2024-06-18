@@ -25,7 +25,7 @@ public:
 	bool bIsUsingGun();
 	FORCEINLINE float GetCurrnetYaw() { return CurrentYaw; }
 	FORCEINLINE float GetCurrentPitch() { return CurrentPitch; }
-	FORCEINLINE const class UQLWeaponComponent* GetWeapon() const { return Weapon; }
+	FORCEINLINE class UQLWeaponComponent* GetWeapon() const { return Weapon; }
 	FORCEINLINE ETurningPlaceType GetTurningInPlaceType() const { return TurningInPlace; }
 	virtual FGameplayTag GetCurrentAttackTag() const override;
 	//FORCEINLINE

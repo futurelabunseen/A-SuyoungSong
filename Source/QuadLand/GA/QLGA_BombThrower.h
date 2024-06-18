@@ -48,8 +48,4 @@ protected:
 
 	float AnimSpeedRate;
 
-	UFUNCTION(Server,Reliable)
-	void ServerRPCAttackHitCheck();
-
-
 };

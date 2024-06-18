@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Player/QLPlayerController.h"
 #include "GameFramework/GameMode.h"
+#include "Components/TextBlock.h"
 #include "QuadLand.h"
 
 void UQLReturnToLobby::SetupUI()
@@ -76,6 +77,17 @@ void UQLReturnToLobby::ReturnButtonClicked()
 	if (MultiplayerSessionSubsystem)
 	{
 		MultiplayerSessionSubsystem->DestroySession();
+	}
+}
+
+void UQLReturnToLobby::SettingTxtPhase(const FString& Nickname)
+{
+	if (TxtPhrase)
+	{
+		FString Phrase = TxtPhrase->GetText().ToString();
+		FString ChangePhrase=Phrase.Replace(*Delimiter, *Nickname);
+
+		TxtPhrase->SetText(FText::FromString(ChangePhrase));
 	}
 }
 
