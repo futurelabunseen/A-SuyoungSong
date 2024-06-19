@@ -117,7 +117,7 @@ void AQLBomb::ExplodesBomb(const AQLCharacterBase* Character)
 
 void AQLBomb::SpawnFire(const AQLCharacterBase* Character)
 {
-	if (Character->HasAuthority())
+	if (HasAuthority())
 	{
 		FCollisionQueryParams Params(SCENE_QUERY_STAT(FireCollision), false);
 		UAbilitySystemComponent* SourceASC = Character->GetAbilitySystemComponent();
@@ -167,12 +167,6 @@ void AQLBomb::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector Norm
 
 	if (Character)
 	{
-		UQLWeaponComponent* WeaponComp = Character->GetWeapon();
-		if (WeaponComp)
-		{
-			WeaponComp->ResetBomb();
-		}
-
 		ExplodesBomb(Character);
 		QL_LOG(QLLog, Warning, TEXT(" Fire "));
 	}

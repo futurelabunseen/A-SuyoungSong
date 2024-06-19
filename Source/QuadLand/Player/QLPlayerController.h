@@ -71,9 +71,6 @@ public:
 	UFUNCTION(Client, Reliable)
 	void ClientRPCGameStart();
 
-	UFUNCTION(Server,Reliable)
-	void ServerRPCGoToLobby();
-
 	void BlinkBloodWidget();
 	void CancelBloodWidget();
 
@@ -89,6 +86,7 @@ public:
 
 	void SwitchWeaponStyle(ECharacterAttackType AttackType);
 	void SetUpdateLivePlayer(int16 InLivePlayer);
+	void SettingDeathTime();
 
 	FOnDeathCheckDelegate OnDeathCheckDelegate;
 
@@ -105,9 +103,12 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPCInitPawn(int Type);
 
+
+	FString ChangeTimeText();
+
 protected:
 
-	FString PlayerName;
+	FString DeathTime;
 
 	uint8 bIsBlinkWidget;
 

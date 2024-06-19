@@ -3,13 +3,18 @@
 
 #include "UI/QLSelectionWidget.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
 #include "Player/QLLobbyPlayerState.h"
 #include "Game/QLGameInstance.h"
 #include "Player/QLLobbyPlayerController.h"
 void UQLSelectionWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
+	
+	if (TxtWait)
+	{
+		TxtWait->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void UQLSelectionWidget::ChangeGenderTypeToInt(FName InGender)
@@ -58,7 +63,6 @@ void UQLSelectionWidget::ChangeGemTypeToInt(FName GemColor)
 		}
 	}
 	
-
 	UQLGameInstance *GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
 
 	if (GameInstance)
@@ -76,4 +80,59 @@ void UQLSelectionWidget::SetReady()
 		LobbyController->ServerRPCReady(true);
 	}
 }
+
+void UQLSelectionWidget::ShowWaitTxt()
+{
+	TxtWait->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UQLSelectionWidget::ShowLimitTxt()
+{
+
+	TimeLimitSec -= 1;
+	FString RemainingTimeTxt = FString::Printf(TEXT("%d"), TimeLimitSec);
+	TxtWait->SetText(FText::FromString(RemainingTimeTxt));
+	
+	if (TimeLimitSec <= 1)
+	{
+		AQLLobbyPlayerController* PC = GetOwningPlayer<AQLLobbyPlayerController>();
+		if (PC)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(LimitTimer);
+			LimitTimer.Invalidate();
+			PC->ServerRPCTimeout();
+		}
+	}
+}
+
+void UQLSelectionWidget::StartLimitTimer()
+{
+	CheckTimeLimit = true;
+	ShowLimitTxt();
+	TxtWait->SetVisibility(ESlateVisibility::Visible);
+	GetWorld()->GetTimerManager().SetTimer(LimitTimer, this, &UQLSelectionWidget::ShowLimitTxt, 1.f, true);
+}
+
+void UQLSelectionWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	//if (CheckTimeLimit)
+	//{
+	//	FString RemainingTimeTxt = FString::Printf(TEXT("%d"), TimeLimitSec);
+	//	TxtWait->SetText(FText::FromString(RemainingTimeTxt));
+
+	//	UE_LOG(LogTemp, Log, TEXT(" %d "), TimeLimitSec);
+	//	if (TimeLimitSec >= 0)
+	//	{
+	//		AQLLobbyPlayerController *PC = GetOwningPlayer<AQLLobbyPlayerController>();
+
+	//		if (PC)
+	//		{
+	//			PC->ServerRPCTimeout();
+	//		}
+	//	}
+	//}
+}
+
 

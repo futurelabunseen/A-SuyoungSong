@@ -421,6 +421,14 @@ void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
         {
             FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
             ASC->TryActivateAbilitiesByTag(TargetTag);
+            
+            AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //소유권은 PC가 가짐
+
+            if (PC)
+            {
+                PC->SettingDeathTime();
+            }
+            //여기다
         }
         if (HasAuthority())
         {

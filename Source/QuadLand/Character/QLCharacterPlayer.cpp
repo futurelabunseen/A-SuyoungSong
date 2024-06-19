@@ -180,7 +180,6 @@ void AQLCharacterPlayer::BeginPlay()
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
 	if (PlayerController)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Enable Input"));
 		EnableInput(PlayerController);
 	}
 
@@ -336,8 +335,6 @@ void AQLCharacterPlayer::FarmingItem()
 				QL_LOG(QLNetLog, Warning, TEXT("Item is not founded"));
 				return;
 			}
-			UE_LOG(LogTemp, Warning, TEXT("Item Type %d"), Item->Stat->ItemType);
-
 			TakeItemActions[static_cast<uint8>(Item->Stat->ItemType)].ItemDelegate.ExecuteIfBound(Item);
 		}
 	}

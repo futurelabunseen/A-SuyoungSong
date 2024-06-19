@@ -17,14 +17,12 @@ void UQLReturnToLobby::SetupUI()
 	if (ReturnLobbyButton && !ReturnLobbyButton->OnClicked.IsBound())
 	{
 		ReturnLobbyButton->OnClicked.AddDynamic(this, &UQLReturnToLobby::ReturnButtonClicked);
-		UE_LOG(LogTemp, Log, TEXT("UQLReturnToLobby 2"));
 	}
 
 	UGameInstance* GameInstance = GetGameInstance();
 
 	if (GameInstance)
 	{
-		UE_LOG(LogTemp, Log, TEXT("UQLReturnToLobby 3"));
 		MultiplayerSessionSubsystem = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
 
 		if (MultiplayerSessionSubsystem)
@@ -52,15 +50,10 @@ void UQLReturnToLobby::OnDestorySession(bool bWasSuccessful)
 		if (GameMode)
 		{
 			//서버
-
-			//모든 클라이언트한테 나가라고 한다.
-			UE_LOG(LogTemp, Log, TEXT("UQLReturnToLobby server 4"));
 			GameMode->ReturnToMainMenuHost();
 		}
 		else
 		{
-
-			UE_LOG(LogTemp, Log, TEXT("UQLReturnToLobby clinet 4"));
 			//클라이언트는 그냥 나가면된다
 			PlayerController = PlayerController == nullptr ? World->GetFirstPlayerController() : PlayerController;
 
@@ -80,14 +73,23 @@ void UQLReturnToLobby::ReturnButtonClicked()
 	}
 }
 
-void UQLReturnToLobby::SettingTxtPhase(const FString& Nickname)
+void UQLReturnToLobby::SettingTxtPhase(const FString& Nickname, const FString &Time)
 {
 	if (TxtPhrase)
 	{
 		FString Phrase = TxtPhrase->GetText().ToString();
-		FString ChangePhrase=Phrase.Replace(*Delimiter, *Nickname);
+		FString ChangePhrase=Phrase.Replace(*DelimiterNickname, *Nickname);
 
 		TxtPhrase->SetText(FText::FromString(ChangePhrase));
+	}
+
+	if (TxtTime)
+	{
+
+		FString EndTime = TxtTime->GetText().ToString();
+		FString ChangeTime = EndTime.Replace(*DelimiterTime, *Time);
+
+		TxtTime->SetText(FText::FromString(ChangeTime));
 	}
 }
 
@@ -95,7 +97,6 @@ void UQLReturnToLobby::NativeConstruct()
 {
 	if (ReturnLobbyButton == nullptr)
 	{
-		UE_LOG(LogTemp, Log, TEXT("UQLReturnToLobby 1"));
 		ReturnLobbyButton = Cast<UButton>(GetWidgetFromName(TEXT("ReturnLobbyButton")));
 	}
 }

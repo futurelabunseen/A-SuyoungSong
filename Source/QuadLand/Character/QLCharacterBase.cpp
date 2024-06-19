@@ -93,11 +93,8 @@ void AQLCharacterBase::SetNickname(const FString& Nickname)
 {
 	UQLNicknameWidget* Panel = Cast<UQLNicknameWidget>(NicknameComponent->GetWidget());
 
-	QL_LOG(QLLog, Log, TEXT("Player Name 3"));
 	if (Panel)
 	{
-
-		QL_LOG(QLLog, Log, TEXT("Player Name 4"));
 		Panel->SetNickname(Nickname);
 	}
 }

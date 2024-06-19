@@ -34,14 +34,12 @@ void UQLWeaponComponent::SpawnBomb()
 	ACharacter* Character = Cast<ACharacter>(GetOwner());
 	if (Character)
 	{
-		//나머지 클라이언트 생성
 		FActorSpawnParameters Params;
 		Params.Owner = Character;
-		//Bomb - Actor 생성
-		//클라이언트, 서버 생성 
 		Bomb = GetWorld()->SpawnActor<AQLBomb>(Stat->BombClass, Params);
 		Bomb->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, FName("Bomb"));
 	}
+
 }
 
 FVector UQLWeaponComponent::GetMuzzlePos()

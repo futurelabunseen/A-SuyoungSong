@@ -27,7 +27,34 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetReady();
 
-private:
+	UFUNCTION()
+	void ShowWaitTxt();
+
+	UFUNCTION()
+	void ShowLimitTxt();
+
+	UFUNCTION()
+	void StartLimitTimer();
+
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
+	
+protected:
+
+	FTimerHandle LimitTimer;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Select")
 	int Gender= 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Select")
 	int Gem = 0;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TxtWait;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TimeLimit")
+	int TimeLimitSec;
+
+	int StartTime;
+	uint8 CheckTimeLimit : 1;
 };
