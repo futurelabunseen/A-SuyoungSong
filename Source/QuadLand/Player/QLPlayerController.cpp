@@ -94,11 +94,6 @@ void AQLPlayerController::ActivateDeathTimer(float Time)
 	GetWorld()->GetTimerManager().SetTimer(StopTimer, this, &AQLPlayerController::StopDeathSec, Time + 1.0f);
 }
 
-void AQLPlayerController::ServerRPCGoToLobby_Implementation()
-{
-	GetWorld()->ServerTravel(FString("/Game/QuadLand/Maps/Lobby?listen"));
-}
-
 void AQLPlayerController::BlinkBloodWidget()
 {
 	SetVisibilityHUD(EHUDType::Blood);
@@ -150,7 +145,7 @@ void AQLPlayerController::Win()
 
 		if (PS)
 		{
-			UserWidget->SettingTxtPhase(PS->GetName());
+			UserWidget->SettingTxtPhase(PS->GetPlayerName(), ChangeTimeText());
 		}
 		UserWidget->SetupUI();
 	}
@@ -170,7 +165,7 @@ void AQLPlayerController::ClientRPCLoose_Implementation()
 
 		if (PS)
 		{
-			UserWidget->SettingTxtPhase(PS->GetName());
+			UserWidget->SettingTxtPhase(PS->GetPlayerName(), DeathTime);
 		}
 		UserWidget->SetupUI();
 	}
@@ -207,16 +202,32 @@ void AQLPlayerController::SetUpdateLivePlayer(int16 InLivePlayer)
 	}
 }
 
+void AQLPlayerController::SettingDeathTime()
+{
+	DeathTime = ChangeTimeText(); //Update
+}
+
 void AQLPlayerController::SettingNickname()
 {
 	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
 
 	if (PS)
 	{
-		PlayerName = PS->GetPlayerName();
 		UQLUserWidget* UserWidget = Cast< UQLUserWidget>(HUDs[EHUDType::HUD]);
 		UserWidget->SettingNickname(PS->GetPlayerName());
 	}
+}
+
+FString AQLPlayerController::ChangeTimeText()
+{
+	uint32 ProgressTime = GetServerTime() - StartTime;
+
+	int32 Minutes = FMath::FloorToInt(ProgressTime / 60.f);
+	int32 Seconds = ProgressTime - Minutes * 60;
+
+	FString ProgressTimeText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+	
+	return ProgressTimeText;
 }
 
 void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)

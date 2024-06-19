@@ -687,9 +687,7 @@ void UQLInputComponent::SelectGunAttackType()
 	{
 		return; //같은 경우만 체크하면된다.
 	}
-	
-	PC->UpdateEquipWeaponUI(true);
-
+	PC->SwitchWeaponStyle(ECharacterAttackType::GunAttack);
 	Character->ServerRPCSwitchAttackType(ECharacterAttackType::GunAttack);
 }
 

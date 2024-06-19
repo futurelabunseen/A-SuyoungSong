@@ -81,6 +81,14 @@ void UQLGA_BombThrower::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 		ASC->AddLooseGameplayTags(Tag);
 	}
 
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+
+	UQLWeaponComponent* WeaponComp = Player->GetWeapon();
+	if (WeaponComp)
+	{
+		WeaponComp->ResetBomb();
+	}
+
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
 }

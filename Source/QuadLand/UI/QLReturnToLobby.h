@@ -24,14 +24,18 @@ public:
 	void ReturnButtonClicked();
 
 	UFUNCTION()
-	void SettingTxtPhase(const FString& Nickname);
+	void SettingTxtPhase(const FString& Nickname, const FString& Time);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Standard)
-	FString Delimiter;
+	FString DelimiterNickname;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Standard)
+	FString DelimiterTime;
 private:
 
 	virtual void NativeConstruct() override;
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> ReturnLobbyButton;
 
@@ -44,5 +48,6 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> TxtPhrase;
 
-
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TxtTime;
 };

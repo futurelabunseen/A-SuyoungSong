@@ -68,8 +68,6 @@ void AQLGameMode::PostLogin(APlayerController* NewPlayer)
 		AddPlayer(FName(PS->GetName()));
 	}
 
-	QL_LOG(QLLog, Log, TEXT("begin"));
-
 	AQLPlayerState* NewPlayerState = NewPlayer->GetPlayerState<AQLPlayerState>();
 	if (NewPlayerState)
 	{
