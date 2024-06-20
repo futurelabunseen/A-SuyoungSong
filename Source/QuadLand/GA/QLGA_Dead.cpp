@@ -29,6 +29,7 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	- Inventory는 플레이어가 가지고 있음 ( 플레이어는 죽을 때 인베토리를 어떻게할까? 고민해보는게 좋을듯)
 	*/
 
+	UE_LOG(LogTemp, Log, TEXT("This is Dead"));
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
 
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);

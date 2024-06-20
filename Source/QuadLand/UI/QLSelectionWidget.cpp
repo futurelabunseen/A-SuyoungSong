@@ -112,27 +112,3 @@ void UQLSelectionWidget::StartLimitTimer()
 	TxtWait->SetVisibility(ESlateVisibility::Visible);
 	GetWorld()->GetTimerManager().SetTimer(LimitTimer, this, &UQLSelectionWidget::ShowLimitTxt, 1.f, true);
 }
-
-void UQLSelectionWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
-{
-	Super::NativeTick(MyGeometry, InDeltaTime);
-
-	//if (CheckTimeLimit)
-	//{
-	//	FString RemainingTimeTxt = FString::Printf(TEXT("%d"), TimeLimitSec);
-	//	TxtWait->SetText(FText::FromString(RemainingTimeTxt));
-
-	//	UE_LOG(LogTemp, Log, TEXT(" %d "), TimeLimitSec);
-	//	if (TimeLimitSec >= 0)
-	//	{
-	//		AQLLobbyPlayerController *PC = GetOwningPlayer<AQLLobbyPlayerController>();
-
-	//		if (PC)
-	//		{
-	//			PC->ServerRPCTimeout();
-	//		}
-	//	}
-	//}
-}
-
-

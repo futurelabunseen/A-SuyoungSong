@@ -24,7 +24,9 @@ void UQLGA_Danger::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	if (PC)
 	{
+		PC->OnDeathCheckDelegate.Unbind();
 		PC->OnDeathCheckDelegate.BindUObject(this, &UQLGA_Danger::OnCompleted);
+		QL_GASLOG(QLLog, Log, TEXT("Danger %s"), *PC->GetName());
 		PC->ActivateDeathTimer(Time);
 	}
 	//플레이어 스테이트도 제거해야할듯! (하지만 나중에 해보자)
@@ -42,7 +44,7 @@ void UQLGA_Danger::ServerRPCDead_Implementation()
 
 	FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
 	
-	if (ASC && ASC->HasAnyMatchingGameplayTags(TargetTag))
+	if (ASC)
 	{
 		ASC->TryActivateAbilitiesByTag(TargetTag);
 	}
@@ -50,10 +52,11 @@ void UQLGA_Danger::ServerRPCDead_Implementation()
 
 void UQLGA_Danger::OnCompleted()
 {
+
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
 	FGameplayTagContainer TagContainer(CHARACTER_STATE_DEAD);
-	if (ASC && ASC->HasAnyMatchingGameplayTags(TagContainer))
+	if (ASC)
 	{
 		ASC->TryActivateAbilitiesByTag(TagContainer);
 	}

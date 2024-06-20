@@ -325,6 +325,8 @@ void AQLPlayerController::StopDeathSec()
 		DeathTimerHandle.Invalidate();
 	}
 	//Delegate호출
+	
+	QL_LOG(QLLog, Log, TEXT(" nn "));
 	OnDeathCheckDelegate.ExecuteIfBound(); 
 }
 
@@ -371,6 +373,10 @@ void AQLPlayerController::CreateHUD()
 		Widget->SetVisibility(ESlateVisibility::Visible);
 		HUDs.Add(HUD.Key, Widget);
 	}
+
+	FInputModeUIOnly UIOnlyInputMode;
+	SetInputMode(UIOnlyInputMode);
+	SetShowMouseCursor(true);
 
 	UQLUserWidget *Widget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 
@@ -490,6 +496,7 @@ void AQLPlayerController::ConcealLifeStone()
 		UserWidget->ConcealLifeStone();
 	}
 }
+
 void AQLPlayerController::ServerRPCRequestServerTime_Implementation(float TimeOfClientRequest)
 {
 	float ServerTimeOfReceipt = GetWorld()->GetTimeSeconds(); //현재 받은시간
