@@ -326,7 +326,6 @@ void AQLPlayerController::StopDeathSec()
 	}
 	//Delegate»£√‚
 	
-	QL_LOG(QLLog, Log, TEXT(" nn "));
 	OnDeathCheckDelegate.ExecuteIfBound(); 
 }
 

@@ -41,8 +41,9 @@ public:
 	float GetCurrentAmmoCnt();
 	float GetMaxAmmoCnt();
 	float GetAmmoCnt();
-
 	int GetGenderType() { return GenderType; }
+
+	void InitAttributeSet();
 
 	FORCEINLINE void SetHasLifeStone(bool InHasLifeStone)
 	{
@@ -104,8 +105,6 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, Category = Battle)
 	uint8 bIsWin : 1;
 
-	//void SetHasLifeStone(bool InGetStone) { bHasLifeStone = true; }
-	//HUD Update Section
 protected:
 
 	FDelegateHandle HealthChangedDeleagteHandle;

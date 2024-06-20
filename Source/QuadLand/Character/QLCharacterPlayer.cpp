@@ -222,10 +222,6 @@ void AQLCharacterPlayer::InitializeGAS()
 
 	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
 
-	if (PS==nullptr || PS->GetUpdateAttribute())
-	{
-		return;
-	}
 	PS->SetUpdateAttribute();
 
 	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
