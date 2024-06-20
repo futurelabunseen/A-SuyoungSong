@@ -35,9 +35,6 @@ public:
 
 	UFUNCTION()
 	void StartLimitTimer();
-
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
-
 	
 protected:
 
