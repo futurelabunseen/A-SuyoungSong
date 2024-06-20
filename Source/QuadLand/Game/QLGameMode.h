@@ -37,7 +37,10 @@ public:
 
 
 	UFUNCTION()
-	void SpawnPlayerPawn(APlayerController*Contoller,int Type);
+	void RespawnPlayerPawn(APlayerController* Contoller, int Type);
+
+	UFUNCTION()
+	void SpawnPlayerPawn(APlayerController* Contoller,int Type);
 
 protected:
 	UPROPERTY(BlueprintReadOnly)

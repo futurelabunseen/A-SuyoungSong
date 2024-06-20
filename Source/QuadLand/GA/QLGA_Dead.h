@@ -23,6 +23,8 @@ public:
 protected:
 	void OnCompleted();
 
+	void RespawnTimeFunc();
+
 	UPROPERTY(EditAnywhere, Category = Spectator)
 	TSubclassOf<class AQLSpectatorPawn> SpectatorPawnClass;
 };

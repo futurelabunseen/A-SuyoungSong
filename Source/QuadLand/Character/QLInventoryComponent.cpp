@@ -324,7 +324,6 @@ void UQLInventoryComponent::ServerRPCAddGroundByDraggedItem_Implementation(EItem
 			}
 			PS->BulletWaste(AmmoStatData->GetStat()); //¶¥¿¡ ¹ö¸± ¶§ 
 		}
-		//	GroundItem->bReplicate
 	}
 }
 

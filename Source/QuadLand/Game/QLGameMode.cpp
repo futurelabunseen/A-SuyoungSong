@@ -124,7 +124,7 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 		UAbilitySystemComponent* ASC = PlayerState->GetAbilitySystemComponent();
 		FName PlayerName = FName(PlayerState->GetName());
 		//태그가 부착되어있는지 확인한다.
-		if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_DEAD))
+		if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_DEAD) && PlayerState->GetHasLifeStone())
 		{
 			if (PlayerDieStatus[PlayerName] == false)
 			{
@@ -168,6 +168,14 @@ void AQLGameMode::AddPlayer(FName PlayerName)
 	LivePlayerCount++;
 }
 
+void AQLGameMode::RespawnPlayerPawn(APlayerController* Controller, int Type)
+{
+	/*FTimerHandle RespawnTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(RespawnTimerHandle, this, 10.f, false);
+	*/
+	SpawnPlayerPawn(Controller, Type);
+}
+
 void AQLGameMode::SpawnPlayerPawn(APlayerController* Player,int Type)
 {
 	if (Player == nullptr)
@@ -200,6 +208,13 @@ void AQLGameMode::SpawnPlayerPawn(APlayerController* Player,int Type)
 			Player->Possess(ResultPawn);
 			Player->ClientRestart(ResultPawn);
 		}
+	}
+
+	AQLPlayerState* PS = Player->GetPlayerState<AQLPlayerState>();
+
+	if (PS)
+	{
+		PS->InitAttributeSet();
 	}
 
 }

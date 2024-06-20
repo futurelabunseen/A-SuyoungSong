@@ -11,6 +11,8 @@
 #include "Player/QLPlayerController.h"
 #include "GameplayTag/GamplayTags.h"
 #include "Character/QLSpectatorPawn.h"
+#include "Player/QLPlayerState.h"
+#include "Game/QLGameMode.h"
 
 UQLGA_Dead::UQLGA_Dead() 
 {
@@ -29,7 +31,6 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	- Inventory는 플레이어가 가지고 있음 ( 플레이어는 죽을 때 인베토리를 어떻게할까? 고민해보는게 좋을듯)
 	*/
 
-	UE_LOG(LogTemp, Log, TEXT("This is Dead"));
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
 
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
@@ -53,18 +54,54 @@ void UQLGA_Dead::OnCompleted()
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = true;
 
+	// 이 어빌리티가 실행될 때, 만약 PlayerState 가 보석이 없다면, 새로운 Pawn Spawn
+	
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
 	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
 
-	if (PC && HasAuthority(&CurrentActivationInfo))
-	{
-		FTransform Transform = Character->GetActorTransform();
-		FActorSpawnParameters Params;
-		AQLSpectatorPawn *SpectatorPawn =GetWorld()->SpawnActor<AQLSpectatorPawn>(SpectatorPawnClass, Transform, Params);
+	AQLPlayerState* PS = Cast<AQLPlayerState>(GetActorInfo().OwnerActor.Get());
 
-		PC->Possess(Cast<APawn>(SpectatorPawn));
+
+	if (PS)
+	{
+		if (PS->GetHasLifeStone()) //가지고 있다면 죽은것
+		{
+			if (PC && HasAuthority(&CurrentActivationInfo))
+			{
+				FTransform Transform = Character->GetActorTransform();
+				FActorSpawnParameters Params;
+				AQLSpectatorPawn* SpectatorPawn = GetWorld()->SpawnActor<AQLSpectatorPawn>(SpectatorPawnClass, Transform, Params);
+
+				PC->Possess(Cast<APawn>(SpectatorPawn));
+			}
+		}
+		else
+		{
+			FTimerHandle RespawnTimer;
+			GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &UQLGA_Dead::RespawnTimeFunc, 10.f, false);
+		}
 	}
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UQLGA_Dead::RespawnTimeFunc()
+{
+
+	AQLPlayerState* PS = Cast<AQLPlayerState>(GetActorInfo().OwnerActor.Get());
+	AQLPlayerController* PC = Cast<AQLPlayerController>(PS->GetOwner());
+	
+	//검사한다. 모든 플레이어가 어떤 보석을 먹었는지에 대해 확인.
+	//만약 아무도 내 보석을 먹지 않았다면, respawn 가능
+	//가지고 있지않다면 새로 Pawn 생성.
+	if (PS)
+	{
+		AQLGameMode* GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
+
+		if (GameMode)
+		{
+			GameMode->SpawnPlayerPawn(PC, PS->GetGenderType());
+		}
+	}
 }
 
 /*
@@ -73,7 +110,4 @@ QLPlayerController -> Widget 연결
 Widget 끝나면, 해당 Widget Owning -> Bind
 
 QLDeathTimerWidget 연결 
-
-
-
 */
