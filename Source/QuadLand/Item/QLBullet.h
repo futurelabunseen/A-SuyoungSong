@@ -14,7 +14,8 @@ class QUADLAND_API AQLBullet : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AQLBullet();
-	/** Overridable native event for when play begins for this actor. */
+
+	void Init();
 	virtual void BeginPlay() override;
 protected:
 
@@ -28,4 +29,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UProjectileMovementComponent> ProjecttileMovement;
+
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult);
+	
+	FTimerHandle ResetTimer;
 };
