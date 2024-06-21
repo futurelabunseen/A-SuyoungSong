@@ -30,7 +30,6 @@ protected:
 
 
 protected:
-	virtual void CopyProperties(APlayerState* PlayerState) override;
 
 
 };

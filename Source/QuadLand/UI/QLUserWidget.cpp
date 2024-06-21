@@ -78,17 +78,17 @@ void UQLUserWidget::BlinkBag()
 	}
 }
 
-void UQLUserWidget::ConcealLifeStone()
+void UQLUserWidget::ConcealLifeStone(bool InVisible)
 {
 	if (IMGStone)
 	{
-		if (IMGStone->IsVisible())
+		if (InVisible)
 		{
-			IMGStone->SetVisibility(ESlateVisibility::Hidden);
+			IMGStone->SetVisibility(ESlateVisibility::Visible);
 		}
 		else
 		{
-			IMGStone->SetVisibility(ESlateVisibility::Visible);
+			IMGStone->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
 }

@@ -12,12 +12,15 @@
 #include "EngineUtils.h"
 
 #include "Character/QLCharacterPlayer.h"
+#include "Kismet/GameplayStatics.h"
 #include "Character/QLCharacterMovementComponent.h"
 #include "Player/QLPlayerController.h"
 #include "Player/QLPlayerState.h"
 #include "GameplayTag/GamplayTags.h"
 #include "Physics/QLCollision.h"
 #include "GameData/QLItemData.h"
+#include "GameData/QLDataManager.h"
+#include "Sound/SoundCue.h"
 #include "Item/QLItemBox.h"
 #include "QuadLand.h"
 
@@ -323,7 +326,10 @@ void UQLInputComponent::FarmingItemPressed()
 			switch (Item->Stat->ItemType)
 			{
 			case EItemType::Stone:
-				PC->ConcealLifeStone(); //만약.. 없다면 
+				if (PS->GetHasLifeStone() == false)
+				{
+					PC->ConcealLifeStone(true); //만약.. 없다면 
+				}
 				break;
 
 			case EItemType::Weapon:
@@ -361,6 +367,18 @@ void UQLInputComponent::PressedJump()
 		CameraDownTimeline->ReverseFromEnd();
 		Character->UnCrouch();
 		return;
+	}
+
+	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
+	if (DataManager)
+	{
+		AQLPlayerState* PS = Cast<AQLPlayerState>(Character->GetPlayerState());
+		if (PS)
+		{
+			USoundCue* JumpSound = DataManager->PlayJumpSound(PS->GetGenderType());; //Default
+			UGameplayStatics::PlaySoundAtLocation(Character->GetMesh(), JumpSound, Character->GetActorLocation());
+		}
 	}
 
 	Character->Jump();

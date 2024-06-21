@@ -79,16 +79,10 @@ public:
 	UFUNCTION(Client, Reliable)
 	void ClientRPCInitLifeStone(int InGemType);
 
-	void InitPawn();
-
 	UFUNCTION(Server, Reliable)
 	void ServerRPCInitType(int InGenderType, int InGemType);
 
-	bool GetUpdateAttribute() { return bIsFirstAttributeUpdate; }
-	void SetUpdateAttribute() { bIsFirstAttributeUpdate = true; }
 protected:
-
-	uint8 bIsFirstAttributeUpdate :1;
 
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<class UAbilitySystemComponent> ASC;

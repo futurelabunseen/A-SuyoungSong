@@ -220,10 +220,6 @@ void AQLCharacterPlayer::InitializeGAS()
 		return;
 	}
 
-	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-
-	PS->SetUpdateAttribute();
-
 	FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 	EffectContext.AddSourceObject(this);
 
@@ -510,7 +506,6 @@ void AQLCharacterPlayer::UpdateAmmo(const FGameplayTag CallbackTag, int32 NewCou
 		{
 			QLInventory->InventoryItem[EItemType::Ammo] = ItemCnt;
 		}
-		//ServerRPCUpdateAmmo(ItemCnt);
 
 		if (IsLocallyControlled())
 		{
