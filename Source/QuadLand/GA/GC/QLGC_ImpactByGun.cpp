@@ -10,6 +10,7 @@
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Item/QLBullet.h"
+#include "Item/QLObjectPooling.h"
 
 UQLGC_ImpactByGun::UQLGC_ImpactByGun()
 {
@@ -26,6 +27,8 @@ bool UQLGC_ImpactByGun::OnExecute_Implementation(AActor* Target, const FGameplay
 		FVector OriginalPos;
 
 		AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(Character);
+		UQLWeaponComponent* Weapon = Character->GetWeapon();
+		FVector MuzzlePos = Weapon->GetWeaponMesh()->GetSocketLocation(FName("MuzzleFlash"));
 		if (Player)
 		{
 			OriginalPos = Player->CalPlayerLocalCameraStartPos();
@@ -33,7 +36,7 @@ bool UQLGC_ImpactByGun::OnExecute_Implementation(AActor* Target, const FGameplay
 		else
 		{
 			//Muzzle위치로?
-			OriginalPos = Character->GetWeapon()->GetWeaponMesh()->GetSocketLocation(FName("MuzzleFlash"));
+			OriginalPos = MuzzlePos;
 		}
 
 		//Projecttile 써서 목적지로 출발하는 수밖에 없나봄.. OriginalPos 생성
@@ -41,7 +44,7 @@ bool UQLGC_ImpactByGun::OnExecute_Implementation(AActor* Target, const FGameplay
 
 		if (Character->HasAuthority())
 		{
-			FVector StartLocation = Character->GetWeapon()->GetWeaponMesh()->GetSocketLocation(FName("MuzzleFlash"));
+			FVector StartLocation = MuzzlePos;
 
 			FTransform BulletTransform;
 			BulletTransform.SetLocation(StartLocation);
@@ -56,32 +59,37 @@ bool UQLGC_ImpactByGun::OnExecute_Implementation(AActor* Target, const FGameplay
 				CCHANNEL_QLACTION,
 				Params
 			);
-			
+			FQuat Quat;
+
 			if (bResult)
 			{
-				FQuat Quat = UKismetMathLibrary::FindLookAtRotation(OutHitResult.Location, OutHitResult.TraceEnd).Quaternion();
-				BulletTransform.SetRotation(Quat);
-				GetWorld()->SpawnActor<AQLBullet>(BulletClass, BulletTransform);
-				
-				UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
-
-				if (ASC)
-				{
-					const UQLAS_PlayerStat* PlayerStat = ASC->GetSet<UQLAS_PlayerStat>();
-					if (PlayerStat)
-					{
-						UE_LOG(LogTemp, Log, TEXT("%lf"), PlayerStat->GetDamage());
-					}
-				}
+				Quat = UKismetMathLibrary::FindLookAtRotation(OutHitResult.Location, OutHitResult.TraceEnd).Quaternion();
 			}
 			else
 			{
-
-				FQuat Quat = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetPos).Quaternion();
-				BulletTransform.SetRotation(Quat);
-				GetWorld()->SpawnActor<AQLBullet>(BulletClass, BulletTransform);
+				Quat = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetPos).Quaternion();
 			}
 
+			BulletTransform.SetRotation(Quat);
+
+			UQLObjectPooling *ObjectPooling = Weapon->GetObjectPoolingManager();
+			if (ObjectPooling)
+			{
+				AQLBullet * Bullet = Cast<AQLBullet>(ObjectPooling->GetObject());
+				
+				if (Bullet == nullptr)
+				{
+					Bullet = GetWorld()->SpawnActor<AQLBullet>(BulletClass, BulletTransform);
+					Bullet->SetOwner(Player);
+				}
+				else
+				{
+					Bullet->SetActorLocation(StartLocation);
+					Bullet->SetActorTransform(BulletTransform);
+				}
+
+			}
+			//사용하기 전에 있으면 가져온다. 
 		}
 	}
 

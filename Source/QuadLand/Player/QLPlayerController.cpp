@@ -384,7 +384,7 @@ void AQLPlayerController::CreateHUD()
 		Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
 		SettingNickname();
 	}
-	//SetHiddenHUD(EHUDType::HUD);
+
 	SetHiddenHUD(EHUDType::Inventory);
 	SetHiddenHUD(EHUDType::Map);
 	SetHiddenHUD(EHUDType::DeathTimer);
@@ -393,8 +393,6 @@ void AQLPlayerController::CreateHUD()
 	SetHiddenHUD(EHUDType::KeyGuide);
 	SetHiddenHUD(EHUDType::Win);
 	SetHiddenHUD(EHUDType::Death);
-	//SetHiddenHUD(EHUDType::Story);
-	//SetHiddenHUD(EHUDType::Loading);
 	UQLGameInstance* GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
 
 	if (GameInstance)

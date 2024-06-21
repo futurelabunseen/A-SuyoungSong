@@ -6,6 +6,8 @@
 #include "GameData/QLDataManager.h"
 #include "GameData/QLBombStat.h"
 #include "Item/QLBomb.h"
+#include "Item/QLObjectPooling.h"
+
 UQLWeaponComponent::UQLWeaponComponent()
 {
 	//GetOwner()
@@ -19,6 +21,12 @@ UQLWeaponComponent::UQLWeaponComponent()
 		Weapon->SetAnimClass(AnimInstanceRef.Class);
 	}
 
+	AmmoObjectPooling = CreateDefaultSubobject<UQLObjectPooling>(TEXT("ObjectPooling"));
+}
+
+UQLObjectPooling * UQLWeaponComponent::GetObjectPoolingManager()
+{
+	return AmmoObjectPooling;
 }
 
 void UQLWeaponComponent::SpawnBomb()
