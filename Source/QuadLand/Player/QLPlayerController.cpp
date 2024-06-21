@@ -374,10 +374,6 @@ void AQLPlayerController::CreateHUD()
 		HUDs.Add(HUD.Key, Widget);
 	}
 
-	FInputModeUIOnly UIOnlyInputMode;
-	SetInputMode(UIOnlyInputMode);
-	SetShowMouseCursor(true);
-
 	UQLUserWidget *Widget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 
 	if (Widget)

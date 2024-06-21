@@ -354,7 +354,11 @@ void UQLInputComponent::PressedJump()
 	{
 		return;
 	}
-
+	
+	if (Character->GetIsJumping())
+	{
+		return;
+	}
 
 	if (Character->bIsProning)
 	{
@@ -564,8 +568,6 @@ void UQLInputComponent::PutLifeStone()
 	}
 	else
 	{
-		//서버와 클라 모두 해당 위치에서 Spawn
-		//플레이어의 위치를 가져온다
 		PS->ServerRPCPutLifeStone();
 	}
 }

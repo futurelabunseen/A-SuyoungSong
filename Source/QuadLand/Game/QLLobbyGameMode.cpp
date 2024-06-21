@@ -45,8 +45,6 @@ void AQLLobbyGameMode::ConfirmPlayerCount()
 	
 	TotalPlayers = NumberOfPlayers;
 
-	UE_LOG(LogTemp, Log, TEXT("Current Player %d %d"),TotalPlayers, ReadyPlayerNum);
-
 	if (ReadyPlayerNum == TotalPlayers)
 	{
 		GameStart();

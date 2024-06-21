@@ -430,7 +430,7 @@ void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 
 	//다르면 Dead 태그 부착
 	UAbilitySystemComponent* ItemASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ItemInfo->GetOwner());
-
+	PS->SetHasLifeStone(false);
 	if (ItemASC)
 	{
 		FGameplayTagContainer Tag(CHARACTER_STATE_DANGER);

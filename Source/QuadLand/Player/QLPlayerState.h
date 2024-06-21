@@ -43,8 +43,6 @@ public:
 	float GetAmmoCnt();
 	int GetGenderType() { return GenderType; }
 
-	void InitAttributeSet();
-
 	FORCEINLINE void SetHasLifeStone(bool InHasLifeStone)
 	{
 		ClientRPCConcealLifeStoneUI();
