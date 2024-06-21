@@ -28,6 +28,10 @@ public:
 	class UTexture2D* GemTexture(int Type);
 	
 	TSubclassOf<class AQLPlayerLifeStone> GetLifeStoneClass(int Type);
+
+	TObjectPtr<class USoundCue>  PlayMoanSound(int Idx);
+	TObjectPtr<class USoundCue>  PlayJumpSound(int Idx);
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 

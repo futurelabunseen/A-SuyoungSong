@@ -210,13 +210,6 @@ void AQLGameMode::SpawnPlayerPawn(APlayerController* Player,int Type)
 		}
 	}
 
-	AQLPlayerState* PS = Player->GetPlayerState<AQLPlayerState>();
-
-	if (PS)
-	{
-		PS->InitAttributeSet();
-	}
-
 }
 
 void AQLGameMode::GameStart()

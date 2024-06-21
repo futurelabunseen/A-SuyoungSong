@@ -9,6 +9,7 @@
 #include "GameData/QLGemData.h"
 #include "Character/QLCharacterPlayer.h"
 #include "Player/QLPlayerLifeStone.h"
+#include "Sound/SoundCue.h"
 
 UQLDataManager::UQLDataManager()
 {
@@ -51,7 +52,7 @@ TSubclassOf<class AQLItemBox> UQLDataManager::GetItemBoxClass(EItemType ItemId)
 
 TSubclassOf<AQLCharacterPlayer> UQLDataManager::GetSkeletalMesh(int Idx)
 {
-	return InitDataManager->GenderPawn[Idx];
+	return InitDataManager->Gender[Idx].Pawn;
 }
 
 UTexture2D* UQLDataManager::GemTexture(int Type)
@@ -64,6 +65,15 @@ TSubclassOf<AQLPlayerLifeStone> UQLDataManager::GetLifeStoneClass(int Type)
 	return InitDataManager->GemData[Type]->GetLifeStoneClass();
 }
 
+TObjectPtr<USoundCue> UQLDataManager::PlayMoanSound(int Idx)
+{
+	return InitDataManager->Gender[Idx].MoanSound;
+}
+
+TObjectPtr<class USoundCue> UQLDataManager::PlayJumpSound(int Idx)
+{
+	return InitDataManager->Gender[Idx].JumpSound;
+}
 
 void UQLDataManager::Initialize(FSubsystemCollectionBase& Collection)
 {

@@ -47,12 +47,12 @@ AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) 
 	{
 		GetMesh()->SetSkeletalMesh(SkeletalMeshRef.Object);
 	}
-	// Mesh Component
+
+	//Mesh Component
 	Weapon = CreateDefaultSubobject<UQLWeaponComponent>(TEXT("Weapon"));
 	Weapon->Weapon->SetupAttachment(GetMesh(), TEXT("Gun"));
 
-
-	// 닉네임 생성
+	//닉네임 생성
 	NicknameComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Nickname"));
 	NicknameComponent->SetupAttachment(GetMesh(), TEXT("head"));
 	NicknameComponent->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("head"));
@@ -248,6 +248,7 @@ void AQLCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(AQLCharacterBase, bIsReload); 
 	DOREPLIFETIME(AQLCharacterBase, bIsAiming);
 	DOREPLIFETIME(AQLCharacterBase, bIsDead);
+
 }
 
 

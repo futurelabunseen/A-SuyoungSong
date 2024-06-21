@@ -30,7 +30,7 @@ public:
 	void HiddenShootingMethodUI();
 
 	void BlinkBag();
-	void ConcealLifeStone();
+	void ConcealLifeStone(bool InVisible);
 
 	void UpdateEquipWeaponUI(bool InVisible);
 	void UpdateEquipBombUI(bool InVisible);

@@ -314,7 +314,11 @@ void AQLPlayerState::ClientRPCConcealLifeStoneUI_Implementation()
 
     if (PC && bHasLifeStone)
     {
-        PC->ConcealLifeStone();
+        PC->ConcealLifeStone(false);
+    }
+    else
+    {
+        PC->ConcealLifeStone(true);
     }
 }
 

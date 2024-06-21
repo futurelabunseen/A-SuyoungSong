@@ -10,9 +10,11 @@
 #include "GameFramework/Character.h"
 #include "Sound/SoundBase.h"
 #include "Components/AudioComponent.h"
-#include "Sound/SoundWave.h"
+#include "Sound/SoundCue.h"
 #include "Gimmick/QLDamageWidgetActor.h"
+#include "GameData/QLDataManager.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
+#include "Player/QLPlayerState.h"
 
 UQLGC_DamageEffect::UQLGC_DamageEffect()
 {
@@ -56,9 +58,25 @@ bool UQLGC_DamageEffect::OnExecute_Implementation(AActor* MyTarget, const FGamep
 				SpawnedDecal->SortOrder = 2;
 				SpawnedDecal->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
 			}
-			//DamageWidget
-			UGameplayStatics::SpawnSoundAtLocation(MyTarget, Sound, Parameters.Location, FRotator::ZeroRotator);
-		
+			UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+
+			if (DataManager)
+			{
+				AQLPlayerState* PS = Cast<AQLPlayerState>(Character->GetPlayerState());
+
+				USoundCue* MoanSound = DataManager->PlayMoanSound(0); //Default
+
+				if (PS)
+				{
+					if (PS->GetGenderType() != 0)
+					{
+						MoanSound = DataManager->PlayMoanSound(PS->GetGenderType());
+					}
+				}
+
+				UGameplayStatics::PlaySoundAtLocation(Character->GetMesh(), MoanSound, Parameters.Location);
+			}
+
 		}
 		
 		UDecalComponent* SpawnedBulletDecal = UGameplayStatics::SpawnDecalAttached(BulletMarks, FVector(5.0f, 5.0f, 5.0f), HitResult->GetComponent(), FName("TargetActorBulletDecals"), HitResult->ImpactPoint, FRotator::ZeroRotator, EAttachLocation::KeepWorldPosition);

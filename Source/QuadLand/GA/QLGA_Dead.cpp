@@ -73,15 +73,16 @@ void UQLGA_Dead::OnCompleted()
 				AQLSpectatorPawn* SpectatorPawn = GetWorld()->SpawnActor<AQLSpectatorPawn>(SpectatorPawnClass, Transform, Params);
 
 				PC->Possess(Cast<APawn>(SpectatorPawn));
+				EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+
 			}
 		}
 		else
 		{
 			FTimerHandle RespawnTimer;
-			GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &UQLGA_Dead::RespawnTimeFunc, 10.f, false);
+			GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &UQLGA_Dead::RespawnTimeFunc, 3.f, false);
 		}
 	}
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UQLGA_Dead::RespawnTimeFunc()
@@ -102,6 +103,10 @@ void UQLGA_Dead::RespawnTimeFunc()
 			GameMode->SpawnPlayerPawn(PC, PS->GetGenderType());
 		}
 	}
+	bool bReplicateEndAbility = true;
+	bool bWasCancelled = true;
+
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 /*

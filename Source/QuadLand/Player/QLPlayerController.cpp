@@ -238,9 +238,10 @@ void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)
 		GameMode->SpawnPlayerPawn(this, Type);
 		ClientRPCCreateWidget(); 
 		AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+	
 		if (QLCharacter)
 		{
-			QLCharacter->ServerRPCInitNickname();
+			QLCharacter->ServerRPCInitNickname(); //닉네임 결정
 		}
 	}
 }
@@ -486,13 +487,13 @@ void AQLPlayerController::AddGroundByDraggedItem(EItemType ItemIdx, int32 Curren
 	}
 }
 
-void AQLPlayerController::ConcealLifeStone()
+void AQLPlayerController::ConcealLifeStone(bool InVisible)
 {
 	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 
 	if (UserWidget)
 	{
-		UserWidget->ConcealLifeStone();
+		UserWidget->ConcealLifeStone(InVisible);
 	}
 }
 
