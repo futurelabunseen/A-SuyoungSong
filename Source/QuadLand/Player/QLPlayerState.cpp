@@ -407,19 +407,6 @@ float AQLPlayerState::GetAmmoCnt()
     return WeaponStatInfo->GetAmmoCnt();
 }
 
-void AQLPlayerState::InitAttributeSet()
-{
-    if (HasAuthority())
-    {
-        //ASC->SetNumericAttributeBase(UQLAS_PlayerStat::GetHealthAttribute(), GetMaxHealth());
-        //ASC->SetNumericAttributeBase(UQLAS_PlayerStat::GetStaminaAttribute(), GetMaxStamina());
-        ////Weapon은 Respawn Effect만들기
-        //FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
-        //EffectContext.AddSourceObject(this);
-        //FGameplayEffectSpecHandle NewHandle = ASC->MakeOutgoingSpec(DefaultEffects, 1, EffectContext);
-    }
-    
-}
 
 void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
 {

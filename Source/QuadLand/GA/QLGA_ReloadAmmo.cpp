@@ -61,8 +61,6 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	if (IsLocallyControlled()) //클라이언트에서 검사하기 때문에 이렇게..체크 근데 사실 RPC아니고 HasAuthority로 하게되면되는데...
 	{
 		AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
-		QL_GASLOG(QLLog, Warning, TEXT("Begin"));
-
 		Player->ServerRPCReload();
 	}
 }

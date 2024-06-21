@@ -35,10 +35,6 @@ public:
 	UFUNCTION()
 	void AddPlayer(FName PlayerName);
 
-
-	UFUNCTION()
-	void RespawnPlayerPawn(APlayerController* Contoller, int Type);
-
 	UFUNCTION()
 	void SpawnPlayerPawn(APlayerController* Contoller,int Type);
 

@@ -168,34 +168,26 @@ void AQLGameMode::AddPlayer(FName PlayerName)
 	LivePlayerCount++;
 }
 
-void AQLGameMode::RespawnPlayerPawn(APlayerController* Controller, int Type)
+void AQLGameMode::SpawnPlayerPawn(APlayerController* PC,int Type)
 {
-	/*FTimerHandle RespawnTimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(RespawnTimerHandle, this, 10.f, false);
-	*/
-	SpawnPlayerPawn(Controller, Type);
-}
-
-void AQLGameMode::SpawnPlayerPawn(APlayerController* Player,int Type)
-{
-	if (Player == nullptr)
+	if (PC == nullptr)
 		return;
 
 	// 현재 Pawn을 가져옵니다.
-	APawn* OldPawn = Player->GetPawn();
+	APawn* OldPawn = PC->GetPawn();
 	if (OldPawn != nullptr)
 	{
 		// 기존 Pawn 제거
 		OldPawn->Destroy();
-		Player->UnPossess(); // 기존의 소유 상태 해제
+		PC->UnPossess(); // 기존의 소유 상태 해제
 	}
 
 	// 새로운 Pawn 생성
 	FActorSpawnParameters SpawnInfo;
-	SpawnInfo.Owner = Player;
+	SpawnInfo.Owner = PC;
 	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	AActor *StartSpot = ChoosePlayerStart(Player);
+	AActor *StartSpot = ChoosePlayerStart(PC);
 
 	if (StartSpot)
 	{
@@ -205,8 +197,14 @@ void AQLGameMode::SpawnPlayerPawn(APlayerController* Player,int Type)
 
 		if (ResultPawn)
 		{
-			Player->Possess(ResultPawn);
-			Player->ClientRestart(ResultPawn);
+			PC->Possess(ResultPawn);
+
+			AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ResultPawn);
+			if (Player)
+			{
+				Player->ServerRPCInitNickname(); //닉네임 결정
+			}
+			PC->ClientRestart(ResultPawn);
 		}
 	}
 
