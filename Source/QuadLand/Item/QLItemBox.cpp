@@ -57,6 +57,7 @@ AQLItemBox::AQLItemBox()
 
 	Trigger->OnComponentBeginOverlap.AddDynamic(this, &AQLItemBox::OnOverlapBegin);
 	Trigger->OnComponentEndOverlap.AddDynamic(this, &AQLItemBox::OnEndOverlap);
+	OnActorHit.AddDynamic(this, &AQLItemBox::OnActorOverlap);
 
 	NetCullDistanceSquared = 4000000.0f;
 	AlertComponent->SetHiddenInGame(true);
@@ -95,15 +96,34 @@ void AQLItemBox::InitPosition(const FVector& Location)
 			WeaponBox->SpawnBulletsAround();
 		}
 
+		QL_LOG(QLLog, Log, TEXT("InitPosition"));
 	}
 }
 
 void AQLItemBox::SetPhysics()
 {
-	Trigger->SetSimulatePhysics(true);
-	Mesh->SetSimulatePhysics(true);
+	FCollisionQueryParams CollisionParams(SCENE_QUERY_STAT(GroundCheckLineTrace), false, this); //식별자 
 
-	OnActorHit.AddDynamic(this, &AQLItemBox::OnActorOverlap);
+	FHitResult OutHitResult;
+
+	FVector StartLocation = GetActorLocation();
+
+	FVector EndLocation = StartLocation + 150.0f * GetActorUpVector() * -1;
+	bool bResult = GetWorld()->LineTraceSingleByChannel(
+		OutHitResult,
+		StartLocation,
+		EndLocation,
+		CCHANNEL_QLGROUND,
+		CollisionParams
+	);
+
+	if (bResult)
+	{
+		QL_LOG(QLLog, Log, TEXT("Current Location %s"), *OutHitResult.Location.ToString());
+		FVector Location = OutHitResult.Location;
+		Location.Z += GetZPos();
+		SetActorLocation(Location);
+	}
 }
 
 float AQLItemBox::GetZPos()
@@ -128,18 +148,71 @@ void AQLItemBox::Tick(float DeltaTime)
 
 void AQLItemBox::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult)
 {
+	QL_LOG(QLLog, Log, TEXT("OnOverlapBegin"));
 	AlertComponent->SetHiddenInGame(false);
+
+	//if (Trigger->IsSimulatingPhysics())
+	//{
+	//	FCollisionQueryParams CollisionParams(SCENE_QUERY_STAT(GroundCheckLineTrace), false, this); //식별자 
+
+	//	FHitResult OutHitResult;
+
+	//	FVector StartLocation = GetActorLocation();
+
+	//	FVector EndLocation = StartLocation + 150.0f * GetActorUpVector() * -1;
+	//	bool bResult = GetWorld()->LineTraceSingleByChannel(
+	//		OutHitResult,
+	//		StartLocation,
+	//		EndLocation,
+	//		CCHANNEL_QLGROUND,
+	//		CollisionParams
+	//	);
+
+	//	if (bResult)
+	//	{
+	//		QL_LOG(QLLog, Log, TEXT("Current Location %s"), *OutHitResult.Location.ToString());
+	//		FVector Location = OutHitResult.Location;
+	//		Location.Z += GetZPos();
+	//		SetActorLocation(Location);
+	//	}
+
+	//	Trigger->SetSimulatePhysics(false);
+	//}
+	
 }
 
 void AQLItemBox::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	AlertComponent->SetHiddenInGame(true);
+
+	//FCollisionQueryParams CollisionParams(SCENE_QUERY_STAT(GroundCheckLineTrace), false, this); //식별자 
+
+	//FHitResult OutHitResult;
+
+	//FVector StartLocation = GetActorLocation();
+
+	//FVector EndLocation = StartLocation + 150.0f * GetActorUpVector() * -1;
+	//bool bResult = GetWorld()->LineTraceSingleByChannel(
+	//	OutHitResult,
+	//	StartLocation,
+	//	EndLocation,
+	//	CCHANNEL_QLGROUND,
+	//	CollisionParams
+	//);
+
+	//if (bResult)
+	//{
+	//	QL_LOG(QLLog, Log, TEXT("OnOverlapEnd"));
+	//	OutHitResult.Location.Z -= GetZPos();
+	//	SetActorLocation(OutHitResult.Location);
+	//}
 }
 
 void AQLItemBox::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-	Trigger->SetSimulatePhysics(false);
-	Mesh->SetSimulatePhysics(false);
+	QL_LOG(QLLog, Log, TEXT("Overlap"));
+	//Trigger->SetSimulatePhysics(false);
+	//Mesh->SetSimulatePhysics(false);
 
-	Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
+	//Trigger->SetRelativeLocation(Mesh->GetRelativeLocation());
 }
