@@ -33,6 +33,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetbIsWin() { return bIsWin; }
+	void SetbIsWin(bool InWin) { bIsWin = InWin; }
 
 	float GetStamina();
 	float GetMaxStamina();

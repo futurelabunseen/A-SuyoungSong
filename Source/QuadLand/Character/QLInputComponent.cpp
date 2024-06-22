@@ -331,10 +331,6 @@ void UQLInputComponent::FarmingItemPressed()
 					PC->ConcealLifeStone(true); //만약.. 없다면 
 				}
 				break;
-
-			case EItemType::Weapon:
-				PC->UpdateEquipWeaponUI(true);
-				break;
 			case EItemType::Bomb:
 				PC->UpdateEquipBombUI(true);
 				break;

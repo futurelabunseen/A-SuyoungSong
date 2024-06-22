@@ -102,9 +102,9 @@ public:
 	
 	UFUNCTION(Server, Reliable)
 	void ServerRPCInitPawn(int Type);
-
-
 	FString ChangeTimeText();
+
+	void ResetUI();
 
 protected:
 

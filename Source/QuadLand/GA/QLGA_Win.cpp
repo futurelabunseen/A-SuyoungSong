@@ -8,6 +8,7 @@
 #include "Player/QLPlayerController.h"
 #include "AbilitySystemComponent.h"
 #include "QuadLand.h"
+#include "Player/QLPlayerState.h"
 UQLGA_Win::UQLGA_Win()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -21,6 +22,11 @@ void UQLGA_Win::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 	Character->bUseControllerRotationYaw = false;
 	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
 	
+	if (HasAuthority(&ActivationInfo))
+	{
+		AQLPlayerState* PS = Cast<AQLPlayerState>(Character->GetPlayerState());
+		PS->SetbIsWin(true);
+	}
 
 	if (IsLocallyControlled()&&PC)
 	{

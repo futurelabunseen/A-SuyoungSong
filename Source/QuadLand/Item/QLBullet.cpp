@@ -33,39 +33,15 @@ AQLBullet::AQLBullet()
 	Box->OnComponentBeginOverlap.AddDynamic(this, &AQLBullet::OnOverlapBegin);
 }
 
-void AQLBullet::Init()
-{
-	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetOwner());
-	if (Character)
-	{
-		UQLWeaponComponent* Weapon = Character->GetWeapon();
-		if (Weapon)
-		{
-			UQLObjectPooling* ObjectPool = Weapon->GetObjectPoolingManager();
-
-			if (ObjectPool)
-			{
-				QL_LOG(QLLog, Log, TEXT("Init µé¾î°¡?"));
-				ObjectPool->PutBackToPool(this);
-			}
-		}
-	}
-}
-
 void AQLBullet::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorld()->GetTimerManager().SetTimer(ResetTimer, this, &AQLBullet::Init, 3.0f, false);
+	SetLifeSpan(5.0f);
 }
 
 void AQLBullet::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult)
 {
-	if (ResetTimer.IsValid())
-	{
-		GetWorld()->GetTimerManager().ClearTimer(ResetTimer);
-		ResetTimer.Invalidate();
-	}
-	Init();
+	this->Destroy();
 }
 

@@ -154,6 +154,7 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
 		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 	}
+
 }
 
 void AQLCharacterPlayer::OnRep_Controller()
@@ -168,7 +169,6 @@ void AQLCharacterPlayer::OnRep_Controller()
 		PlayerController->CreateHUD();
 		PlayerController->ClientRPCCreateWidget();
 	}
-
 }
 
 
@@ -204,7 +204,10 @@ void AQLCharacterPlayer::BeginPlay()
 	RecoilTimeline.AddInterpFloat(VerticalRecoil, YRecoilCurve);
 
 	StartHeight = GetActorLocation().Z;
-	ServerRPCInitNickname();
+	
+	//혹시 모르는 경우의 수 때문에 타이머를 사용해서 다시 한번 리셋처리해준다
+	FTimerHandle ChangeNicknameTimer;
+	GetWorld()->GetTimerManager().SetTimer(ChangeNicknameTimer, this, &AQLCharacterPlayer::ServerRPCInitNickname, 5.f, false);
 
 }
 
@@ -228,6 +231,12 @@ void AQLCharacterPlayer::InitializeGAS()
 	if (NewHandle.IsValid())
 	{
 		FActiveGameplayEffectHandle ActiveGEHandle = ASC->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), ASC.Get());
+	}
+
+	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
+	if (PlayerController)
+	{
+		PlayerController->ResetUI();
 	}
 }
 
@@ -408,6 +417,13 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 		Weapon->GroundWeapon = WeaponStat->GroundWeapon;
 		Weapon->Weapon->SetSkeletalMesh(GunStat->WeaponMesh.Get());
 		bHasGun = true;
+		//isLocal로 잡아서 여기서 true 시키자 아!
+
+		if (IsLocallyControlled())
+		{
+			AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
+			PC->UpdateEquipWeaponUI(true);
+		}
 	}
 	
 }
@@ -468,8 +484,11 @@ FVector AQLCharacterPlayer::GetCameraForward()
 
 void AQLCharacterPlayer::UpdateAmmoTemp()
 {
-	QLInventory->InventoryItem[EItemType::Ammo] = 0;
-	ClientRPCUpdateAmmoUI();
+	if (QLInventory && QLInventory->InventoryItem.Find(EItemType::Ammo))
+	{
+		QLInventory->InventoryItem[EItemType::Ammo] = 0;
+		ClientRPCUpdateAmmoUI();
+	}
 }
 
 

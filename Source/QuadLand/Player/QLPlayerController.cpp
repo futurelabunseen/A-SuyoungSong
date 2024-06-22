@@ -165,6 +165,11 @@ void AQLPlayerController::ClientRPCLoose_Implementation()
 
 		if (PS)
 		{
+			if (DeathTime.IsEmpty())
+			{
+				DeathTime = ChangeTimeText();
+			}
+
 			UserWidget->SettingTxtPhase(PS->GetPlayerName(), DeathTime);
 		}
 		UserWidget->SetupUI();
@@ -228,6 +233,23 @@ FString AQLPlayerController::ChangeTimeText()
 	FString ProgressTimeText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
 	
 	return ProgressTimeText;
+}
+
+void AQLPlayerController::ResetUI()
+{
+	if (HUDs.Num() == 0) return;
+	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
+	if (InventoryUI)
+	{
+		InventoryUI->ClearAll();
+	}
+
+	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+	if (UserWidget)
+	{
+		UserWidget->UpdateEquipWeaponUI(false);
+		UserWidget->UpdateEquipBombUI(false);
+	}
 }
 
 void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)

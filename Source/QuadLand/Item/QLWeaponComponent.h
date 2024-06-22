@@ -18,15 +18,11 @@ public:
 	UQLWeaponComponent();
 
 	const class USkeletalMeshComponent* GetWeaponMesh() const { return Weapon; }
-	class UQLObjectPooling* GetObjectPoolingManager();
 	void SpawnBomb();
 	FVector GetMuzzlePos();
 	void SetBombHiddenInGame(bool InHiddenInGame);
 	void ResetBomb();
 protected:
-
-	UPROPERTY()
-	TObjectPtr<class UQLObjectPooling> AmmoObjectPooling;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USkeletalMeshComponent> Weapon;

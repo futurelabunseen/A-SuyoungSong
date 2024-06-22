@@ -10,6 +10,10 @@ bool UQLGC_DamageScore::OnExecute_Implementation(AActor* Target, const FGameplay
 	const FHitResult* HitResult = Parameters.EffectContext.GetHitResult();
 	float Damage = Parameters.RawMagnitude;
 
+	if (Damage >= 1.0f)
+	{
+		return false;
+	}
 	if (HitResult)
 	{
 		FActorSpawnParameters Params;

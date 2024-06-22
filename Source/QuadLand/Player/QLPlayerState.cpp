@@ -31,8 +31,8 @@ AQLPlayerState::AQLPlayerState()
     PlayerStatInfo = CreateDefaultSubobject<UQLAS_PlayerStat>(TEXT("PlayerStat"));
     WeaponStatInfo = CreateDefaultSubobject<UQLAS_WeaponStat>(TEXT("WeaponStat"));
    
-    //Event ����Ѵ� -> Equip�� ������
-    //Event ����Ѵ� -> Equip���� ��
+    //Event ����Ѵ�?-> Equip�� ������
+    //Event ����Ѵ�?-> Equip���� ��
     NetUpdateFrequency = 30.0f;
 
     //TagEvent - Delegates
@@ -108,13 +108,13 @@ void AQLPlayerState::ResetWeaponStat(const UQLWeaponStat* Stat)
     if (HasAuthority() && Stat && ASC)
     {
         //���� Base��..
-        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDamageAttribute(), 10.0f); //Default Attack - ��ø� �ϵ��ڵ�
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDamageAttribute(), 10.0f); //Default Attack - ��ø�?�ϵ��ڵ�
         ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAttackDistanceAttribute(), WeaponStatInfo->GetAttackDistance() - Stat->AttackDist);
-        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), WeaponStatInfo->GetAmmoCnt() - Stat->AmmoCnt); //���� �������ִ� �Ѿ��� ������ ���� (��� ���� ����, ���� ����!!!!)
+        ASC->SetNumericAttributeBase(UQLAS_WeaponStat::GetAmmoCntAttribute(), WeaponStatInfo->GetAmmoCnt() - Stat->AmmoCnt); //���� �������ִ� �Ѿ��� ������ ���� (���?���� ����, ���� ����!!!!)
     }
 }
 
-void AQLPlayerState::UseGlassesItem(float Time) //��ģ���� Ŭ���̾�Ʈ���� ���Ǿ����.
+void AQLPlayerState::UseGlassesItem(float Time) //��ģ���� Ŭ���̾�Ʈ���� ���Ǿ����?
 {
     AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //�������� PC�� ����
     PC->ClientRPCShowLifestoneWidget(Time);
@@ -151,17 +151,6 @@ void AQLPlayerState::ClientRPCInitLifeStone_Implementation(int InGemType)
         LifeStoneClass = DataManager->GetLifeStoneClass(InGemType);
     }
 }
-
-void AQLPlayerState::ClientRPCInitLifeStone_Implementation(int InGemType)
-{
-    UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
-
-    if (DataManager)
-    {
-        LifeStoneClass = DataManager->GetLifeStoneClass(InGemType);
-    }
-}
-
 
 
 void AQLPlayerState::OnChangedStamina(const FOnAttributeChangeData& Data)
@@ -325,7 +314,7 @@ void AQLPlayerState::ClientRPCConcealLifeStoneUI_Implementation()
 void AQLPlayerState::ServerRPCConcealLifeStone_Implementation(const FString &InNickname)
 {
    
-    //����Ʈ���̽��� ��Ƽ� ���� ������ �ִ� ������Ʈ�� üũ�Ѵ�.
+    //����Ʈ���̽��� ��Ƽ�?���� ������ �ִ� ������Ʈ�� üũ�Ѵ�.
     //�׸��� �� ������Ʈ���� ���� ������ ������ ������ �÷��̾� ��Ʈ�ѷ��� ���������� ������.
     //���� ������ ������Ʈ�� �����Ѵ�.
     //���������� ����
@@ -353,7 +342,7 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation(const FString &InN
         {
             if (bHasLifeStone)
             {
-                //�̸��� �����ؾ��ϰŵ�? �̰� ����, ���� �������̽��� ���
+                //�̸��� �����ؾ��ϰŵ�? �̰� ����, ���� �������̽��� ���?
 
                 if (StorageBox->GetAlreadyHidden() == false)  //�̹� ������ ���� �ʴٸ�, ����
                 {
@@ -420,7 +409,10 @@ float AQLPlayerState::GetAmmoCnt()
 
 void AQLPlayerState::Win(const FGameplayTag CallbackTag, int32 NewCount)
 {
-    bIsWin = !bIsWin;
+    if (bIsWin == false)
+    {
+        bIsWin = !bIsWin;
+    }
 }
 
 void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
@@ -440,13 +432,6 @@ void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
                 PC->SettingDeathTime();
             }
             //�����
-        }
-        if (HasAuthority())
-        {
-            if (Player)
-            {
-                Player->SetIsDead(!Player->GetIsDead());
-            }
         }
     }
 
