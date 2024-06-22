@@ -322,15 +322,8 @@ void UQLInputComponent::FarmingItemPressed()
 		{
 			//몽타주 실행
 			Character->PlayAnimMontage(Character->PickupMontage);
-
 			switch (Item->Stat->ItemType)
 			{
-			case EItemType::Stone:
-				if (PS->GetHasLifeStone() == false)
-				{
-					PC->ConcealLifeStone(true); //만약.. 없다면 
-				}
-				break;
 			case EItemType::Bomb:
 				PC->UpdateEquipBombUI(true);
 				break;
@@ -559,7 +552,6 @@ void UQLInputComponent::PutLifeStone()
 
 	if (Character->bIsNearbyBox)
 	{
-		QL_SUBLOG(QLLog, Log, TEXT("Current Nickname %s"), *PS->GetPlayerName());
 		PS->ServerRPCConcealLifeStone(PS->GetPlayerName());
 	}
 	else

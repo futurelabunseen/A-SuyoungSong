@@ -314,10 +314,6 @@ void AQLPlayerState::ClientRPCConcealLifeStoneUI_Implementation()
 void AQLPlayerState::ServerRPCConcealLifeStone_Implementation(const FString &InNickname)
 {
    
-    //ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿?ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ Ã¼Å©ï¿½Ñ´ï¿½.
-    //ï¿½×¸ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½Æ®ï¿½Ñ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
-    //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
-    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     FCollisionQueryParams Params(TEXT("DetectionItem"), false, this);
     FVector SearchLocation = GetPawn()->GetActorLocation();
     FHitResult NearbyItem;
@@ -342,16 +338,14 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation(const FString &InN
         {
             if (bHasLifeStone)
             {
-                //ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ï°Åµï¿½? ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿?
-
-                if (StorageBox->GetAlreadyHidden() == false)  //ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½
+                if (StorageBox->GetAlreadyHidden() == false) 
                 {
                     StorageBox->OnLifespanDelegate.BindUObject(this, &AQLPlayerState::SetDead);
                     StorageBox->OnLifestoneChangedDelegate.BindUObject(this, &AQLPlayerState::SetHasLifeStone);
                     StorageBox->OnUpdateAlertPanel.BindUObject(this, &AQLPlayerState::UpdateStorageWidget);
                 }
             }
-            StorageBox->ConcealLifeStone(FName(InNickname));
+            StorageBox->ConcealLifeStone(FName(InNickname), bHasLifeStone);
         }
     }
 
@@ -419,19 +413,11 @@ void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 {
     if (NewCount == 1)
     {
-        AQLCharacterBase* Player = Cast<AQLCharacterBase>(GetPawn());
-        if (Player && Player->GetIsDead() == false)
-        {
-            FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
-            ASC->TryActivateAbilitiesByTag(TargetTag);
-            
-            AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //¼ÒÀ¯±ÇÀº PC°¡ °¡Áü
+        AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //¼ÒÀ¯±ÇÀº PC°¡ °¡Áü
 
-            if (PC)
-            {
-                PC->SettingDeathTime();
-            }
-            //¿©±â´Ù
+        if (PC)
+        {
+            PC->SettingDeathTime();
         }
     }
 

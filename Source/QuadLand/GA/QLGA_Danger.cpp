@@ -16,8 +16,6 @@ UQLGA_Danger::UQLGA_Danger() : Time(10.0f)
 void UQLGA_Danger::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	QL_GASLOG(QLLog, Log, TEXT("begin"));
-	
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
 
 	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
@@ -26,28 +24,14 @@ void UQLGA_Danger::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		PC->OnDeathCheckDelegate.Unbind();
 		PC->OnDeathCheckDelegate.BindUObject(this, &UQLGA_Danger::OnCompleted);
-		QL_GASLOG(QLLog, Log, TEXT("Danger %s"), *PC->GetName());
 		PC->ActivateDeathTimer(Time);
 	}
 	//플레이어 스테이트도 제거해야할듯! (하지만 나중에 해보자)
-
 }
 
 void UQLGA_Danger::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-}
-
-void UQLGA_Danger::ServerRPCDead_Implementation()
-{
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-
-	FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
-	
-	if (ASC)
-	{
-		ASC->TryActivateAbilitiesByTag(TargetTag);
-	}
 }
 
 void UQLGA_Danger::OnCompleted()
@@ -58,10 +42,9 @@ void UQLGA_Danger::OnCompleted()
 	FGameplayTagContainer TagContainer(CHARACTER_STATE_DEAD);
 	if (ASC)
 	{
+		ASC->AddLooseGameplayTag(CHARACTER_STATE_DANGER); //2개를 부착
 		ASC->TryActivateAbilitiesByTag(TagContainer);
 	}
-
-	ServerRPCDead();
 
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = true;

@@ -67,11 +67,15 @@ void UQLGA_Dead::OnCompleted()
 
 	AQLPlayerState* PS = Cast<AQLPlayerState>(GetActorInfo().OwnerActor.Get());
 
+	FGameplayTagContainer TagContainer(CHARACTER_STATE_DANGER);
+
+	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 
 	if (PS)
 	{
-		if (PS->GetHasLifeStone()) //가지고 있다면 죽은것
+		if (PS->GetHasLifeStone() || ASC->HasAnyMatchingGameplayTags(TagContainer)) //가지고 있다면 죽은것
 		{
+			
 			if (PC && HasAuthority(&CurrentActivationInfo))
 			{
 				FTransform Transform = Character->GetActorTransform();
@@ -80,7 +84,6 @@ void UQLGA_Dead::OnCompleted()
 
 				PC->Possess(Cast<APawn>(SpectatorPawn));
 				EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
-
 			}
 		}
 		else

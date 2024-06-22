@@ -46,6 +46,7 @@ public:
 
 	FORCEINLINE void SetHasLifeStone(bool InHasLifeStone)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("SetHasLifeStone this?"));
 		ClientRPCConcealLifeStoneUI();
 		bHasLifeStone = InHasLifeStone;
 	}

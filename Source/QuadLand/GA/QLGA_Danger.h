@@ -21,11 +21,8 @@ public:
 	/** Native function, called if an ability ends normally or abnormally. If bReplicate is set to true, try to replicate the ending to the client/server */
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	
-	UFUNCTION(Server, Unreliable)
-	void ServerRPCDead();
 protected:
 	void OnCompleted();
-
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float Time;

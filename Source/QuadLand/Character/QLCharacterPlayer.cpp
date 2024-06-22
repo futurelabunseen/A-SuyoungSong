@@ -36,6 +36,7 @@
 #include "Game/QLGameMode.h"
 #include "UI/QLNicknameWidget.h"
 #include "Components/WidgetComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "QuadLand.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer) :
@@ -294,8 +295,8 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 	{
 		RecoilTimeline.TickTimeline(DeltaSeconds); //되돌리기
 	}
-	
 }
+
 
 
 void AQLCharacterPlayer::FarmingItem()
@@ -432,21 +433,27 @@ void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 {
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 
-	FString ItemOwner = ItemInfo->GetOwner()->GetName(); //Owner -> PlayerState로 지정 ASC에 접근 가능하도록 변환
-	FString CurrentGetOwner = PS->GetName();
+	AQLPlayerState* ItemOwner = Cast<AQLPlayerState>(ItemInfo->GetOwner());
+	if (ItemOwner == nullptr)
+	{
+		return;
+	}
+
+	FString ItemOwnerName = ItemOwner->GetName(); //Owner -> PlayerState로 지정 ASC에 접근 가능하도록 변환
+	FString CurrentGetOwnerName = PS->GetName();
 	ItemInfo->SetActorEnableCollision(false);
 	ItemInfo->SetActorHiddenInGame(true);
 	ItemInfo->SetLifeSpan(3.f);
 
-	if (ItemOwner == CurrentGetOwner)
+	if (ItemOwnerName == CurrentGetOwnerName)
 	{
 		PS->SetHasLifeStone(true);
 		return;
 	}
 
 	//다르면 Dead 태그 부착
-	UAbilitySystemComponent* ItemASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ItemInfo->GetOwner());
-	PS->SetHasLifeStone(false);
+	UAbilitySystemComponent* ItemASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ItemOwner);
+
 	if (ItemASC)
 	{
 		FGameplayTagContainer Tag(CHARACTER_STATE_DANGER);

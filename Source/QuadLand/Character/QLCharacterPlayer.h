@@ -52,6 +52,7 @@ public:
 	 virtual void OnRep_Controller() override;
 
 	 virtual void Tick(float DeltaSeconds) override;
+;
 	//Attack을 위한 카메라 위치 가져오기
 	FVector CalPlayerLocalCameraStartPos();
 	FVector GetCameraForward();
@@ -79,6 +80,7 @@ public:
 	UFUNCTION(Server, Unreliable)
 
 	void ServerRPCDetachBomb();
+
 protected:
 
 	uint8 bIsProning : 1;

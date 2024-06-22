@@ -10,11 +10,15 @@
 #include "Interface/QLLifestoneContainerInterface.h"
 #include "QuadLand.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AQLLifestoneStorageBox::AQLLifestoneStorageBox()
 {
+
+	PrimaryActorTick.bCanEverTick = true;
+
 	Trigger = CreateDefaultSubobject<USphereComponent>(TEXT("Trigger"));
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemBox"));
@@ -94,7 +98,7 @@ void AQLLifestoneStorageBox::OnComponentEndOverlap(UPrimitiveComponent* Overlapp
 }
 void AQLLifestoneStorageBox::RotateStorageBox()
 {
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0); //첫번째 플레이어 컨트롤러를 가져옴, 즉 원격이든 어디든 0번째
 	if (!PlayerController || !PlayerController->PlayerCameraManager)
 	{
 		return;
@@ -132,7 +136,7 @@ void AQLLifestoneStorageBox::UpdateAlertPanel(FName InPlayerStateName)
 	}
 }
 
-void AQLLifestoneStorageBox::ConcealLifeStone(FName InPlayerStateName)
+void AQLLifestoneStorageBox::ConcealLifeStone(FName InPlayerStateName,bool HasLifeStone)
 {
 	if (bIsAlreadyHidden)
 	{
@@ -160,14 +164,19 @@ void AQLLifestoneStorageBox::ConcealLifeStone(FName InPlayerStateName)
 	}
 	else
 	{
-		PlayerStateName = InPlayerStateName;
-
+		if (HasLifeStone)
+		{
+			PlayerStateName = InPlayerStateName;
+		}
 		//숨길 때 델리게이트를 사용해서 가져갔음을 전달. -> PlayerState 
 		if (OnLifestoneChangedDelegate.IsBound())
 		{
 			OnLifestoneChangedDelegate.Execute(false);
 		}
+		
+		
 	}
+
 	if (OnUpdateAlertPanel.IsBound())
 	{
 		OnUpdateAlertPanel.Execute(PlayerStateName,this);
