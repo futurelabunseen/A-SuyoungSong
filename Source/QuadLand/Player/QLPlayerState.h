@@ -33,6 +33,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetbIsWin() { return bIsWin; }
+	void SetbIsWin(bool InWin) { bIsWin = InWin; }
 
 	float GetStamina();
 	float GetMaxStamina();
@@ -45,6 +46,7 @@ public:
 
 	FORCEINLINE void SetHasLifeStone(bool InHasLifeStone)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("SetHasLifeStone this?"));
 		ClientRPCConcealLifeStoneUI();
 		bHasLifeStone = InHasLifeStone;
 	}

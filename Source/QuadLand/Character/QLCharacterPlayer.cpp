@@ -36,6 +36,7 @@
 #include "Game/QLGameMode.h"
 #include "UI/QLNicknameWidget.h"
 #include "Components/WidgetComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "QuadLand.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer) :
@@ -154,6 +155,7 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
 		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 	}
+
 }
 
 void AQLCharacterPlayer::OnRep_Controller()
@@ -168,7 +170,6 @@ void AQLCharacterPlayer::OnRep_Controller()
 		PlayerController->CreateHUD();
 		PlayerController->ClientRPCCreateWidget();
 	}
-
 }
 
 
@@ -204,7 +205,10 @@ void AQLCharacterPlayer::BeginPlay()
 	RecoilTimeline.AddInterpFloat(VerticalRecoil, YRecoilCurve);
 
 	StartHeight = GetActorLocation().Z;
-	ServerRPCInitNickname();
+	
+	//혹시 모르는 경우의 수 때문에 타이머를 사용해서 다시 한번 리셋처리해준다
+	FTimerHandle ChangeNicknameTimer;
+	GetWorld()->GetTimerManager().SetTimer(ChangeNicknameTimer, this, &AQLCharacterPlayer::ServerRPCInitNickname, 5.f, false);
 
 }
 
@@ -228,6 +232,12 @@ void AQLCharacterPlayer::InitializeGAS()
 	if (NewHandle.IsValid())
 	{
 		FActiveGameplayEffectHandle ActiveGEHandle = ASC->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), ASC.Get());
+	}
+
+	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
+	if (PlayerController)
+	{
+		PlayerController->ResetUI();
 	}
 }
 
@@ -285,8 +295,8 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 	{
 		RecoilTimeline.TickTimeline(DeltaSeconds); //되돌리기
 	}
-	
 }
+
 
 
 void AQLCharacterPlayer::FarmingItem()
@@ -408,6 +418,13 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 		Weapon->GroundWeapon = WeaponStat->GroundWeapon;
 		Weapon->Weapon->SetSkeletalMesh(GunStat->WeaponMesh.Get());
 		bHasGun = true;
+		//isLocal로 잡아서 여기서 true 시키자 아!
+
+		if (IsLocallyControlled())
+		{
+			AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
+			PC->UpdateEquipWeaponUI(true);
+		}
 	}
 	
 }
@@ -416,21 +433,27 @@ void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 {
 	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 
-	FString ItemOwner = ItemInfo->GetOwner()->GetName(); //Owner -> PlayerState로 지정 ASC에 접근 가능하도록 변환
-	FString CurrentGetOwner = PS->GetName();
+	AQLPlayerState* ItemOwner = Cast<AQLPlayerState>(ItemInfo->GetOwner());
+	if (ItemOwner == nullptr)
+	{
+		return;
+	}
+
+	FString ItemOwnerName = ItemOwner->GetName(); //Owner -> PlayerState로 지정 ASC에 접근 가능하도록 변환
+	FString CurrentGetOwnerName = PS->GetName();
 	ItemInfo->SetActorEnableCollision(false);
 	ItemInfo->SetActorHiddenInGame(true);
 	ItemInfo->SetLifeSpan(3.f);
 
-	if (ItemOwner == CurrentGetOwner)
+	if (ItemOwnerName == CurrentGetOwnerName)
 	{
 		PS->SetHasLifeStone(true);
 		return;
 	}
 
 	//다르면 Dead 태그 부착
-	UAbilitySystemComponent* ItemASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ItemInfo->GetOwner());
-	PS->SetHasLifeStone(false);
+	UAbilitySystemComponent* ItemASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(ItemOwner);
+
 	if (ItemASC)
 	{
 		FGameplayTagContainer Tag(CHARACTER_STATE_DANGER);
@@ -468,8 +491,11 @@ FVector AQLCharacterPlayer::GetCameraForward()
 
 void AQLCharacterPlayer::UpdateAmmoTemp()
 {
-	QLInventory->InventoryItem[EItemType::Ammo] = 0;
-	ClientRPCUpdateAmmoUI();
+	if (QLInventory && QLInventory->InventoryItem.Find(EItemType::Ammo))
+	{
+		QLInventory->InventoryItem[EItemType::Ammo] = 0;
+		ClientRPCUpdateAmmoUI();
+	}
 }
 
 

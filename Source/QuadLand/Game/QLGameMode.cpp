@@ -124,7 +124,7 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 		UAbilitySystemComponent* ASC = PlayerState->GetAbilitySystemComponent();
 		FName PlayerName = FName(PlayerState->GetName());
 		//태그가 부착되어있는지 확인한다.
-		if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_DEAD) && PlayerState->GetHasLifeStone())
+		if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_DEAD) && ( PlayerState->GetHasLifeStone() || ASC->HasMatchingGameplayTag(CHARACTER_STATE_DANGER)))
 		{
 			if (PlayerDieStatus[PlayerName] == false)
 			{

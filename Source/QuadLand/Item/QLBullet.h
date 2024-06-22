@@ -15,7 +15,6 @@ public:
 	// Sets default values for this actor's properties
 	AQLBullet();
 
-	void Init();
 	virtual void BeginPlay() override;
 protected:
 
@@ -33,5 +32,4 @@ protected:
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult);
 	
-	FTimerHandle ResetTimer;
 };

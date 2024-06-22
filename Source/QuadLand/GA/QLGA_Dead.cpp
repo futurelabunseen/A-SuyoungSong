@@ -2,12 +2,11 @@
 
 
 #include "GA/QLGA_Dead.h"
-#include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
 
 #include "QuadLand.h"
-#include "Character/QLCharacterPlayer.h"
+#include "Character/QLCharacterBase.h"
 #include "Player/QLPlayerController.h"
 #include "GameplayTag/GamplayTags.h"
 #include "Character/QLSpectatorPawn.h"
@@ -31,8 +30,15 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	- Inventory는 플레이어가 가지고 있음 ( 플레이어는 죽을 때 인베토리를 어떻게할까? 고민해보는게 좋을듯)
 	*/
 
-	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
-
+	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
+	
+	if (HasAuthority(&ActivationInfo))
+	{
+		if (Character)
+		{
+			Character->SetIsDead(!Character->GetIsDead());
+		}
+	}
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	Character->SetActorEnableCollision(false);
 	Character->bUseControllerRotationYaw = false;
@@ -61,11 +67,15 @@ void UQLGA_Dead::OnCompleted()
 
 	AQLPlayerState* PS = Cast<AQLPlayerState>(GetActorInfo().OwnerActor.Get());
 
+	FGameplayTagContainer TagContainer(CHARACTER_STATE_DANGER);
+
+	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 
 	if (PS)
 	{
-		if (PS->GetHasLifeStone()) //가지고 있다면 죽은것
+		if (PS->GetHasLifeStone() || ASC->HasAnyMatchingGameplayTags(TagContainer)) //가지고 있다면 죽은것
 		{
+			
 			if (PC && HasAuthority(&CurrentActivationInfo))
 			{
 				FTransform Transform = Character->GetActorTransform();
@@ -74,7 +84,6 @@ void UQLGA_Dead::OnCompleted()
 
 				PC->Possess(Cast<APawn>(SpectatorPawn));
 				EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
-
 			}
 		}
 		else

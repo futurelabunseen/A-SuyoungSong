@@ -21,12 +21,6 @@ UQLWeaponComponent::UQLWeaponComponent()
 		Weapon->SetAnimClass(AnimInstanceRef.Class);
 	}
 
-	AmmoObjectPooling = CreateDefaultSubobject<UQLObjectPooling>(TEXT("ObjectPooling"));
-}
-
-UQLObjectPooling * UQLWeaponComponent::GetObjectPoolingManager()
-{
-	return AmmoObjectPooling;
 }
 
 void UQLWeaponComponent::SpawnBomb()

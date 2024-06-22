@@ -50,7 +50,7 @@ public:
 	FOnLifestoneChangedDelegate OnLifestoneChangedDelegate;
 	FOnUpdateAlertPanel OnUpdateAlertPanel;
 
-	void ConcealLifeStone(FName InPlayerStateName) ;
+	void ConcealLifeStone(FName InPlayerStateName,bool HasLifeStone) ;
 
 protected:
 
@@ -59,4 +59,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Alert, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UWidgetComponent> AlertComponent;
+
+protected:
+
+	UPROPERTY()
+	TArray<TWeakObjectPtr<class APlayerController>> PCs;
 };

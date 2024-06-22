@@ -41,6 +41,8 @@ public:
 	
 	void DeleteItem(UObject* Item);
 
+	void ClearAll();
+
 protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, meta = (BindWidget)) //자동으로 연결되나봄..!
 	TObjectPtr<class UListView> ItemList; //현재 내가 가지고 있는 아이템을 보여주는 UI

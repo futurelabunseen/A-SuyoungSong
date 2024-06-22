@@ -59,37 +59,21 @@ bool UQLGC_ImpactByGun::OnExecute_Implementation(AActor* Target, const FGameplay
 				CCHANNEL_QLACTION,
 				Params
 			);
+			
 			FQuat Quat;
 
 			if (bResult)
 			{
 				Quat = UKismetMathLibrary::FindLookAtRotation(OutHitResult.Location, OutHitResult.TraceEnd).Quaternion();
+				BulletTransform.SetRotation(Quat);
+				GetWorld()->SpawnActor<AQLBullet>(BulletClass, BulletTransform);
 			}
 			else
 			{
 				Quat = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetPos).Quaternion();
+				BulletTransform.SetRotation(Quat);
+				GetWorld()->SpawnActor<AQLBullet>(BulletClass, BulletTransform);
 			}
-
-			BulletTransform.SetRotation(Quat);
-
-			UQLObjectPooling *ObjectPooling = Weapon->GetObjectPoolingManager();
-			if (ObjectPooling)
-			{
-				AQLBullet * Bullet = Cast<AQLBullet>(ObjectPooling->GetObject());
-				
-				if (Bullet == nullptr)
-				{
-					Bullet = GetWorld()->SpawnActor<AQLBullet>(BulletClass, BulletTransform);
-					Bullet->SetOwner(Player);
-				}
-				else
-				{
-					Bullet->SetActorLocation(StartLocation);
-					Bullet->SetActorTransform(BulletTransform);
-				}
-
-			}
-			//사용하기 전에 있으면 가져온다. 
 		}
 	}
 

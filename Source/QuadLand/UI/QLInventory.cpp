@@ -163,3 +163,9 @@ void UQLInventory::DeleteItem(UObject* Item)
 {
 	ItemList->RemoveItem(Item);
 }
+
+void UQLInventory::ClearAll() //리스폰 되면서 아이템 모두 사라짐
+{
+	ItemList->ClearListItems();
+	GroundItem->ClearListItems();
+}
