@@ -145,6 +145,7 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 
 		if (LivePlayerCount == 1)
 		{
+
 			if (PlayerDieStatus[PlayerName] == false)
 			{
 				//PlayerState를 사용해서 MulticastRPC 전송
@@ -198,7 +199,6 @@ void AQLGameMode::SpawnPlayerPawn(APlayerController* PC,int Type)
 		if (ResultPawn)
 		{
 			PC->Possess(ResultPawn);
-			//ResultPawn->ServerRPCInitNickname(); //닉네임 결정
 			PC->ClientRestart(ResultPawn);
 		}
 	}

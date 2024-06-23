@@ -267,12 +267,12 @@ void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)
 	{
 		GameMode->SpawnPlayerPawn(this, Type);
 		ClientRPCCreateWidget(); 
-		//AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+		AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 	
-		//if (QLCharacter)
-		//{
-		//	QLCharacter->ServerRPCInitNickname(); //닉네임 결정
-		//}
+		if (QLCharacter)
+		{
+			QLCharacter->ServerRPCInitNickname(); //닉네임 결정
+		}
 	}
 }
 
@@ -357,7 +357,11 @@ void AQLPlayerController::StopDeathSec()
 	}
 	//Delegate호출
 	
-	OnDeathCheckDelegate.ExecuteIfBound(); 
+	if (OnDeathCheckDelegate.IsBound())
+	{
+		QL_LOG(QLLog, Warning, TEXT("Dead"));
+		OnDeathCheckDelegate.Execute();
+	}
 }
 
 

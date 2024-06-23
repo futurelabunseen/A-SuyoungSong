@@ -352,7 +352,10 @@ void UQLInputComponent::PressedJump()
 	{
 		return;
 	}
-	
+	if (Character->bUseControllerRotationYaw == false)
+	{
+		return;
+	}
 	if (Character->GetIsJumping())
 	{
 		return;
@@ -401,6 +404,11 @@ void UQLInputComponent::PressedCrouch()
 		return;
 	}
 
+	if (Character->bUseControllerRotationYaw == false)
+	{
+		return;
+	}
+
 	if (Character->bIsProning) //엎드려있는데 Crouch
 	{
 		return;
@@ -427,7 +435,10 @@ void UQLInputComponent::PressedProne()
 	}
 
 	UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(Character->GetMovementComponent());
-
+	if (Character->bUseControllerRotationYaw == false)
+	{
+		return;
+	}
 	if (Movement->IsFalling())
 	{
 		return;
@@ -632,7 +643,7 @@ void UQLInputComponent::SetInventory()
 			}
 		}
 	}
-
+	
 	FInputModeUIOnly UIOnlyInputMode;
 	PC->SetVisibilityHUD(EHUDType::Inventory);
 	PC->bShowMouseCursor = true;

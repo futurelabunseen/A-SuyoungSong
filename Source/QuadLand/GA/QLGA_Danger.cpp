@@ -22,8 +22,10 @@ void UQLGA_Danger::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	if (PC)
 	{
-		PC->OnDeathCheckDelegate.Unbind();
-		PC->OnDeathCheckDelegate.BindUObject(this, &UQLGA_Danger::OnCompleted);
+		if (PC->OnDeathCheckDelegate.IsBound() == false)
+		{
+			PC->OnDeathCheckDelegate.BindUObject(this, &UQLGA_Danger::OnCompleted);
+		}
 		PC->ActivateDeathTimer(Time);
 	}
 	//플레이어 스테이트도 제거해야할듯! (하지만 나중에 해보자)
@@ -42,6 +44,7 @@ void UQLGA_Danger::OnCompleted()
 	FGameplayTagContainer TagContainer(CHARACTER_STATE_DEAD);
 	if (ASC)
 	{
+		QL_GASLOG(QLLog, Warning, TEXT("OnCompleted"));
 		ASC->AddLooseGameplayTag(CHARACTER_STATE_DANGER); //2개를 부착
 		ASC->TryActivateAbilitiesByTag(TagContainer);
 	}

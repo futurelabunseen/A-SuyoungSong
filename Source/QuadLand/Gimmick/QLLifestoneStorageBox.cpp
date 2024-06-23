@@ -146,6 +146,7 @@ void AQLLifestoneStorageBox::ConcealLifeStone(FName InPlayerStateName,bool HasLi
 			if (OnLifespanDelegate.IsBound())
 			{
 				OnLifespanDelegate.Execute();
+				OnLifespanDelegate = nullptr;
 			}
 		}
 		else {
@@ -156,11 +157,12 @@ void AQLLifestoneStorageBox::ConcealLifeStone(FName InPlayerStateName,bool HasLi
 				OnLifestoneChangedDelegate.Execute(true);
 				QL_LOG(QLNetLog, Log, TEXT("come on lifestone"));
 			}
+
+			OnLifespanDelegate = nullptr;
 		}
-		
-		OnLifespanDelegate = nullptr;
 		OnLifestoneChangedDelegate = nullptr; //Lifestone을 가져갔음, 즉 역할이 사라짐.
 		PlayerStateName = TEXT("");
+
 	}
 	else
 	{
