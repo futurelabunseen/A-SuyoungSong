@@ -118,8 +118,6 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	
-	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-
 
 	SetupStartAbilities();
 	InitializeGAS();
@@ -132,6 +130,10 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 	}
 
+	InitNickname();
+
+	//FTimerHandle InitNicknameTimer;
+	//GetWorld()->GetTimerManager().SetTimer(InitNicknameTimer, this, &AQLCharacterPlayer::ServerRPCInitNickname, 10.0f, false);
 }
 
 //Client Only 
@@ -156,6 +158,15 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 	}
 
+	TObjectPtr<AQLCharacterPlayer> Character = this;
+	GetWorld()->GetTimerManager().SetTimerForNextTick
+	(
+		[Character]()
+		{
+			Character->InitNickname();
+		}
+	);
+	
 }
 
 void AQLCharacterPlayer::OnRep_Controller()
@@ -206,10 +217,13 @@ void AQLCharacterPlayer::BeginPlay()
 
 	StartHeight = GetActorLocation().Z;
 	
-	//혹시 모르는 경우의 수 때문에 타이머를 사용해서 다시 한번 리셋처리해준다
-	FTimerHandle ChangeNicknameTimer;
-	GetWorld()->GetTimerManager().SetTimer(ChangeNicknameTimer, this, &AQLCharacterPlayer::ServerRPCInitNickname, 5.f, false);
+	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
 
+	//클라이언트가 입장할 때 모든 클라이언트의 PlayerName업데이트 해준다.가 맞는거같은데?
+	if (PS)
+	{
+		MulticastRPCInitNickname(PS->GetPlayerName());
+	}
 }
 
 void AQLCharacterPlayer::InitializeGAS()
@@ -239,6 +253,13 @@ void AQLCharacterPlayer::InitializeGAS()
 	{
 		PlayerController->ResetUI();
 	}
+
+	FGameplayTagContainer TagContainer(CHARACTER_EQUIP_NON);
+	TagContainer.AddTag(CHARACTER_EQUIP_GUNTYPEA);
+	TagContainer.AddTag(CHARACTER_EQUIP_BOMB);
+	ASC->RemoveLooseGameplayTags(TagContainer); //모두 초기화
+	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
+	
 }
 
 void AQLCharacterPlayer::ServerInitializeGAS()
@@ -826,6 +847,15 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 {
 	return QLInventory->GetInventoryCnt(ItemType);
+}
+
+void AQLCharacterPlayer::InitNickname()
+{
+	AQLPlayerState* PS = Cast<AQLPlayerState>(GetPlayerState());
+	if (PS)
+	{
+		SetNickname(PS->GetPlayerName());
+	}
 }
 
 

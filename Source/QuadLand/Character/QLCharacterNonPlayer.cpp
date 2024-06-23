@@ -124,20 +124,18 @@ void AQLCharacterNonPlayer::AttachTakeDamageTag(const FGameplayTag CallbackTag, 
 
 void AQLCharacterNonPlayer::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 {
-	if (bIsDead == false)
+	if (NewCount == 1)
 	{
-		FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
-		ASC->TryActivateAbilitiesByTag(TargetTag);
+		ServerRPCDead();
 
 		AQLGameMode* GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
-
+		
 		if (GameMode)
 		{
 			GameMode->DeadNonPlayer(FName(this->GetName()));
 			GameMode->GetWinner(CallbackTag, NewCount);
 		}
 	}
-	bIsDead = true;
 }
 
 bool AQLCharacterNonPlayer::CanTakeDamage()
@@ -190,7 +188,6 @@ void AQLCharacterNonPlayer::UpdateTargetPerception(AActor* Actor, FAIStimulus St
 
 	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
 	{
-		QL_LOG(QLLog, Warning, TEXT("TargetActor"));
 		BC->SetValueAsObject(TEXT("TargetActor"), Actor);
 	}
 

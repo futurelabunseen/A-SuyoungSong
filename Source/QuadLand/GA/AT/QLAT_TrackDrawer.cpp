@@ -48,32 +48,6 @@ void UQLAT_TrackDrawer::Activate()
 	GetWorld()->GetTimerManager().SetTimer(DrawerTimerHandle, this, &UQLAT_TrackDrawer::Recursive, 0.01f, true,0.5f);
 }
 
-void UQLAT_TrackDrawer::OnDestroy(bool bInOwnerFinished)
-{
-	if (BombPathMeshComp.Num() > 0)
-	{
-		BombPath->ClearSplinePoints(true);
-		for (int32 Index = 0; Index < BombPathMeshComp.Num(); Index++)
-		{
-			if (BombPathMeshComp[Index])
-			{
-				BombPathMeshComp[Index]->DestroyComponent();
-			}
-		}
-		BombPathMeshComp.Empty();
-	}
-	BombPath = nullptr;
-}
-
-
-UQLAT_TrackDrawer* UQLAT_TrackDrawer::CreateTask(UGameplayAbility* OwningAbility, UStaticMesh * InDrawer, bool bTestAlreadyReleased)
-{
-	UQLAT_TrackDrawer* Task = NewAbilityTask<UQLAT_TrackDrawer>(OwningAbility);
-	Task->StaticMesh = InDrawer;
-	Task->bTestInitialState = bTestAlreadyReleased;
-	return Task;
-}
-
 void UQLAT_TrackDrawer::Recursive()
 {
 
@@ -141,6 +115,32 @@ void UQLAT_TrackDrawer::Recursive()
 			BombPathMeshComp.Add(SplineMeshComponent);
 
 		}
-		
+
 	}
+}
+
+void UQLAT_TrackDrawer::OnDestroy(bool bInOwnerFinished)
+{
+	if (BombPathMeshComp.Num() > 0)
+	{
+		BombPath->ClearSplinePoints(true);
+		for (int32 Index = 0; Index < BombPathMeshComp.Num(); Index++)
+		{
+			if (BombPathMeshComp[Index])
+			{
+				BombPathMeshComp[Index]->DestroyComponent();
+			}
+		}
+		BombPathMeshComp.Empty();
+	}
+	BombPath = nullptr;
+}
+
+
+UQLAT_TrackDrawer* UQLAT_TrackDrawer::CreateTask(UGameplayAbility* OwningAbility, UStaticMesh * InDrawer, bool bTestAlreadyReleased)
+{
+	UQLAT_TrackDrawer* Task = NewAbilityTask<UQLAT_TrackDrawer>(OwningAbility);
+	Task->StaticMesh = InDrawer;
+	Task->bTestInitialState = bTestAlreadyReleased;
+	return Task;
 }

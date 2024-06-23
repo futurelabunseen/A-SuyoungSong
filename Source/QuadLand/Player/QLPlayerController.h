@@ -105,6 +105,7 @@ public:
 	FString ChangeTimeText();
 
 	void ResetUI();
+	void CloseAllUI();
 
 protected:
 

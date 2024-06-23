@@ -77,6 +77,8 @@ public:
 
 	UFUNCTION(Server,Unreliable)
 	void ServerRPCInitNickname();
+
+	void InitNickname();
 	UFUNCTION(Server, Unreliable)
 
 	void ServerRPCDetachBomb();

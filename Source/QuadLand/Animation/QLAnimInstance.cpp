@@ -33,6 +33,7 @@ void UQLAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			bIsAiming = CurrentPlayer->GetIsAiming();
 			TurningInPlaceType = CurrentPlayer->GetTurningInPlaceType();
 			bIsProning = CurrentPlayer->GetIsProning();
+			bIsDead = CurrentPlayer->GetIsDead();
 		}
 	}
 }

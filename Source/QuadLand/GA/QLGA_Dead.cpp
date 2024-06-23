@@ -4,7 +4,7 @@
 #include "GA/QLGA_Dead.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
-
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "QuadLand.h"
 #include "Character/QLCharacterBase.h"
 #include "Player/QLPlayerController.h"
@@ -30,15 +30,23 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	- Inventory는 플레이어가 가지고 있음 ( 플레이어는 죽을 때 인베토리를 어떻게할까? 고민해보는게 좋을듯)
 	*/
 
-	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
 	
-	if (HasAuthority(&ActivationInfo))
+
+	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
+
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+
+	if (ASC && ASC->HasMatchingGameplayTag(CHARACTER_ATTACK_TAKENDAMAGE))
 	{
-		if (Character)
-		{
-			Character->SetIsDead(!Character->GetIsDead());
-		}
+		UAbilityTask_WaitGameplayEvent* WaitEvent = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, CHARACTER_ATTACK_TAKENDAMAGE, nullptr, false,false);
+		WaitEvent->EventReceived.AddDynamic(this,&UQLGA_Dead::SetDeadAnim);
+		WaitEvent->ReadyForActivation();
 	}
+	else
+	{
+		Character->SetIsDead(true);
+	}
+
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	Character->SetActorEnableCollision(false);
 	Character->bUseControllerRotationYaw = false;
@@ -55,6 +63,17 @@ void UQLGA_Dead::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
+void UQLGA_Dead::SetDeadAnim(FGameplayEventData Payload)
+{
+	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
+
+	if (Character)
+	{
+		Character->SetIsDead(true);
+	}
+}
+
+
 void UQLGA_Dead::OnCompleted()
 {
 	bool bReplicateEndAbility = true;
@@ -63,19 +82,21 @@ void UQLGA_Dead::OnCompleted()
 	// 이 어빌리티가 실행될 때, 만약 PlayerState 가 보석이 없다면, 새로운 Pawn Spawn
 	
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
-	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
-
 	AQLPlayerState* PS = Cast<AQLPlayerState>(GetActorInfo().OwnerActor.Get());
-
-	FGameplayTagContainer TagContainer(CHARACTER_STATE_DANGER);
-
-	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 
 	if (PS)
 	{
+		AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
+		FGameplayTagContainer TagContainer(CHARACTER_STATE_DANGER);
+
+		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 		if (PS->GetHasLifeStone() || ASC->HasAnyMatchingGameplayTags(TagContainer)) //가지고 있다면 죽은것
 		{
-			
+			if (IsLocallyControlled())
+			{
+				PC->CloseAllUI(); //UI는 로컬에만 있음.
+			}
+
 			if (PC && HasAuthority(&CurrentActivationInfo))
 			{
 				FTransform Transform = Character->GetActorTransform();

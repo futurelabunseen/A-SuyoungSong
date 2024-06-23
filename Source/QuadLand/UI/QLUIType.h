@@ -16,4 +16,5 @@ enum class EHUDType : uint8
 	Death,
 	Win,
 	Story,
+	MAX,
 };

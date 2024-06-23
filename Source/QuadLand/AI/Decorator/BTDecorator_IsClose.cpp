@@ -40,6 +40,5 @@ bool UBTDecorator_IsClose::CalculateRawConditionValue(UBehaviorTreeComponent& Ow
 		CollisionQueryParams
 	);
 
-	UE_LOG(LogTemp, Log, TEXT("Current is Close ? %d"), bResult);
 	return bResult;
 }

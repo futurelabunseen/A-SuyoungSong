@@ -25,7 +25,7 @@ UQLGA_AttackUsingGunByAutonomatic::UQLGA_AttackUsingGunByAutonomatic()
 
 	if (SoundCueObject.Object)
 	{
-		Sound = SoundCueObject.Object;
+		GunSound = SoundCueObject.Object;
 	}
 }
 
@@ -101,7 +101,6 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 		LocalCamera->StartCameraShake(CameraShakeClass);
 	}
 	
-
 	if (HasAuthority(&CurrentActivationInfo))
 	{
 		Character->MakeNoise();
@@ -116,9 +115,11 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 			Character->ServerRPCShooting();
 		}
 	}
-
+	
 	if (HasAuthority(&CurrentActivationInfo))
 	{
+		MulticastRPCShoot(Character);
+
 		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReduceAmmoCntEffect);
 
 		if (EffectSpecHandle.IsValid())
@@ -152,6 +153,11 @@ void UQLGA_AttackUsingGunByAutonomatic::OnCompleted()
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 
+}
+
+void UQLGA_AttackUsingGunByAutonomatic::MulticastRPCShoot_Implementation(AQLCharacterPlayer* Character)
+{
+	UGameplayStatics::PlaySoundAtLocation(Character->GetMesh(), GunSound, Character->GetWeaponMuzzlePos());
 }
 
 void UQLGA_AttackUsingGunByAutonomatic::ServerRPCStopAttack_Implementation()

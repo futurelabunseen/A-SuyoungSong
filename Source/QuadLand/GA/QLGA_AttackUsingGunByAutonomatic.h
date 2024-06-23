@@ -31,6 +31,9 @@ public:
 
 	UFUNCTION(Server,Reliable)
 	void ServerRPCStopAttack();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastRPCShoot(AQLCharacterPlayer* Character);
 protected:
 
 	FTimerHandle AttackTimerHandle;
@@ -48,5 +51,5 @@ protected:
 	TObjectPtr<class UCameraShakeBase> CamShake;
 
 	UPROPERTY(EditAnywhere, Category = "GunSound")
-	TObjectPtr<class USoundCue> Sound;
+	TObjectPtr<class USoundCue> GunSound;
 };

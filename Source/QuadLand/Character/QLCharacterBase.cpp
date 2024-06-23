@@ -77,6 +77,7 @@ AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) 
 void AQLCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 bool AQLCharacterBase::bIsUsingGun()
@@ -119,6 +120,17 @@ FGameplayTag AQLCharacterBase::GetCurrentAttackTag() const
 	{
 		return CHARACTER_EQUIP_NON;
 	}
+}
+
+void AQLCharacterBase::ServerRPCDead_Implementation()
+{
+	MulticastRPCDead();
+}
+
+void AQLCharacterBase::MulticastRPCDead_Implementation()
+{
+	SetIsDead(true);
+	QL_LOG(QLLog, Log, TEXT("Current Dead? %s %d"), *GetName(), bIsDead);
 }
 
 void AQLCharacterBase::Tick(float DeltaSeconds)
