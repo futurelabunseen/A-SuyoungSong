@@ -252,6 +252,14 @@ void AQLPlayerController::ResetUI()
 	}
 }
 
+void AQLPlayerController::CloseAllUI()
+{
+	for (const auto HUD : HUDs)
+	{
+		HUD.Value->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
 void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)
 {
 	AQLGameMode* GameMode = GetWorld()->GetAuthGameMode<AQLGameMode>();
@@ -259,12 +267,12 @@ void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)
 	{
 		GameMode->SpawnPlayerPawn(this, Type);
 		ClientRPCCreateWidget(); 
-		AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+		//AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 	
-		if (QLCharacter)
-		{
-			QLCharacter->ServerRPCInitNickname(); //닉네임 결정
-		}
+		//if (QLCharacter)
+		//{
+		//	QLCharacter->ServerRPCInitNickname(); //닉네임 결정
+		//}
 	}
 }
 

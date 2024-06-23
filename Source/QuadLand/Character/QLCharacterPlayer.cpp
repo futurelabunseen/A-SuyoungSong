@@ -118,8 +118,6 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	
-	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-
 
 	SetupStartAbilities();
 	InitializeGAS();
@@ -132,6 +130,9 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 	}
 
+	FTimerHandle InitNicknameTimer;
+
+	GetWorld()->GetTimerManager().SetTimer(InitNicknameTimer, this, &AQLCharacterPlayer::ServerRPCInitNickname, 10.0f, false);
 }
 
 //Client Only 
@@ -156,6 +157,7 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 	}
 
+	//ServerRPCInitNickname();
 }
 
 void AQLCharacterPlayer::OnRep_Controller()
@@ -205,11 +207,13 @@ void AQLCharacterPlayer::BeginPlay()
 	RecoilTimeline.AddInterpFloat(VerticalRecoil, YRecoilCurve);
 
 	StartHeight = GetActorLocation().Z;
-	
-	//혹시 모르는 경우의 수 때문에 타이머를 사용해서 다시 한번 리셋처리해준다
-	FTimerHandle ChangeNicknameTimer;
-	GetWorld()->GetTimerManager().SetTimer(ChangeNicknameTimer, this, &AQLCharacterPlayer::ServerRPCInitNickname, 5.f, false);
 
+	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+	
+	if (PS)
+	{
+		MulticastRPCInitNickname(PS->GetPlayerName());
+	}
 }
 
 void AQLCharacterPlayer::InitializeGAS()

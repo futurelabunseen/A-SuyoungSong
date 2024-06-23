@@ -27,8 +27,13 @@ public:
 	void OnCompletedCallback();
 	UFUNCTION()
 	void OnInterruptedCallback();
-	
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastRPCShoot(class AQLCharacterBase* Character);
 protected:
+
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	TObjectPtr<class USoundCue> GunSound;
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<class UGameplayEffect> ReduceAmmoCntEffect;

@@ -29,6 +29,13 @@ public:
 	FORCEINLINE ETurningPlaceType GetTurningInPlaceType() const { return TurningInPlace; }
 	virtual FGameplayTag GetCurrentAttackTag() const override;
 	//FORCEINLINE
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCDead();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPCDead();
+
 	class UAnimMontage* GetAnimMontage() const
 	{
 		return AttackAnimMontage[CurrentAttackType];

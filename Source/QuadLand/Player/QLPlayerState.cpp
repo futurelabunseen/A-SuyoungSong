@@ -325,13 +325,14 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation(const FString &InN
         SearchLocation,
         SearchLocation,
         FQuat::Identity,
-        CCHANNEL_QLITEMACTION,
+        CCHANNEL_QLBOX,
         FCollisionShape::MakeSphere(SearchRange),
         Params
     );
 
     if (bResult)
     {
+        QL_LOG(QLLog, Log, TEXT("Find"));
         AQLLifestoneStorageBox* StorageBox = Cast<AQLLifestoneStorageBox>(NearbyItem.GetActor());
 
         if (StorageBox)
@@ -347,6 +348,10 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation(const FString &InN
             }
             StorageBox->ConcealLifeStone(FName(InNickname), bHasLifeStone);
         }
+    }
+    else
+    {
+        QL_LOG(QLLog, Log, TEXT("Not Find"));
     }
 
 }

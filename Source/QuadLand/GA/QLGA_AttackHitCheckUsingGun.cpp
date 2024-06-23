@@ -25,7 +25,6 @@ void UQLGA_AttackHitCheckUsingGun::ActivateAbility(const FGameplayAbilitySpecHan
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	QL_GASLOG(QLLog, Log, TEXT("Gun"));
 	UQLAT_LineTrace* AttackLineTrace = UQLAT_LineTrace::CreateTask(this, AQLTA_LineTraceResult::StaticClass());
 	AttackLineTrace->OnCompleted.AddDynamic(this, &UQLGA_AttackHitCheckUsingGun::OnCompletedCallback);
 	AttackLineTrace->ReadyForActivation();

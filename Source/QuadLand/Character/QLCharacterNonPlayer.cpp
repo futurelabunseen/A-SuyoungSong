@@ -124,11 +124,8 @@ void AQLCharacterNonPlayer::AttachTakeDamageTag(const FGameplayTag CallbackTag, 
 
 void AQLCharacterNonPlayer::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 {
-	if (bIsDead == false)
+	if (NewCount == 1)
 	{
-		FGameplayTagContainer TargetTag(CHARACTER_STATE_DEAD);
-		ASC->TryActivateAbilitiesByTag(TargetTag);
-
 		AQLGameMode* GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
 
 		if (GameMode)
@@ -137,7 +134,6 @@ void AQLCharacterNonPlayer::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 			GameMode->GetWinner(CallbackTag, NewCount);
 		}
 	}
-	bIsDead = true;
 }
 
 bool AQLCharacterNonPlayer::CanTakeDamage()

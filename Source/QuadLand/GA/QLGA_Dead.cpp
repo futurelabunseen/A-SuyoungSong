@@ -32,13 +32,11 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
 	
-	if (HasAuthority(&ActivationInfo))
+	if (Character)
 	{
-		if (Character)
-		{
-			Character->SetIsDead(!Character->GetIsDead());
-		}
+		Character->ServerRPCDead();
 	}
+
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	Character->SetActorEnableCollision(false);
 	Character->bUseControllerRotationYaw = false;
@@ -63,19 +61,21 @@ void UQLGA_Dead::OnCompleted()
 	// 이 어빌리티가 실행될 때, 만약 PlayerState 가 보석이 없다면, 새로운 Pawn Spawn
 	
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
-	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
-
 	AQLPlayerState* PS = Cast<AQLPlayerState>(GetActorInfo().OwnerActor.Get());
-
-	FGameplayTagContainer TagContainer(CHARACTER_STATE_DANGER);
-
-	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 
 	if (PS)
 	{
+		AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
+		FGameplayTagContainer TagContainer(CHARACTER_STATE_DANGER);
+
+		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 		if (PS->GetHasLifeStone() || ASC->HasAnyMatchingGameplayTags(TagContainer)) //가지고 있다면 죽은것
 		{
-			
+			if (IsLocallyControlled())
+			{
+				PC->CloseAllUI(); //UI는 로컬에만 있음.
+			}
+
 			if (PC && HasAuthority(&CurrentActivationInfo))
 			{
 				FTransform Transform = Character->GetActorTransform();

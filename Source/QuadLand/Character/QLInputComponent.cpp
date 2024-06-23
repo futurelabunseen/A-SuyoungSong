@@ -22,6 +22,7 @@
 #include "GameData/QLDataManager.h"
 #include "Sound/SoundCue.h"
 #include "Item/QLItemBox.h"
+#include "GameplayTag/GamplayTags.h"
 #include "QuadLand.h"
 
 UQLInputComponent::UQLInputComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), bShowMenuUI(false)
@@ -288,6 +289,14 @@ void UQLInputComponent::FarmingItemPressed()
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 	if (Character)
 	{
+
+		UAbilitySystemComponent *ASC = Character->GetAbilitySystemComponent();
+		FGameplayTagContainer Tags(CHARACTER_STATE_RELOAD);
+
+		if (ASC && ASC->HasAnyMatchingGameplayTags(Tags))
+		{
+			return;
+		}
 		//라인트레이스를 쏘아보고 없으면 return
 		FHitResult OutHitResult;
 
@@ -578,11 +587,6 @@ void UQLInputComponent::PutWeapon()
 		PC->UpdateEquipWeaponUI(false);
 	}
 
-	//if (HasAuthority())
-	//{
-	//	Character->CurrentAttackType = ECharacterAttackType::HookAttack;
-	//}
-
 	Character->ServerRPCPuttingWeapon();
 }
 
@@ -631,7 +635,6 @@ void UQLInputComponent::SetInventory()
 
 	FInputModeUIOnly UIOnlyInputMode;
 	PC->SetVisibilityHUD(EHUDType::Inventory);
-	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	PC->bShowMouseCursor = true;
 	PC->SetInputMode(UIOnlyInputMode);
 }

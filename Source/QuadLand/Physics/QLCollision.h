@@ -10,5 +10,5 @@
 #define CCHANNEL_QLITEMACTION ECC_GameTraceChannel2
 
 #define CCHANNEL_QLGROUND ECC_GameTraceChannel4
-
 #define CCHANNEL_QLFIRE ECC_GameTraceChannel5
+#define CCHANNEL_QLBOX ECC_GameTraceChannel6

@@ -193,17 +193,12 @@ void AQLGameMode::SpawnPlayerPawn(APlayerController* PC,int Type)
 	{
 		UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
 	
-		APawn* ResultPawn = GetWorld()->SpawnActor<APawn>(DataManager->GetSkeletalMesh(Type), StartSpot->GetActorLocation(),StartSpot->GetActorRotation(), SpawnInfo);
+		AQLCharacterPlayer* ResultPawn = GetWorld()->SpawnActor<AQLCharacterPlayer>(DataManager->GetSkeletalMesh(Type), StartSpot->GetActorLocation(),StartSpot->GetActorRotation(), SpawnInfo);
 
 		if (ResultPawn)
 		{
 			PC->Possess(ResultPawn);
-
-			AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ResultPawn);
-			if (Player)
-			{
-				Player->ServerRPCInitNickname(); //닉네임 결정
-			}
+			ResultPawn->ServerRPCInitNickname(); //닉네임 결정
 			PC->ClientRestart(ResultPawn);
 		}
 	}

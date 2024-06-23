@@ -77,6 +77,7 @@ AQLCharacterBase::AQLCharacterBase(const FObjectInitializer& ObjectInitializer) 
 void AQLCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 bool AQLCharacterBase::bIsUsingGun()
@@ -119,6 +120,16 @@ FGameplayTag AQLCharacterBase::GetCurrentAttackTag() const
 	{
 		return CHARACTER_EQUIP_NON;
 	}
+}
+
+void AQLCharacterBase::ServerRPCDead_Implementation()
+{
+	MulticastRPCDead();
+}
+
+void AQLCharacterBase::MulticastRPCDead_Implementation()
+{
+	SetIsDead(true);
 }
 
 void AQLCharacterBase::Tick(float DeltaSeconds)

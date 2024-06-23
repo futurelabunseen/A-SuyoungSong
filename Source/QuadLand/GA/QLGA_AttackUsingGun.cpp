@@ -11,7 +11,7 @@
 #include "Camera/CameraShakeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameplayTag/GamplayTags.h"
-
+#include "Sound/SoundCue.h"
 #include "Interface/QLAIAttackInterface.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 
@@ -69,7 +69,9 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	if (HasAuthority(&ActivationInfo))
 	{
 		Character->MakeNoise();
+		MulticastRPCShoot(Character);
 	}
+
 	UAnimMontage* AnimMontageUsingGun = Character->GetAnimMontage();
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
@@ -163,4 +165,9 @@ void UQLGA_AttackUsingGun::OnInterruptedCallback()
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = false;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UQLGA_AttackUsingGun::MulticastRPCShoot_Implementation(AQLCharacterBase* Character)
+{
+	UGameplayStatics::PlaySoundAtLocation(Character->GetMesh(), GunSound, Character->GetWeaponMuzzlePos());
 }

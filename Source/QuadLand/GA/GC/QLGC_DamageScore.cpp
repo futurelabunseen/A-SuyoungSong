@@ -25,7 +25,7 @@ bool UQLGC_DamageScore::OnExecute_Implementation(AActor* Target, const FGameplay
 			if (DamageActor)
 			{
 				DamageActor->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
-				FVector Loc = HitResult->Location + FVector(-25.f, -25.f, 50.f);
+				FVector Loc = HitResult->Location;
 				DamageActor->SetActorLocation(Loc);
 
 				AQLDamageWidgetActor* Widget = Cast<AQLDamageWidgetActor>(DamageActor);
