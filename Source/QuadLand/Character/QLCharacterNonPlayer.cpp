@@ -126,8 +126,10 @@ void AQLCharacterNonPlayer::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 {
 	if (NewCount == 1)
 	{
-		AQLGameMode* GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
+		ServerRPCDead();
 
+		AQLGameMode* GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
+		
 		if (GameMode)
 		{
 			GameMode->DeadNonPlayer(FName(this->GetName()));
@@ -186,7 +188,6 @@ void AQLCharacterNonPlayer::UpdateTargetPerception(AActor* Actor, FAIStimulus St
 
 	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
 	{
-		QL_LOG(QLLog, Warning, TEXT("TargetActor"));
 		BC->SetValueAsObject(TEXT("TargetActor"), Actor);
 	}
 

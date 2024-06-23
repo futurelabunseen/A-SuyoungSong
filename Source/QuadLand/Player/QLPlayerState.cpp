@@ -39,7 +39,6 @@ AQLPlayerState::AQLPlayerState()
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_DEAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Dead);
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_WIN, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::Win);
     ASC->RegisterGameplayTagEvent(CHARACTER_STATE_NOTRUN, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLPlayerState::CoolTimeStamina);
-    ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
 
     bHasLifeStone = true; 
 }
@@ -332,7 +331,6 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation(const FString &InN
 
     if (bResult)
     {
-        QL_LOG(QLLog, Log, TEXT("Find"));
         AQLLifestoneStorageBox* StorageBox = Cast<AQLLifestoneStorageBox>(NearbyItem.GetActor());
 
         if (StorageBox)
@@ -348,10 +346,6 @@ void AQLPlayerState::ServerRPCConcealLifeStone_Implementation(const FString &InN
             }
             StorageBox->ConcealLifeStone(FName(InNickname), bHasLifeStone);
         }
-    }
-    else
-    {
-        QL_LOG(QLLog, Log, TEXT("Not Find"));
     }
 
 }
@@ -422,8 +416,14 @@ void AQLPlayerState::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 
         if (PC)
         {
-            PC->SettingDeathTime();
+            PC->SettingDeathTime(); //실제 플레이어가 죽은 시간을 체크함.
         }
+        AQLCharacterBase* Player = Cast<AQLCharacterBase>(GetPawn());
+        if (Player)
+        {
+            Player->ServerRPCDead();
+        }
+
     }
 
 }

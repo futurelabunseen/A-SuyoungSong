@@ -130,9 +130,10 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 	}
 
-	FTimerHandle InitNicknameTimer;
+	InitNickname();
 
-	GetWorld()->GetTimerManager().SetTimer(InitNicknameTimer, this, &AQLCharacterPlayer::ServerRPCInitNickname, 10.0f, false);
+	//FTimerHandle InitNicknameTimer;
+	//GetWorld()->GetTimerManager().SetTimer(InitNicknameTimer, this, &AQLCharacterPlayer::ServerRPCInitNickname, 10.0f, false);
 }
 
 //Client Only 
@@ -157,7 +158,15 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 	}
 
-	//ServerRPCInitNickname();
+	TObjectPtr<AQLCharacterPlayer> Character = this;
+	GetWorld()->GetTimerManager().SetTimerForNextTick
+	(
+		[Character]()
+		{
+			Character->InitNickname();
+		}
+	);
+	
 }
 
 void AQLCharacterPlayer::OnRep_Controller()
@@ -207,9 +216,10 @@ void AQLCharacterPlayer::BeginPlay()
 	RecoilTimeline.AddInterpFloat(VerticalRecoil, YRecoilCurve);
 
 	StartHeight = GetActorLocation().Z;
-
-	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
 	
+	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+
+	//클라이언트가 입장할 때 모든 클라이언트의 PlayerName업데이트 해준다.가 맞는거같은데?
 	if (PS)
 	{
 		MulticastRPCInitNickname(PS->GetPlayerName());
@@ -243,6 +253,13 @@ void AQLCharacterPlayer::InitializeGAS()
 	{
 		PlayerController->ResetUI();
 	}
+
+	FGameplayTagContainer TagContainer(CHARACTER_EQUIP_NON);
+	TagContainer.AddTag(CHARACTER_EQUIP_GUNTYPEA);
+	TagContainer.AddTag(CHARACTER_EQUIP_BOMB);
+	ASC->RemoveLooseGameplayTags(TagContainer); //모두 초기화
+	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
+	
 }
 
 void AQLCharacterPlayer::ServerInitializeGAS()
@@ -830,6 +847,15 @@ void AQLCharacterPlayer::GetItem(AQLItem* ItemInfo)
 int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 {
 	return QLInventory->GetInventoryCnt(ItemType);
+}
+
+void AQLCharacterPlayer::InitNickname()
+{
+	AQLPlayerState* PS = Cast<AQLPlayerState>(GetPlayerState());
+	if (PS)
+	{
+		SetNickname(PS->GetPlayerName());
+	}
 }
 
 

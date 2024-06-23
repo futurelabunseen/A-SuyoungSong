@@ -198,7 +198,7 @@ void AQLGameMode::SpawnPlayerPawn(APlayerController* PC,int Type)
 		if (ResultPawn)
 		{
 			PC->Possess(ResultPawn);
-			ResultPawn->ServerRPCInitNickname(); //닉네임 결정
+			//ResultPawn->ServerRPCInitNickname(); //닉네임 결정
 			PC->ClientRestart(ResultPawn);
 		}
 	}

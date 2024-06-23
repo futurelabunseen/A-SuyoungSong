@@ -130,6 +130,7 @@ void AQLCharacterBase::ServerRPCDead_Implementation()
 void AQLCharacterBase::MulticastRPCDead_Implementation()
 {
 	SetIsDead(true);
+	QL_LOG(QLLog, Log, TEXT("Current Dead? %s %d"), *GetName(), bIsDead);
 }
 
 void AQLCharacterBase::Tick(float DeltaSeconds)
