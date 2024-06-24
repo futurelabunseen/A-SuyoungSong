@@ -70,6 +70,7 @@ void AQLBomb::ExplodesBomb(const AQLCharacterBase* Character)
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(DetectionPlayer), false);
 	UAbilitySystemComponent* SourceASC = Character->GetAbilitySystemComponent();
 	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
+	
 
 	TArray<FHitResult> NearbyPlayers;
 
@@ -89,19 +90,20 @@ void AQLBomb::ExplodesBomb(const AQLCharacterBase* Character)
 		for (const auto& Player : NearbyPlayers)
 		{
 			AQLCharacterBase* TmpPawn = Cast<AQLCharacterBase>(Player.GetActor());
-
+			//AQLCharacterBase를 상속받은 Player와 AI에게 Effect 적용
 			if (TmpPawn)
 			{
 				FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();
 				FGameplayEffectSpecHandle EffectSpecHandle = SourceASC->MakeOutgoingSpec(AttackDamageEffect, 1, EffectContextHandle);
-
+				
 				if (EffectSpecHandle.IsValid())
 				{
-					EffectContextHandle.AddOrigin(this->GetActorLocation()); //Origin 발생 위치를 저장한다.
-					EffectContextHandle.AddSourceObject(WeaponStat);
+					EffectContextHandle.AddOrigin(this->GetActorLocation()); //Bomb 부딪힌 위치를 전달
+					EffectContextHandle.AddSourceObject(WeaponStat); //현재 Bomb을 사용한 캐릭터의 스탯 정보 전달
+					//이 스탯은 데미지 전달을 위함.
 
 					UAbilitySystemComponent* TargetASC = TmpPawn->GetAbilitySystemComponent();
-
+					//부딪힌 모든 Pawn의 ASC를 가져와서 Effect를 실행시킨다.
 					if (TargetASC)
 					{
 						EffectSpecHandle.Data->SetContext(EffectContextHandle);
@@ -168,9 +170,7 @@ void AQLBomb::OnActorOverlap(AActor* SelfActor, AActor* OtherActor, FVector Norm
 	if (Character)
 	{
 		ExplodesBomb(Character);
-		QL_LOG(QLLog, Warning, TEXT(" Fire "));
 	}
 	Collision->SetSimulatePhysics(false);
-	Mesh->SetSimulatePhysics(false);
 	Collision->SetWorldLocation(Mesh->GetComponentLocation());
 }

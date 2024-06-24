@@ -30,18 +30,19 @@ void UQLGE_DistanceDecayDamageCal::Execute_Implementation(const FGameplayEffectC
 			FVector TargetLocation = Character->GetMesh()->GetSocketLocation(TargetBoneName);
 
 			float OutRadius, OutHeight;
-			Character->GetCapsuleComponent()->GetScaledCapsuleSize(OutRadius, OutHeight);
-			const float MaxDamage = WeaponStat->GetAttackDamage();
-			const float AttackDistacne = OutHeight * 1.5f; //캡슐은 액터로케이션을 기준으로 양방향으로 커짐.
+
+			Character->GetCapsuleComponent()->GetScaledCapsuleSize(OutRadius, OutHeight); //캐릭터의 캡슐을 가져옴
+			const float MaxDamage = WeaponStat->GetAttackDamage();  //데미지
+			const float AttackDistacne = OutHeight * 2.0f; //캡슐은 액터로케이션을 기준으로 양방향으로 커짐.
 			const float Distance = FMath::Clamp(FVector::Distance(BaseBoneLocation, TargetLocation), 0.0f, AttackDistacne);
 			const float InvDamageRatio = 1.0f - Distance / AttackDistacne;
 			float Damage = InvDamageRatio * MaxDamage;
 
 			FGameplayCueParameters CueParams;
-			CueParams.EffectContext = ExecutionParams.GetOwningSpec().GetContext();
-			CueParams.RawMagnitude = Damage;
-			//현재 ASC를 가져와서 ExecuteGameplayCue 실행 
-			TargetASC->ExecuteGameplayCue(GAMEPLAYCUE_CHARACTER_DAMAGESCORE, CueParams);
+			CueParams.EffectContext = ExecutionParams.GetOwningSpec().GetContext(); //현재 Context같이 전달, HitTarget을 담은 Context
+			CueParams.RawMagnitude = Damage; //계산된 데미지
+
+			TargetASC->ExecuteGameplayCue(GAMEPLAYCUE_CHARACTER_DAMAGESCORE, CueParams); //데미지 스코어를 계산
 			OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UQLAS_PlayerStat::GetDamageAttribute(), EGameplayModOp::Additive, Damage));
 		}
 	}

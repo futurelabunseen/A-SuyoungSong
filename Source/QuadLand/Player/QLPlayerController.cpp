@@ -199,6 +199,11 @@ void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)
 
 void AQLPlayerController::SetUpdateLivePlayer(int16 InLivePlayer)
 {
+	if (HUDs.Find(EHUDType::HUD) == 0)
+	{
+		return;
+	}
+
 	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 
 	if (UserWidget)
@@ -210,6 +215,17 @@ void AQLPlayerController::SetUpdateLivePlayer(int16 InLivePlayer)
 void AQLPlayerController::SettingDeathTime()
 {
 	DeathTime = ChangeTimeText(); //Update
+}
+
+void AQLPlayerController::RemoveAllNearbyItemEntries()
+{
+	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
+
+	if (InventoryUI)
+	{
+		InventoryUI->RemoveAllNearbyItemEntries(); //전부 제거
+	}
+
 }
 
 void AQLPlayerController::SettingNickname()
@@ -259,6 +275,7 @@ void AQLPlayerController::CloseAllUI()
 		HUD.Value->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
+
 
 void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)
 {

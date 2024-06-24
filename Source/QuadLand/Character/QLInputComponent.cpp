@@ -159,6 +159,7 @@ UQLInputComponent::UQLInputComponent(const FObjectInitializer& ObjectInitializer
 	CameraDownTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("CameraDownTimeline"));
 	DownInterpFunction.BindUFunction(this, FName(TEXT("TimelineCameraUpDownFloatReturn")));
 
+	PrimaryComponentTick.bCanEverTick = true;
 }
 
 void UQLInputComponent::InitPlayerImputComponent(UInputComponent* InputComponent)
@@ -233,6 +234,56 @@ void UQLInputComponent::BeginPlay()
 	{
 		CameraDownTimeline->AddInterpFloat(CameraUpDownCurve, DownInterpFunction, FName{ TEXT("CameraDownAlpha") });
 	}
+}
+
+
+void UQLInputComponent::SetInventory()
+{
+
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
+	if (PC == nullptr || Character == nullptr)
+	{
+		return;
+	}
+
+	FVector SearchLocation = Character->GetMesh()->GetSocketLocation(FName("ItemDetectionSocket"));
+
+	FCollisionQueryParams Params(TEXT("DetectionItem"), false, Character);
+
+	TArray<FHitResult> NearbyItems;
+
+	bool bResult = GetWorld()->SweepMultiByChannel(
+		NearbyItems,
+		SearchLocation,
+		SearchLocation,
+		FQuat::Identity,
+		CCHANNEL_QLITEMACTION,
+		FCollisionShape::MakeSphere(Character->SearchRange),
+		Params
+	);
+
+	if (bResult)
+	{
+		for (const auto& NearbyItem : NearbyItems)
+		{
+			AQLItemBox* HitItem = Cast<AQLItemBox>(NearbyItem.GetActor());
+			if (HitItem)
+			{
+				UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
+				if (ItemData->ItemType != EItemType::Weapon)
+				{
+					ItemData->CurrentItemCnt = 1;
+					PC->UpdateNearbyItemEntry(ItemData);
+				}
+			}
+		}
+	}
+
+	FInputModeUIOnly UIOnlyInputMode;
+	PC->SetVisibilityHUD(EHUDType::Inventory);
+	PC->bShowMouseCursor = true;
+	PC->SetInputMode(UIOnlyInputMode);
 }
 
 
@@ -599,55 +650,6 @@ void UQLInputComponent::PutWeapon()
 	}
 
 	Character->ServerRPCPuttingWeapon();
-}
-
-void UQLInputComponent::SetInventory()
-{
-
-	AQLPlayerController* PC = GetController<AQLPlayerController>();
-	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
-	if (PC == nullptr || Character == nullptr)
-	{
-		return;
-	}
-
-	FVector SearchLocation = Character->GetMesh()->GetSocketLocation(FName("ItemDetectionSocket"));
-
-	FCollisionQueryParams Params(TEXT("DetectionItem"), false, Character);
-
-	TArray<FHitResult> NearbyItems;
-
-	bool bResult = GetWorld()->SweepMultiByChannel(
-		NearbyItems,
-		SearchLocation,
-		SearchLocation,
-		FQuat::Identity,
-		CCHANNEL_QLITEMACTION,
-		FCollisionShape::MakeSphere(Character->SearchRange),
-		Params
-	);
-
-	if (bResult)
-	{
-		for (const auto& NearbyItem : NearbyItems)
-		{
-			AQLItemBox* HitItem = Cast<AQLItemBox>(NearbyItem.GetActor());
-			if (HitItem)
-			{
-				UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
-				if (ItemData->ItemType != EItemType::Weapon)
-				{
-					ItemData->CurrentItemCnt = 1;
-					PC->UpdateNearbyItemEntry(ItemData);
-				}
-			}
-		}
-	}
-	
-	FInputModeUIOnly UIOnlyInputMode;
-	PC->SetVisibilityHUD(EHUDType::Inventory);
-	PC->bShowMouseCursor = true;
-	PC->SetInputMode(UIOnlyInputMode);
 }
 
 

@@ -90,11 +90,10 @@ void UQLMap::NativeConstruct()
 			StorageBoxes.Add(Index,StorageBox);
 
 			UUserWidget* Widget = CreateWidget<UUserWidget>(this, StoageIcon);
-			FVector ActorLocation = StorageBox->GetActorLocation();
-			Widget->SetRenderTranslation(StorageBox->GetStorageWidgetLocation());
-			Widget->SetVisibility(ESlateVisibility::Hidden);
 			MapOverlay->AddChildToOverlay(Widget);
 			ItemStorage.Add(Index, Widget);
+			Widget->SetRenderTranslation(StorageBox->GetStorageWidgetLocation());
+			Widget->SetVisibility(ESlateVisibility::Hidden);
 			Index++;
 		}
 

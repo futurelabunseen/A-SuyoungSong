@@ -29,24 +29,26 @@ bool UQLGA_AttackUsingGun::CanActivateAbility(const FGameplayAbilitySpecHandle H
 {
 	bool Result = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 
-	//Ammo Cnt 개수를 체크한다 만약 0이라면, 어빌리티를 실행하지 않고 종료한다.
 	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
-	if (SourceASC->HasMatchingGameplayTag(CHARACTER_STATE_RUN))
+
+	if (SourceASC->HasAnyMatchingGameplayTags(CancelTag)) //이 어빌리티를 실행할 때 CancelTag에 지정된 태그는 받지 않는다.
 	{
 		return false;
 	}
-	if (WeaponStat && WeaponStat->GetCurrentAmmo() <= 0.0f)
+
+	if (WeaponStat && WeaponStat->GetCurrentAmmo() <= 0.0f) //Ammo Cnt 개수를 체크한다 만약 0이라면, 어빌리티를 실행하지 않고 종료한다.
 	{
 		return false;
 	}
 	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(Character);
 
-	if (Player && Player->GetIsJumping())
+	if (Player && Player->GetIsJumping()) //점프할 때 총을 쏠 수 없다.
 	{
 		return false;
 	}
+
 	return Result;
 }
 
@@ -56,32 +58,11 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	//총을 쏜다면 플레이어를 회전 시킨다.
 	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(Character);
-
-	if (IsLocallyControlled())
-	{
-		if (Player)
-		{
-			APlayerCameraManager* LocalCamera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
-			LocalCamera->StartCameraShake(CameraShakeClass);
-		}
-	}
-
-	if (HasAuthority(&ActivationInfo))
-	{
-		Character->MakeNoise();
-		MulticastRPCShoot(Character);
-	}
-
-	UAnimMontage* AnimMontageUsingGun = Character->GetAnimMontage();
-	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
-	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
-
 	float AnimSpeedRate = 1.0f;
 
-	//몽타주를 클라이언트 - Server를 다르게 동작하도록 한다.
-	UAbilityTask_PlayMontageAndWait* AttackUsingGunMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("GunAnimMontage"), AnimMontageUsingGun, AnimSpeedRate);
-	AttackUsingGunMontage->OnCompleted.AddDynamic(this, &UQLGA_AttackUsingGun::OnCompletedCallback);
-	AttackUsingGunMontage->OnInterrupted.AddDynamic(this, &UQLGA_AttackUsingGun::OnInterruptedCallback);
+
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
+	const UQLAS_WeaponStat* WeaponStat = SourceASC->GetSet<UQLAS_WeaponStat>();
 
 	if (IsLocallyControlled())
 	{
@@ -94,12 +75,29 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 		Character->ServerRPCShooting();
 	}
 
-	///*
-	//여기서 발동 -> 총알 횟수 주는 Effect수행
-	//*/
-	////Gameplay Effect를 실행한다.
+	if (IsLocallyControlled()) //로컬에 있는 카메라를 흔들어 준다.
+	{
+		if (Player)
+		{
+			APlayerCameraManager* LocalCamera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+			LocalCamera->StartCameraShake(CameraShakeClass);
+		}
+	}
 
-	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReduceAmmoCntEffect);
+	if (HasAuthority(&ActivationInfo)) //서버 내에서 AI에게 Noise를 전달한다.
+	{
+		Character->MakeNoise();
+		MulticastRPCShoot(Character); //총 사운드
+	}
+
+	UAnimMontage* AnimMontageUsingGun = Character->GetAnimMontage();
+
+	//애니메이션 몽타주 동작
+	UAbilityTask_PlayMontageAndWait* AttackUsingGunMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("GunAnimMontage"), AnimMontageUsingGun, AnimSpeedRate);
+	AttackUsingGunMontage->OnCompleted.AddDynamic(this, &UQLGA_AttackUsingGun::OnCompletedCallback);
+	AttackUsingGunMontage->OnInterrupted.AddDynamic(this, &UQLGA_AttackUsingGun::OnInterruptedCallback);
+
+	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReduceAmmoCntEffect); //총알 횟수를 줄여주는 이펙트 발동
 
 	if (EffectSpecHandle.IsValid())
 	{
@@ -113,7 +111,7 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 			float Dist = WeaponStat->GetAttackDistance();
 			if (Player)
 			{
-				CueParams.Location = Player->CalPlayerLocalCameraStartPos() + Player->GetCameraForward() * Dist; //현재는 임시값 어트리뷰트 셋에서 가져올 예정
+				CueParams.Location = Player->CalPlayerLocalCameraStartPos() + Player->GetCameraForward() * Dist; //쏠 거리를 미리 지정
 			}
 			else
 			{
@@ -121,7 +119,7 @@ void UQLGA_AttackUsingGun::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 				if (AI)
 				{
 					AI->SetTargetPos();
-					CueParams.Location = AI->GetTargetPos();
+					CueParams.Location = AI->GetTargetPos(); //AI는 SetTargetPos를 사용해서 범위랜덤을 고려해서 위치를 지정
 				}
 			}
 			//현재 ASC를 가져와서 ExecuteGameplayCue 실행 

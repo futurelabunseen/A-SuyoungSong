@@ -32,6 +32,8 @@ protected:
 	//아이템 UI 설정 시 호출하는 함수
 protected:
 
+	FString ItemTitle;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item, meta = (BindWidget))
 	TObjectPtr<class UImage> ItemImage;
 

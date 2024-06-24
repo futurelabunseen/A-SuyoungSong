@@ -44,7 +44,6 @@ void UQLGA_Danger::OnCompleted()
 	FGameplayTagContainer TagContainer(CHARACTER_STATE_DEAD);
 	if (ASC)
 	{
-		QL_GASLOG(QLLog, Warning, TEXT("OnCompleted"));
 		ASC->AddLooseGameplayTag(CHARACTER_STATE_DANGER); //2°³¸¦ ºÎÂø
 		ASC->TryActivateAbilitiesByTag(TagContainer);
 	}

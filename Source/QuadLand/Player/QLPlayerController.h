@@ -24,7 +24,7 @@ public:
 	AQLPlayerController();
 
 	virtual void BeginPlay() override;
-
+	void Inventory();
 	UFUNCTION(BlueprintCallable)
 	void SetVisibilityHUD(EHUDType UItype);
 
@@ -89,7 +89,7 @@ public:
 	void SettingDeathTime();
 
 	FOnDeathCheckDelegate OnDeathCheckDelegate;
-
+	void RemoveAllNearbyItemEntries(); //전부 제거
 	uint8 bReadyGame : 1;
 
 	UFUNCTION(Client,Reliable)

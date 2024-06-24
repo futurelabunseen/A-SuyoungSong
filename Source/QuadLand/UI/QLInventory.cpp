@@ -40,7 +40,7 @@ void UQLInventory::UpdateItemEntry(UObject* InItem, int32 InItemCnt)
 				break;
 			}
 			Entry->CurrentItemCnt = InItemCnt; //인벤토리에 아이템이 있으면, 그 아이템을 가져와서 카운트를 증가시키고
-			UE_LOG(LogTemp, Warning, TEXT("Item Type %d Cnt %d %d"), InItemInfo->ItemType, InItemInfo->CurrentItemCnt,InItemCnt);
+			UE_LOG(LogTemp, Warning, TEXT("Item Type %d Cnt %d %d"), InItemInfo->ItemType, InItemInfo->CurrentItemCnt, InItemCnt);
 
 			break;
 		}
@@ -51,13 +51,13 @@ void UQLInventory::UpdateItemEntry(UObject* InItem, int32 InItemCnt)
 		//생성
 		AddItem(InItem);
 	}
-	
+
 	ItemList->RegenerateAllEntries();
 }
 
 void UQLInventory::UpdateInventoryByDraggedItem(UObject* InItem)
 {
-	
+
 	AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetOwningPlayer());
 	AQLCharacterPlayer* Player = CastChecked<AQLCharacterPlayer>(PC->GetPawn());
 
@@ -87,7 +87,7 @@ void UQLInventory::UpdateInventoryByDraggedItem(UObject* InItem)
 		//생성
 		ItemList->AddItem(InItem);
 	}
-	
+
 	//현재 증가된 개수를 전달해야함.
 	PC->AddInventoryByDraggedItem(InItemInfo->ItemType, AddedItemCnt);
 	ItemList->RegenerateAllEntries();
@@ -143,7 +143,7 @@ void UQLInventory::OnClickedItem()
 {
 	UQLItemData* ItemEntry = Cast<UQLItemData>(ItemList->GetSelectedItem());
 
-	UE_LOG(LogTemp, Warning, TEXT("%d"),ItemEntry);
+	UE_LOG(LogTemp, Warning, TEXT("%d"), ItemEntry);
 	if (ItemEntry)
 	{
 		//해당 플레이어 컨트롤러에게 id-cnt값 전달

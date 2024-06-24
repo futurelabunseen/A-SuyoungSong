@@ -33,6 +33,9 @@ public:
 protected:
 
 	UPROPERTY(EditAnywhere, Category = "Sound")
+	FGameplayTagContainer CancelTag;
+
+	UPROPERTY(EditAnywhere, Category = "Sound")
 	TObjectPtr<class USoundCue> GunSound;
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
