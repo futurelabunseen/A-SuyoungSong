@@ -33,6 +33,9 @@ public:
 	void GetWinner(const FGameplayTag CallbackTag, int32 NewCount);
 
 	UFUNCTION()
+	void Win();
+
+	UFUNCTION()
 	void AddPlayer(FName PlayerName);
 
 	UFUNCTION()
@@ -41,6 +44,8 @@ public:
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	int32 LivePlayerCount;
+
+	class UAbilitySystemComponent* WinActorASC;
 private:
 
 	void GameStart();

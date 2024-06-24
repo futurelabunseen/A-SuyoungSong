@@ -74,7 +74,7 @@ bool UQLGC_DamageEffect::OnExecute_Implementation(AActor* MyTarget, const FGamep
 					}
 				}
 
-				UGameplayStatics::PlaySound2D(Character->GetMesh(), MoanSound);
+				UGameplayStatics::PlaySoundAtLocation(Character->GetMesh(), MoanSound,HitResult->Location);
 			}
 
 		}

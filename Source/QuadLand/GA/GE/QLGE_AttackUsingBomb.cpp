@@ -22,16 +22,16 @@ void UQLGE_AttackUsingBomb::Execute_Implementation(const FGameplayEffectCustomEx
 	UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
 	if (TargetASC)
 	{
-		FVector Center = EffectContextHandle.GetOrigin(); //시작지점
-
-		AActor* Actor = TargetASC->GetAvatarActor();
+		FVector Center = EffectContextHandle.GetOrigin(); //Bomb이 부딪힌 지점
+		AActor* Actor = TargetASC->GetAvatarActor(); //데미지 받을 액터들
 		//Max값
 		const float MaxDamage = WeaponStat->GetMaxDamage() + AddBombDamage;
 		const float AttackDistacne = WeaponStat->GetAttackDistance() + AddBombRadius;
 		const float Distance = FMath::Clamp(FVector::Distance(Center, Actor->GetActorLocation()), 0.0f, AttackDistacne);
-		const float InvDamageRatio = 1.0f - Distance / AttackDistacne;
+		//거리별 점수값 가져온다.
+		const float InvDamageRatio = 1.0f - Distance / AttackDistacne; //가까울 수록 더 높은 점수를 위해 1.0을 빼줌
 
-		float Damage = InvDamageRatio * MaxDamage;
+		float Damage = InvDamageRatio * MaxDamage; //MaxDamage값을 곱해서 해당 액터에게 전달
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UQLAS_PlayerStat::GetDamageAttribute(), EGameplayModOp::Additive, Damage));
 	}
 }

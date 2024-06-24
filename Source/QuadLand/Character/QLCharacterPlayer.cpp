@@ -164,6 +164,11 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 		[Character]()
 		{
 			Character->InitNickname();
+			AQLPlayerController* PC = Character->GetController<AQLPlayerController>();
+			if (PC)
+			{
+				PC->ClientRPCCreateWidget();
+			}
 		}
 	);
 	
@@ -316,6 +321,7 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 	{
 		RecoilTimeline.TickTimeline(DeltaSeconds); //되돌리기
 	}
+
 }
 
 
@@ -857,7 +863,6 @@ void AQLCharacterPlayer::InitNickname()
 		SetNickname(PS->GetPlayerName());
 	}
 }
-
 
 void AQLCharacterPlayer::ServerRPCInitNickname_Implementation()
 {

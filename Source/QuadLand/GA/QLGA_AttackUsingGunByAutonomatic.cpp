@@ -95,6 +95,16 @@ void UQLGA_AttackUsingGunByAutonomatic::Attack()
 		return;
 	}
 
+	if (SourceASC->HasMatchingGameplayTag(CHARACTER_STATE_WIN))
+	{
+		if (IsLocallyControlled())
+		{
+			//ÂûÄ¬ ÂûÄ¬ ¼Ò¸®³ª±â
+			InputReleased(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
+		}
+		return ;
+	}
+
 	if (IsLocallyControlled())
 	{
 		APlayerCameraManager* LocalCamera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);

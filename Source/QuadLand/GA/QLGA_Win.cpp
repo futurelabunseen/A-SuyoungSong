@@ -17,9 +17,11 @@ UQLGA_Win::UQLGA_Win()
 void UQLGA_Win::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
 	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
 	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	Character->bUseControllerRotationYaw = false;
+
 	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
 	
 	if (HasAuthority(&ActivationInfo))

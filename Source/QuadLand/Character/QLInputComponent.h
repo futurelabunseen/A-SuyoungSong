@@ -22,7 +22,13 @@ public:
 	void InitPlayerImputComponent(class UInputComponent* InputComponent);
 	void InitGASInputComponent(class UInputComponent* InputComponent);
 	virtual void BeginPlay() override;
-
+	void SetShowInventory(bool InVisible) { bShowInventory = InVisible; }
+	bool GetShowInventory() { return bShowInventory; }
+	
+protected:
+	//virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
+	void ShowInventory();
+	uint8 bShowInventory : 1;
 
 protected:
 	//Look & Move Section

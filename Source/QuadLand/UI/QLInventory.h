@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "GameData/QLItemType.h"
 #include "QLInventory.generated.h"
 
 /**
@@ -27,6 +28,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateNearbyItemEntryByDraggedItem(UObject* InItem);
+	void UpdateNearbyItemEntry_2(UObject* InItem, const TMap<EItemType, int32>& ItemCnt);
 
 	void UpdateNearbyItemEntry(UObject* InItem);
 
@@ -43,6 +45,8 @@ public:
 
 	void ClearAll();
 
+	void UpdateListViewItemWidget(UObject *InItem);
+	void UpdateNearbyListViewItemWidget(UObject* InItem);
 protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, meta = (BindWidget)) //자동으로 연결되나봄..!
 	TObjectPtr<class UListView> ItemList; //현재 내가 가지고 있는 아이템을 보여주는 UI

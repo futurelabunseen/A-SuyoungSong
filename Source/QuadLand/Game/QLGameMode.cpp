@@ -145,6 +145,8 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 
 		if (LivePlayerCount == 1)
 		{
+			ASC->CancelAllAbilities();
+
 			if (PlayerDieStatus[PlayerName] == false)
 			{
 				//PlayerState를 사용해서 MulticastRPC 전송
@@ -152,6 +154,11 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 				//ServerRPC를 사용해서 승리자 플레이어 전달
 				FGameplayTagContainer TargetTag(CHARACTER_STATE_WIN);
 				ASC->TryActivateAbilitiesByTag(TargetTag);
+			/*	WinActorASC = ASC;
+				FTimerHandle Timer;
+
+				GetWorld()->GetTimerManager().SetTimer(Timer, this, &AQLGameMode::Win, 1.0f, false);
+			*/
 			}
 			else
 			{
@@ -159,6 +166,15 @@ void AQLGameMode::GetWinner(const FGameplayTag CallbackTag, int32 NewCount)
 				PC->ClientRPCLoose();
 			}
 		}
+	}
+}
+
+void AQLGameMode::Win()
+{
+	if (WinActorASC)
+	{
+		FGameplayTagContainer TargetTag(CHARACTER_STATE_WIN);
+		WinActorASC->TryActivateAbilitiesByTag(TargetTag);
 	}
 }
 
@@ -198,7 +214,6 @@ void AQLGameMode::SpawnPlayerPawn(APlayerController* PC,int Type)
 		if (ResultPawn)
 		{
 			PC->Possess(ResultPawn);
-			//ResultPawn->ServerRPCInitNickname(); //닉네임 결정
 			PC->ClientRestart(ResultPawn);
 		}
 	}

@@ -37,6 +37,7 @@ void UQLListItemEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 void UQLListItemEntry::SetItemNameTxt(FString ItemName)
 {
+	ItemTitle = ItemName;
 	TxtItemTitle->SetText(FText::FromString(ItemName));
 }
 

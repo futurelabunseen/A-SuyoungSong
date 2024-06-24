@@ -199,6 +199,11 @@ void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)
 
 void AQLPlayerController::SetUpdateLivePlayer(int16 InLivePlayer)
 {
+	if (HUDs.Find(EHUDType::HUD) == 0)
+	{
+		return;
+	}
+
 	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 
 	if (UserWidget)
@@ -210,6 +215,17 @@ void AQLPlayerController::SetUpdateLivePlayer(int16 InLivePlayer)
 void AQLPlayerController::SettingDeathTime()
 {
 	DeathTime = ChangeTimeText(); //Update
+}
+
+void AQLPlayerController::RemoveAllNearbyItemEntries()
+{
+	UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
+
+	if (InventoryUI)
+	{
+		InventoryUI->RemoveAllNearbyItemEntries(); //전부 제거
+	}
+
 }
 
 void AQLPlayerController::SettingNickname()
@@ -260,6 +276,7 @@ void AQLPlayerController::CloseAllUI()
 	}
 }
 
+
 void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)
 {
 	AQLGameMode* GameMode = GetWorld()->GetAuthGameMode<AQLGameMode>();
@@ -267,12 +284,12 @@ void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)
 	{
 		GameMode->SpawnPlayerPawn(this, Type);
 		ClientRPCCreateWidget(); 
-		//AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+		AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 	
-		//if (QLCharacter)
-		//{
-		//	QLCharacter->ServerRPCInitNickname(); //닉네임 결정
-		//}
+		if (QLCharacter)
+		{
+			QLCharacter->ServerRPCInitNickname(); //닉네임 결정
+		}
 	}
 }
 
@@ -357,7 +374,11 @@ void AQLPlayerController::StopDeathSec()
 	}
 	//Delegate호출
 	
-	OnDeathCheckDelegate.ExecuteIfBound(); 
+	if (OnDeathCheckDelegate.IsBound())
+	{
+		QL_LOG(QLLog, Warning, TEXT("Dead"));
+		OnDeathCheckDelegate.Execute();
+	}
 }
 
 

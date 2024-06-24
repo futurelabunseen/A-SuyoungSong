@@ -66,7 +66,8 @@ void UQLAT_TrackDrawer::Recursive()
 			}
 			BombPathMeshComp.Empty();
 		}
-
+		float Power = 1200.0f;
+		FName SocketName = FName("Bomb");
 		if (Character->GetThrowBomb())
 		{
 			GetWorld()->GetTimerManager().ClearTimer(DrawerTimerHandle);
@@ -74,14 +75,16 @@ void UQLAT_TrackDrawer::Recursive()
 			Character->SetThrowBomb(false);
 			return;
 		}
-		FVector CameraForward = Character->GetCameraForward();
-		FVector StartLoc = Character->GetMesh()->GetSocketLocation(FName("Bomb"));
-		FVector LaunchVelocity = CameraForward * 1200.0f; //잠깐 박아놓기
 
-		FPredictProjectilePathParams PredictParams(10.0f, StartLoc, LaunchVelocity, 2.0f);
+		FVector CameraForward = Character->GetCameraForward(); //캐릭터의 카메라 위치를 가져온다.
+		FVector StartLoc = Character->GetMesh()->GetSocketLocation(SocketName); //폭탄이 부착된 위치를 가져온다.
+		FVector LaunchVelocity = CameraForward * Power;  //카메라 방향으로 던진다.
+
+		FPredictProjectilePathParams PredictParams(10.0f, StartLoc, LaunchVelocity, 2.0f); //위치를 예측한다.
 		PredictParams.OverrideGravityZ = GetWorld()->GetGravityZ();
 		FPredictProjectilePathResult Result;
-		UGameplayStatics::PredictProjectilePath(this, PredictParams, Result);
+		UGameplayStatics::PredictProjectilePath(this, PredictParams, Result); 
+		//예측된 결과값이 Result에 담기고, Result.PathData를 사용해서 SplineComponent Mesh를 업데이트한다.
 
 
 		for (int i = 0; i < Result.PathData.Num(); i++)

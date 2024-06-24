@@ -443,11 +443,17 @@ void AQLPlayerState::CoolTimeStamina(const FGameplayTag CallbackTag, int32 NewCo
 
 void AQLPlayerState::SetDead()
 {
+    //만약 현재 Dead가 부착되어 있다면 ? 
     AQLCharacterBase* Player = Cast<AQLCharacterBase>(GetPawn());
     if (Player->GetIsDead() == false)
     {
         FGameplayTagContainer TargetTag(CHARACTER_STATE_DANGER);
         ASC->TryActivateAbilitiesByTag(TargetTag);
+    }
+    else
+    {
+        //죽었는데 보석을 찾은 경우의 수 Danger을 붙이면, Dead에서 체크하지않을까?
+        ASC->AddLooseGameplayTag(CHARACTER_STATE_DANGER);
     }
 }
 
