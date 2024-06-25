@@ -499,7 +499,10 @@ void UQLInputComponent::PressedProne()
 	{
 		return;
 	}
-	if (Movement->IsFalling())
+
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+
+	if (Movement->IsFalling()|| ASC==nullptr || ASC->HasMatchingGameplayTag(CHARACTER_STATE_RELOAD))
 	{
 		return;
 	}

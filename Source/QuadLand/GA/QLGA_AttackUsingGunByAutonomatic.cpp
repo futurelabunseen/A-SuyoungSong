@@ -57,11 +57,6 @@ bool UQLGA_AttackUsingGunByAutonomatic::CanActivateAbility(const FGameplayAbilit
 		return false;
 	}
 
-	if (AttackTimerHandle.IsValid())
-	{
-		return false;
-	}
-
 	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(Character);
 
@@ -81,6 +76,9 @@ void UQLGA_AttackUsingGunByAutonomatic::ActivateAbility(const FGameplayAbilitySp
 	if (AttackTimerHandle.IsValid())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
+		AttackTimerHandle.Invalidate();
+		CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateInputDirectly);
+		return;
 	}
 
 	if (AttackTimerHandle.IsValid() == false)
@@ -189,8 +187,6 @@ void UQLGA_AttackUsingGunByAutonomatic::MulticastRPCShoot_Implementation(AQLChar
 void UQLGA_AttackUsingGunByAutonomatic::ServerRPCStopAttack_Implementation()
 {
 	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
-	GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
-	AttackTimerHandle.Invalidate();
 	Character->SetIsShooting(false);
 	OnCompleted();
 }
@@ -200,8 +196,7 @@ void UQLGA_AttackUsingGunByAutonomatic::InputReleased(const FGameplayAbilitySpec
 {
 
 	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
-	GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
-	AttackTimerHandle.Invalidate();
+
 	Character->SetIsShooting(false);
 	Character->ReverseRecoil();
 	if (ENetMode::NM_Client == Character->GetNetMode())
@@ -214,12 +209,27 @@ void UQLGA_AttackUsingGunByAutonomatic::InputReleased(const FGameplayAbilitySpec
 
 void UQLGA_AttackUsingGunByAutonomatic::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
+	GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
+	AttackTimerHandle.Invalidate();
+
+	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+
+	Character->SetIsShooting(false);
+	Character->ReverseRecoil();
+	if (ENetMode::NM_Client == Character->GetNetMode())
+	{
+		ServerRPCStopAttack();
+	}
+
+	OnCompleted();
+	
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
-	InputReleased(Handle, ActorInfo, ActivationInfo);
 }
 
 
 void UQLGA_AttackUsingGunByAutonomatic::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	GetWorld()->GetTimerManager().ClearTimer(AttackTimerHandle);
+	AttackTimerHandle.Invalidate();
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

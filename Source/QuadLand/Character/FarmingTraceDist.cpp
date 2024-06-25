@@ -41,7 +41,7 @@
 #include "QuadLand.h"
 
 AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer) :
-	Super(ObjectInitializer.SetDefaultSubobjectClass<UQLCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)), bHasNextPunchAttackCombo(0), CurrentCombo(0),  MaxArmLength(300.0f), bPressedFarmingKey(0), FarmingTraceDist(1000.0f)//, bIsTurning(false)
+	Super(ObjectInitializer.SetDefaultSubobjectClass<UQLCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)), bHasNextPunchAttackCombo(0), CurrentCombo(0),  MaxArmLength(300.0f), bPressedFarmingKey(0), FarmingTraceDist(200.f)//, bIsTurning(false)
 {
 	bHasGun = false;
 	ASC = nullptr;
@@ -956,12 +956,24 @@ void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranc
 
 	if (NotifyName == FName(TEXT("StopProneMontage")))
 	{
+		QL_LOG(QLLog, Log, TEXT("Stop Prone"));
+		if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_PRONE))
+		{
+			ASC->RemoveLooseGameplayTag(CHARACTER_STATE_PRONE);
+		}
 		//StopProneMontage가 알림오면, 움직일 수 있도록한다.
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
 
 	if (NotifyName == FName(TEXT("StartProneMontage")))
 	{
+		QL_LOG(QLLog, Log, TEXT("Start Prone"));
+
+		if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_PRONE) == false)
+		{
+			ASC->AddLooseGameplayTag(CHARACTER_STATE_PRONE);
+		}
+
 		if (bIsProning) 
 		{
 			//엎드리는 중
