@@ -7,7 +7,7 @@
 #include "UI/QLPlayerHUDWidget.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
-
+#include "Player/QLPlayerController.h"
 #include "QuadLand.h"
 UQLUserWidget::UQLUserWidget(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
@@ -141,6 +141,22 @@ void UQLUserWidget::NativeConstruct()
 	ensure(TxtShootingMethod);
 
 	TxtShootingMethod->SetVisibility(ESlateVisibility::Hidden);
+
+
+	AQLPlayerController *PC = Cast<AQLPlayerController>(GetOwningPlayer());
+	
+	if (PC)
+	{
+		if (PC->CoolTimeStamina.IsBound() == false)
+		{
+			PC->CoolTimeStamina.BindUObject(this, &UQLUserWidget::ShowCoolTimeStamina);
+		}
+
+		if (PC->OnResetStamina.IsBound() == false)
+		{
+			PC->OnResetStamina.BindUObject(this, &UQLUserWidget::ResetStamina);
+		}
+	}
 }
 
 void UQLUserWidget::UpdateLivePlayer(int16 InLivePlayer)
@@ -173,5 +189,21 @@ void UQLUserWidget::SettingStoneImg(UTexture2D *StoneImg)
 	if (IMGStone)
 	{
 		IMGStone->SetBrushFromTexture(StoneImg);
+	}
+}
+
+void UQLUserWidget::ShowCoolTimeStamina()
+{
+	if (HpBar)
+	{
+		HpBar->ShowCoolTimeStamina();
+	}
+}
+
+void UQLUserWidget::ResetStamina()
+{
+	if (HpBar)
+	{
+		HpBar->ResetStamina();
 	}
 }

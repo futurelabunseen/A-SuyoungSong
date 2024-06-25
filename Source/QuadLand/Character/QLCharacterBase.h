@@ -43,6 +43,7 @@ public:
 	UFUNCTION(Server, Unreliable)
 	void ServerRPCShooting(); //효과음이기 때문에 굳이 Reliable 일 필요 없음.
 
+	void SetIsShooting(bool InShoot) { bIsShooting = InShoot; }
 	FORCEINLINE bool GetIsShooting() const { return bIsShooting; }
 	FORCEINLINE bool GetIsDead() const { return bIsDead; }
 	FORCEINLINE bool GetIsReload() const { return bIsReload; }

@@ -60,6 +60,13 @@ void UQLGA_BombThrower::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		TrackDrawer->ReadyForActivation();
 	}
 	
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+	if (Player)
+	{
+		QL_GASLOG(QLLog, Log, TEXT("Throw"));
+		Player->ThrowBomb = true;
+	}
+
 	AnimSpeedRate = 1.0f;
 	GrapAndThrowMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("ThrowAnimMontage"), ThrowAnimMontage, AnimSpeedRate, FName("Grap"));
 	GrapAndThrowMontage->OnCompleted.AddDynamic(this, &UQLGA_BombThrower::OnCompletedCallback);
@@ -75,10 +82,14 @@ void UQLGA_BombThrower::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
 	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_BOMB);
-	FGameplayTagContainer Tag(CHARACTER_EQUIP_NON);
-	if (ASC->HasAnyMatchingGameplayTags(Tag) == false)
+
+	if (ASC->HasMatchingGameplayTag(CHARACTER_EQUIP_GUNTYPEA) == false)
 	{
-		ASC->AddLooseGameplayTags(Tag);
+		FGameplayTagContainer Tag(CHARACTER_EQUIP_NON);
+		if (ASC->HasAnyMatchingGameplayTags(Tag) == false)
+		{
+			ASC->AddLooseGameplayTags(Tag);
+		}
 	}
 
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
@@ -88,7 +99,6 @@ void UQLGA_BombThrower::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		WeaponComp->ResetBomb();
 	}
-
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
 }
@@ -99,6 +109,7 @@ void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, c
 
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
 	Player->GetInventory()->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType));
+
 	if (Player)
 	{
 		USplineComponent* BombPath = Player->GetBombPath();

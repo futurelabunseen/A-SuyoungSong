@@ -36,7 +36,12 @@ void AQLLobbyGameMode::PostLogin(APlayerController* NewPC)
 {
 	Super::PostLogin(NewPC);
 
-	GetWorld()->GetTimerManager().SetTimer(WaitTimeCheckTimer, this, &AQLLobbyGameMode::ConfirmPlayerCount, WaitTimeCheckTime, false);
+	int32 NumberOfPlayers = GameState.Get()->PlayerArray.Num();
+
+	if (NumberOfPlayers >= 2)
+	{
+		GetWorld()->GetTimerManager().SetTimer(WaitTimeCheckTimer, this, &AQLLobbyGameMode::ConfirmPlayerCount, WaitTimeCheckTime, false);
+	}
 }
 
 void AQLLobbyGameMode::ConfirmPlayerCount()
@@ -50,8 +55,10 @@ void AQLLobbyGameMode::ConfirmPlayerCount()
 		GameStart();
 	}
 
-	//같지 않으면 레디 안한 플레이어 컨트롤러한테 제한 시간을 부여 
 	GetWorld()->GetTimerManager().SetTimer(TimeLimitTimer, this, &AQLLobbyGameMode::ShowTimeLimit, LimitTime, false);
+
+	//같지 않으면 레디 안한 플레이어 컨트롤러한테 제한 시간을 부여 
+	
 }
 
 void AQLLobbyGameMode::GameStart()

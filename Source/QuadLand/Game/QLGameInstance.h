@@ -24,11 +24,12 @@ public:
 
 protected:
 
-	/** virtual function to allow custom GameInstances an opportunity to set up what it needs */
 	virtual void Init();
 
+	//인벤토리 시스템을 위한 데이터 매니저
 	UPROPERTY()
 	TObjectPtr<class UQLDataManager> DataManager;
-	int GenderType;
+	//성별 타입과 보석 타입을 레벨 넘어갈 때 유지하기 위해서 게임 인스턴스 사용
+	int GenderType; 
 	int GemMatType;
 };

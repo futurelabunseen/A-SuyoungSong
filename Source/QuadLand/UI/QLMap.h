@@ -27,10 +27,22 @@ public:
 	void ResetPlayer();
 protected:
 	
+	float RatioWidth;
+	float RatioHeight;
+
+	FVector LocationPivot;
+
 	FTimerHandle ShowTimerHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	TObjectPtr<class UOverlay> MapOverlay;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = UISize)
+	float UIWidth;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = UISize)
+	float UIHeight;
+
+	void CalMapRatio(AActor* Entry);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	TObjectPtr<class UImage> IMGPlayer;

@@ -13,7 +13,7 @@
 
 UBTService_Detect::UBTService_Detect()
 {
-	NodeName = TEXT("Detect");
+	NodeName = TEXT("LiveTarget");
 	Interval = 1.0f; //1초에 한번씩 TickNode 실행
 }
 

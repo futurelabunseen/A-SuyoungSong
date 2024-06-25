@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayTag/GamplayTags.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
+#include "Character/QLCharacterPlayer.h"
 #include "Character/QLCharacterMovementComponent.h"
 #include "QuadLand.h"
 
@@ -23,7 +24,6 @@ void UQLGA_Run::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGa
 
 void UQLGA_Run::ServerRPCStop_Implementation()
 {
-	QL_GASLOG(QLNetLog, Warning, TEXT("Reduce Stamina"));
 	StopStamina();
 }
 
@@ -31,7 +31,13 @@ void UQLGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
-	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
+	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+	
+	if (Character)
+	{
+		Character->StopAim();
+	}
+
 	UQLCharacterMovementComponent* QLMovement = Cast< UQLCharacterMovementComponent>(Character->GetMovementComponent());
 	if (QLMovement)
 	{
@@ -52,7 +58,11 @@ void UQLGA_Run::ReduceStamina()
 	if (PlayerStat->GetStamina() <= 5.0f)
 	{
 		FGameplayTagContainer Tag(CHARACTER_STATE_NOTRUN);
-		if (SourceASC->HasAnyMatchingGameplayTags(Tag) == false)
+
+		FGameplayTagContainer NotTag(CHARACTER_STATE_WIN);
+		NotTag.AddTag(CHARACTER_STATE_DEAD);
+
+		if (SourceASC->HasAnyMatchingGameplayTags(Tag) == false||SourceASC->HasAnyMatchingGameplayTags(NotTag))
 		{
 			SourceASC->AddLooseGameplayTags(Tag);
 			StopStamina();

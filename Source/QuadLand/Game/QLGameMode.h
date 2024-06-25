@@ -27,7 +27,7 @@ public:
 	bool GetPlayerState(FName Name) { return PlayerDieStatus[Name]; }
 
 	UFUNCTION()
-	void DeadNonPlayer(FName NonPlayerName);
+	void Dead(FName NonPlayerName);
 
 	UFUNCTION()
 	void GetWinner(const FGameplayTag CallbackTag, int32 NewCount);

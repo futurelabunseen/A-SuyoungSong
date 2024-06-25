@@ -13,7 +13,8 @@
 /**
  * 
  */
-
+DECLARE_DELEGATE(FOnCoolTimeStamina)
+DECLARE_DELEGATE(FOnResetStamina)
 DECLARE_DELEGATE(FOnDeathCheckDelegate)
 UCLASS()
 class QUADLAND_API AQLPlayerController : public APlayerController
@@ -99,6 +100,8 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void ClientRPCCreateWidget();
+
+	void InitWidget();
 	
 	UFUNCTION(Server, Reliable)
 	void ServerRPCInitPawn(int Type);
@@ -106,6 +109,10 @@ public:
 
 	void ResetUI();
 	void CloseAllUI();
+
+
+	FOnCoolTimeStamina CoolTimeStamina;
+	FOnResetStamina OnResetStamina;
 
 protected:
 

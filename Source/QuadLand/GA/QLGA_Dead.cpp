@@ -32,31 +32,50 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	*/
 
 	
+	APawn *DefaultCharacter = Cast<APawn>(GetActorInfo().AvatarActor.Get());
 
-	AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
-
-	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
-
-	if (ASC && ASC->HasMatchingGameplayTag(CHARACTER_ATTACK_TAKENDAMAGE))
+	if (DefaultCharacter)
 	{
-		UAbilityTask_WaitGameplayEvent* WaitEvent = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, CHARACTER_ATTACK_TAKENDAMAGE, nullptr, false,false);
-		WaitEvent->EventReceived.AddDynamic(this,&UQLGA_Dead::SetDeadAnim);
-		WaitEvent->ReadyForActivation();
+		AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
+
+		if (Character)
+		{
+
+			UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+
+			if (ASC && ASC->HasMatchingGameplayTag(CHARACTER_ATTACK_TAKENDAMAGE))
+			{
+				UAbilityTask_WaitGameplayEvent* WaitEvent = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, CHARACTER_ATTACK_TAKENDAMAGE, nullptr, false, false);
+				WaitEvent->EventReceived.AddDynamic(this, &UQLGA_Dead::SetDeadAnim);
+				WaitEvent->ReadyForActivation();
+			}
+			else
+			{
+				Character->SetIsDead(true);
+			}
+
+			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+			FTimerHandle SpawnTimerHandle;
+
+			GetWorld()->GetTimerManager().SetTimer(SpawnTimerHandle, this, &UQLGA_Dead::OnCompleted, 5.0f, false);
+		}
+
+		DefaultCharacter->SetActorEnableCollision(false);
+		DefaultCharacter->bUseControllerRotationYaw = false;
+		DefaultCharacter->SetLifeSpan(10.0f);
+
+		//AI는 그냥 종료된다.
+		AQLPlayerState* PS = Cast<AQLPlayerState>(GetActorInfo().OwnerActor.Get());
+		
+		if (PS == nullptr)
+		{
+			bool bReplicateEndAbility = true;
+			bool bWasCancelled = true;
+
+			EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+		}
 	}
-	else
-	{
-		Character->SetIsDead(true);
-	}
-
-	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-	Character->SetActorEnableCollision(false);
-	Character->bUseControllerRotationYaw = false;
-
-	Character->SetLifeSpan(10.0f);
-
-	FTimerHandle SpawnTimerHandle;
-
-	GetWorld()->GetTimerManager().SetTimer(SpawnTimerHandle, this, &UQLGA_Dead::OnCompleted, 5.0f, false);
 }
 
 void UQLGA_Dead::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -93,16 +112,17 @@ void UQLGA_Dead::OnCompleted()
 		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 		if (PS->GetHasLifeStone() || ASC->HasAnyMatchingGameplayTags(TagContainer)) //가지고 있다면 죽은것
 		{
-			if (IsLocallyControlled())
-			{
-				PC->CloseAllUI(); //UI는 로컬에만 있음.
-			}
-
 			if (PC && HasAuthority(&CurrentActivationInfo))
 			{
 				FTransform Transform = Character->GetActorTransform();
 				FActorSpawnParameters Params;
 				AQLSpectatorPawn* SpectatorPawn = GetWorld()->SpawnActor<AQLSpectatorPawn>(SpectatorPawnClass, Transform, Params);
+				AQLGameMode* GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
+
+				if (GameMode)
+				{
+					GameMode->Dead(FName(PS->GetName()));
+				}
 
 				PC->Possess(Cast<APawn>(SpectatorPawn));
 				EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -125,9 +145,22 @@ void UQLGA_Dead::RespawnTimeFunc()
 	//검사한다. 모든 플레이어가 어떤 보석을 먹었는지에 대해 확인.
 	//만약 아무도 내 보석을 먹지 않았다면, respawn 가능
 	//가지고 있지않다면 새로 Pawn 생성.
+
 	if (PS)
 	{
+		ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
 		AQLGameMode* GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
+
+		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+		if (ASC && ASC->HasMatchingGameplayTag(CHARACTER_STATE_DANGER))
+		{
+
+			bool bReplicateEndAbility = true;
+			bool bWasCancelled = true;
+
+			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+			return;
+		}
 
 		if (GameMode)
 		{

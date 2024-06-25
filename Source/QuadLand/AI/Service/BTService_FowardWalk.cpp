@@ -10,7 +10,7 @@
 
 UBTService_FowardWalk::UBTService_FowardWalk()
 {
-	NodeName = TEXT("FowardWalk");
+	NodeName = TEXT("Walk Target");
 	Interval = 1.0f; //1초에 한번씩 TickNode 실행
 }
 
@@ -30,5 +30,4 @@ void UBTService_FowardWalk::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 	FVector Location = OwnerComp.GetBlackboardComponent()->GetValueAsVector(TEXT("TargetLocation"));
 	AIController->MoveToLocation(Location);
 
-	//ControllingPawn->AddMovementInput(ControllingPawn->GetActorForwardVector(), 1.f);
 }

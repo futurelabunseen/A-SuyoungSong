@@ -8,14 +8,18 @@
 #include "Gimmick/QLMapBoundary.h"
 #include "Components/Image.h"
 #include "Widgets/SWidget.h"
+#include "GameFramework/Character.h"
+
 #include "LocationVolume.h"
 #include "Components/BrushComponent.h"
-#include "GameFramework/Character.h"
+#include "Engine/Brush.h"
+#include "Engine/BrushBuilder.h"
 
 UQLMap::UQLMap(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
-
+	UIWidth = 1000.f;
+	UIHeight = 600.f;
 	SetKeyboardFocus();
 }
 
@@ -88,24 +92,17 @@ void UQLMap::NativeConstruct()
 		{
 
 			StorageBoxes.Add(Index,StorageBox);
-
 			UUserWidget* Widget = CreateWidget<UUserWidget>(this, StoageIcon);
 			MapOverlay->AddChildToOverlay(Widget);
 			ItemStorage.Add(Index, Widget);
+			Index++;
 			Widget->SetRenderTranslation(StorageBox->GetStorageWidgetLocation());
 			Widget->SetVisibility(ESlateVisibility::Hidden);
-			Index++;
+			
 		}
 
-
-		ALocationVolume* Location = Cast<ALocationVolume>(Entry);
-		if (Location)
-		{
-			LocationVolume = Location;
-		}
-
+		CalMapRatio(Entry);
 	}
-	//Player = Cast<ACharacter>(GetOwningPlayerPawn());
 }
 
 
@@ -118,25 +115,16 @@ void UQLMap::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		UWorld* CurrentWorld = GetWorld();
 		for (const auto& Entry : FActorRange(CurrentWorld))
 		{
-			ALocationVolume* Location = Cast<ALocationVolume>(Entry);
-			if (Location)
-			{
-				LocationVolume = Location;
-			}
+			CalMapRatio(Entry);
 		}
 	}
-	if (LocationVolume && Player)
-	{
-		FVector LocationPivot=LocationVolume->GetActorLocation();
-		FVector2D VolumeScale(15500.0f, 9000.0f);
 
-		LocationPivot.X = LocationPivot.X - (VolumeScale.X / 2.f); //202
-		LocationPivot.Y = LocationPivot.Y - (VolumeScale.Y / 2.f);
-		
+	if (Player)
+	{
 		FVector PlayerPivot = Player->GetActorLocation();
 
-		float MagnitudeX= (PlayerPivot.X - LocationPivot.X) * (1000.0f/VolumeScale.X);
-		float MagnitudeY = (PlayerPivot.Y - LocationPivot.Y) * (600.0f/VolumeScale.Y);
+		float MagnitudeX= (PlayerPivot.X - LocationPivot.X) * RatioWidth;
+		float MagnitudeY = (PlayerPivot.Y - LocationPivot.Y) * RatioHeight;
 
 		IMGPlayer->SetRenderTranslation(FVector2D(MagnitudeX, MagnitudeY));
 	}
@@ -145,5 +133,25 @@ void UQLMap::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 void UQLMap::ResetPlayer()
 {
 	Player = Cast<ACharacter>(GetOwningPlayerPawn());
+}
 
+void UQLMap::CalMapRatio(AActor *Entry)
+{
+	ALocationVolume* Location = Cast<ALocationVolume>(Entry);
+	if (Location)
+	{
+		LocationVolume = Location;
+		LocationPivot = LocationVolume->GetActorLocation();
+
+		//Box크기는 중앙점으로 부터 2배
+		float Width = Location->Brush->Bounds.BoxExtent.X; 
+		float Height = Location->Brush->Bounds.BoxExtent.Y;
+
+		//왼쪽, 위쪽 좌표를 구하기 위해서, 박스 절반값을 뺀값
+		LocationPivot.X = LocationPivot.X - Width; 		
+		LocationPivot.Y = LocationPivot.Y - Height;
+
+		RatioWidth = UIWidth/(Width*2);
+		RatioHeight = UIHeight/(Height*2);
+	}
 }

@@ -72,8 +72,6 @@ bool UQLInventoryComponent::ServerRPCRemoveItem_Validate(EItemType ItemId, int32
 
 void UQLInventoryComponent::ServerRPCRemoveItem_Implementation(EItemType InItemId, int32 InItemCnt)
 {
-	UE_LOG(LogTemp, Warning, TEXT("found a matching item %d %d"), InItemId, InventoryItem[InItemId]);
-
 	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
 	if (PS == nullptr)
 	{
@@ -204,9 +202,7 @@ void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EI
 					if (InventoryItem.Find(ItemId))
 					{
 						IsNotFound = false;
-
 						InventoryItem[ItemId]++;
-						UE_LOG(LogTemp, Log, TEXT("Current Cnt %d"), InventoryItem[ItemId]);
 					}
 
 					if (ItemId == EItemType::Ammo)

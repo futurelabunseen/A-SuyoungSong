@@ -34,12 +34,10 @@ void AQLFirewall::TakenDamage(AActor* Target)
 
 			if (EffectSpecHandle.IsValid())
 			{
-				TargetASC->BP_ApplyGameplayEffectSpecToSelf(EffectSpecHandle);
+				TargetASC->BP_ApplyGameplayEffectSpecToSelf(EffectSpecHandle); //데미지 받은 타겟에 ASC를 가져와 이펙트 적용
 			}
 		}
 	}
-
-	QL_LOG(QLLog, Warning, TEXT("Fire"));
 }
 
 void AQLFirewall::StopDamage(AActor* Target)
@@ -51,7 +49,4 @@ void AQLFirewall::StopDamage(AActor* Target)
 
 		TargetASC->RemoveActiveGameplayEffectBySourceEffect(DotDamageGameplayEffectClass,TargetASC);
 	}
-
-
-	QL_LOG(QLLog, Warning, TEXT("Stop"));
 }

@@ -40,7 +40,7 @@ public:
 	//Attack
 protected:
 	void PlayGameplayCue(const class AQLCharacterBase* Character);
-	void ExplodesBomb(const class AQLCharacterBase* Character);
+	void ExplodesBomb(class AQLCharacterBase* Character);
 	void SpawnFire(const AQLCharacterBase* Character);
 	FVector TargetLoc;
 

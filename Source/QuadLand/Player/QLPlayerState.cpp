@@ -31,8 +31,6 @@ AQLPlayerState::AQLPlayerState()
     PlayerStatInfo = CreateDefaultSubobject<UQLAS_PlayerStat>(TEXT("PlayerStat"));
     WeaponStatInfo = CreateDefaultSubobject<UQLAS_WeaponStat>(TEXT("WeaponStat"));
    
-    //Event ï¿½ï¿½ï¿½ï¿½Ñ´ï¿?-> Equipï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-    //Event ï¿½ï¿½ï¿½ï¿½Ñ´ï¿?-> Equipï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
     NetUpdateFrequency = 30.0f;
 
     //TagEvent - Delegates
@@ -94,6 +92,14 @@ void AQLPlayerState::AddHPStat(float HP)
 }
 void AQLPlayerState::AddStaminaStat(float Stamina)
 {
+    if (CoolTimer.IsValid())
+    {
+        //ÄðÅ¸ÀÓ Ãë¼Ò
+        FGameplayTagContainer Tag(CHARACTER_STATE_NOTRUN);
+        ASC->RemoveLooseGameplayTags(Tag);
+        GetWorld()->GetTimerManager().ClearTimer(CoolTimer);
+    }
+
     if (HasAuthority() && ASC)
     {
         //ï¿½ï¿½ï¿½ï¿½ Baseï¿½ï¿½.. -> ï¿½Ï´ï¿½ ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½Î°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
@@ -266,7 +272,7 @@ void AQLPlayerState::UpdateStorageWidget(FName InNickname, AQLLifestoneStorageBo
 
 void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGemType)
 {
-    GenderType = InGenderType;
+    GenderType = InGenderType; //¸®ÇÃ¸®ÄÉÀÌ¼Ç Àü´Þ
     GemType = InGemType;
     UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
 
@@ -276,14 +282,15 @@ void AQLPlayerState::ServerRPCInitType_Implementation(int InGenderType, int InGe
 
         ClientRPCInitLifeStone(GemType);
         TObjectPtr<AQLPlayerState> PS = this;
-        GetWorld()->GetTimerManager().SetTimerForNextTick
+        GetWorld()->GetTimerManager().SetTimerForNextTick //´ÙÀ½ Æ½¿¡¼­ PlayerState¿¡¼­ °¡Áö°í ÀÖ´Â Å¸ÀÔÀ» Àü´ÞÇÑ´Ù.
         (
             [PS]()
             {
-                AQLPlayerController* PC = Cast<AQLPlayerController>(PS->GetOwner()); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+                AQLPlayerController* PC = Cast<AQLPlayerController>(PS->GetOwner()); 
 
                 if (PC)
                 {
+                    //ServerRPC¿¡¼­ InitÀ¸·Î °íÃÆ°Åµç? µÇˆdÁö È®ÀÎÇØºÁ
                     PC->ServerRPCInitPawn(PS->GenderType);
                 }
             }
@@ -432,12 +439,29 @@ void AQLPlayerState::CoolTimeStamina(const FGameplayTag CallbackTag, int32 NewCo
 {
     if (NewCount == 1)
     {
+        //UI»ö»ó º¯°æ
+        AQLPlayerController* PC = Cast<AQLPlayerController>(GetPlayerController());
+        if (PC && PC->IsLocalController())
+        {
+            PC->CoolTimeStamina.ExecuteIfBound();
+        }
         GetWorld()->GetTimerManager().SetTimer(CoolTimer, FTimerDelegate::CreateLambda([&]()
             {
-                FGameplayTagContainer Tag(CHARACTER_STATE_NOTRUN);
-                ASC->RemoveLooseGameplayTags(Tag);
+                if (ASC)
+                {
+                    FGameplayTagContainer Tag(CHARACTER_STATE_NOTRUN);
+                    ASC->RemoveLooseGameplayTags(Tag);
+                }
             }
         ), 10.0f, false);
+    }
+    else
+    {
+        AQLPlayerController* PC = Cast<AQLPlayerController>(GetPlayerController());
+        if (PC && PC->IsLocalController())
+        {
+            PC->OnResetStamina.ExecuteIfBound();
+        }
     }
 }
 

@@ -39,7 +39,7 @@ AQLCharacterNonPlayer::AQLCharacterNonPlayer(const FObjectInitializer& ObjectIni
 	AIPerception->ConfigureSense(*SightConfig);
 
 	Weapon->Weapon->SetSkeletalMesh(GunMesh);
-	
+
 	AIPerception->OnPerceptionUpdated.AddDynamic(this, &AQLCharacterNonPlayer::PerceptionUpdated);
 	AIControllerClass = AQLAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -129,10 +129,10 @@ void AQLCharacterNonPlayer::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 		ServerRPCDead();
 
 		AQLGameMode* GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
-		
+
 		if (GameMode)
 		{
-			GameMode->DeadNonPlayer(FName(this->GetName()));
+			GameMode->Dead(FName(this->GetName()));
 			GameMode->GetWinner(CallbackTag, NewCount);
 		}
 	}
@@ -168,7 +168,7 @@ void AQLCharacterNonPlayer::UpdateTargetPerception(AActor* Actor, FAIStimulus St
 	{
 		return;
 	}
-	UBlackboardComponent *BC = AIController->GetBlackboardComponent();
+	UBlackboardComponent* BC = AIController->GetBlackboardComponent();
 
 	ACharacter* Character = Cast<ACharacter>(Actor); //NonPlayer,Player ¸ðµÎ Ã£¾Æ³¿.
 	if (Character == nullptr)
@@ -180,7 +180,7 @@ void AQLCharacterNonPlayer::UpdateTargetPerception(AActor* Actor, FAIStimulus St
 	{
 		return;
 	}
-	
+
 	if (Actor == this)
 	{
 		return;
@@ -225,7 +225,7 @@ void AQLCharacterNonPlayer::PerceptionUpdated(const TArray<AActor*>& UpdatedActo
 
 		TargetPos.Z = 0;
 
-		float DistToTarget=FVector::Dist(TargetPos, CurrentPos);
+		float DistToTarget = FVector::Dist(TargetPos, CurrentPos);
 
 		if (MinDist > DistToTarget)
 		{

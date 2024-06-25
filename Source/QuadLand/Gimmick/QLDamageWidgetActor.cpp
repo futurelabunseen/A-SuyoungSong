@@ -19,7 +19,7 @@ AQLDamageWidgetActor::AQLDamageWidgetActor()
 
 	if (DamageRef.Class)
 	{
-		DamageComponent->SetWidgetSpace(EWidgetSpace::Screen); //2D변경
+		DamageComponent->SetWidgetSpace(EWidgetSpace::World); //2D변경
 		DamageComponent->SetDrawSize(FVector2D(250.0f, 250.0f));
 		DamageComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		DamageComponent->SetWidgetClass(DamageRef.Class);

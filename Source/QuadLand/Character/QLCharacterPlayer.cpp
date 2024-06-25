@@ -20,6 +20,7 @@
 #include "UI/QLUIType.h"
 #include "Item/QLItem.h"
 #include "Item/QLBomb.h"
+#include "Animation/QLAnimInstance.h"
 #include "Player/QLPlayerState.h"
 #include "Player/QLPlayerController.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
@@ -46,6 +47,14 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	ASC = nullptr;
 	MovingThreshold = 3.0f;
 	CurrentAttackType = ECharacterAttackType::HookAttack; //default
+	StandMeshLoc = FVector(0.f, 0.f, -100.f);
+	OriginalCapsuleHeight = 90.f;
+	OriginalCapsuleRadius = 25.f;
+
+	ProneMeshLoc = FVector(0.f,0.f,-30.f);
+	ProneCapsuleRadius = OriginalCapsuleRadius;
+	ProneCapsuleHeight = OriginalCapsuleRadius;
+
 
 	//springArm에 Camera를 매달을 예정
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -118,7 +127,6 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	
-
 	SetupStartAbilities();
 	InitializeGAS();
 	
@@ -130,10 +138,21 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 	}
 
-	InitNickname();
+	InitNickname();	
 
-	//FTimerHandle InitNicknameTimer;
-	//GetWorld()->GetTimerManager().SetTimer(InitNicknameTimer, this, &AQLCharacterPlayer::ServerRPCInitNickname, 10.0f, false);
+	GetWorld()->GetTimerManager().SetTimerForNextTick
+	(
+		[NewController]()
+		{
+			AQLPlayerController* PC = Cast<AQLPlayerController>(NewController);
+
+			if (PC)
+			{
+				PC->InitWidget();
+			}
+		}
+	);
+	
 }
 
 //Client Only 
@@ -184,8 +203,16 @@ void AQLCharacterPlayer::OnRep_Controller()
 	if (PlayerController->HUDNum() == 0)
 	{
 		PlayerController->CreateHUD();
-		PlayerController->ClientRPCCreateWidget();
 	}
+
+	TObjectPtr<AQLCharacterPlayer> Character = this;
+	GetWorld()->GetTimerManager().SetTimerForNextTick
+	(
+		[Character]()
+		{
+			Character->InitNickname();
+		}
+	);
 }
 
 
@@ -221,14 +248,6 @@ void AQLCharacterPlayer::BeginPlay()
 	RecoilTimeline.AddInterpFloat(VerticalRecoil, YRecoilCurve);
 
 	StartHeight = GetActorLocation().Z;
-	
-	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-
-	//클라이언트가 입장할 때 모든 클라이언트의 PlayerName업데이트 해준다.가 맞는거같은데?
-	if (PS)
-	{
-		MulticastRPCInitNickname(PS->GetPlayerName());
-	}
 }
 
 void AQLCharacterPlayer::InitializeGAS()
@@ -253,18 +272,17 @@ void AQLCharacterPlayer::InitializeGAS()
 		FActiveGameplayEffectHandle ActiveGEHandle = ASC->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), ASC.Get());
 	}
 
-	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
-	if (PlayerController)
-	{
-		PlayerController->ResetUI();
-	}
-
 	FGameplayTagContainer TagContainer(CHARACTER_EQUIP_NON);
 	TagContainer.AddTag(CHARACTER_EQUIP_GUNTYPEA);
 	TagContainer.AddTag(CHARACTER_EQUIP_BOMB);
 	ASC->RemoveLooseGameplayTags(TagContainer); //모두 초기화
 	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
 	
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+	if (PC)
+	{
+		PC->ResetUI();
+	}
 }
 
 void AQLCharacterPlayer::ServerInitializeGAS()
@@ -325,6 +343,23 @@ void AQLCharacterPlayer::Tick(float DeltaSeconds)
 }
 
 
+
+bool AQLCharacterPlayer::IsMontagePlaying(UAnimMontage* Montage) const
+{
+	UQLAnimInstance *AnimInstance = Cast<UQLAnimInstance>(GetMesh()->GetAnimInstance());
+
+	if (AnimInstance)
+	{
+		return AnimInstance->Montage_IsPlaying(Montage);
+	}
+
+	return false;
+}
+
+void AQLCharacterPlayer::ClientRPCThrowBomb_Implementation()
+{
+	ThrowBomb = false;
+}
 
 void AQLCharacterPlayer::FarmingItem()
 {
@@ -409,8 +444,13 @@ void AQLCharacterPlayer::ServerRPCFarming_Implementation()
 		}
 	), 1.5f, false);
 	//몽타주 실행
-	PlayAnimMontage(PickupMontage);
+	
+	if (IsMontagePlaying(PickupMontage) == false)
+	{
+		PlayAnimMontage(PickupMontage);
+	}
 
+	//모든 클라이언트에게 애니메이션 실행과정을 전달
 	for (APlayerController* PlayerController : TActorRange<APlayerController>(GetWorld()))
 	{
 		if (PlayerController && GetController() != PlayerController)
@@ -426,7 +466,7 @@ void AQLCharacterPlayer::ServerRPCFarming_Implementation()
 		}
 	}
 	bPressedFarmingKey = true;
-	FarmingItem();
+	FarmingItem(); //실제 파밍한 아이템 
 }
 
 void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* WeaponStat)
@@ -772,8 +812,11 @@ void AQLCharacterPlayer::ClientRPCPlayAnimation_Implementation(AQLCharacterPlaye
 {
 	if (CharacterPlay)
 	{
-		//몽타주 실행
-		CharacterPlay->PlayAnimMontage(CharacterPlay->PickupMontage);
+		//몽타주 실행, 실행중이라면 실행하지 않음.
+		if (CharacterPlay->IsMontagePlaying(CharacterPlay->PickupMontage) == false)
+		{
+			CharacterPlay->PlayAnimMontage(CharacterPlay->PickupMontage);
+		}
 	}
 }
 
@@ -864,6 +907,14 @@ void AQLCharacterPlayer::InitNickname()
 	}
 }
 
+void AQLCharacterPlayer::StopAim()
+{
+	if (QLInputComponent)
+	{
+		QLInputComponent->StopAiming();
+	}
+}
+
 void AQLCharacterPlayer::ServerRPCInitNickname_Implementation()
 {
 	AQLPlayerState* PS = Cast<AQLPlayerState>(GetPlayerState());
@@ -905,20 +956,24 @@ void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranc
 
 	if (NotifyName == FName(TEXT("StopProneMontage")))
 	{
+		//StopProneMontage가 알림오면, 움직일 수 있도록한다.
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
 
 	if (NotifyName == FName(TEXT("StartProneMontage")))
 	{
-		if (bIsProning) //엎드리는 중
+		if (bIsProning) 
 		{
+			//엎드리는 중
 			StandToProne();
 		}
-		else //일어나는 중
+		else 
 		{
+			//일어나는 중
 			ProneToStand();
 		}
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+		//걷지 못하도록 MovementMode 변경
 	}
 }
 
@@ -946,38 +1001,41 @@ void AQLCharacterPlayer::ProneToStand()
 {
 	UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(GetMovementComponent());
 
-	FVector CurrentLocation = GetActorLocation();
-	CurrentLocation.Z = StartHeight;
-	SetActorLocation(CurrentLocation);
-	if (IsLocallyControlled())
+	FVector CurrentLocation = GetActorLocation(); //현재 Pawn 위치
+	CurrentLocation.Z = StartHeight; //Pawn 높이값
+	SetActorLocation(CurrentLocation); //위치를 맞춰준다.
+	if (IsLocallyControlled()) 
 	{
-		GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -100.f));
+		//클라이언트의 경우 Mesh의 중심위치를 조절한다.
+		GetMesh()->SetRelativeLocation(StandMeshLoc); //약 FVector(0.f, 0.f, -100.f)
 	}
 	else
 	{
-		CacheInitialMeshOffset(FVector(0.f, 0.f, -100.f), GetMesh()->GetRelativeRotation());
+		//서버의 경우, 클라이언트에 맞춰진 크기로 메쉬 중심지를 맞춘다.
+		CacheInitialMeshOffset(StandMeshLoc, GetMesh()->GetRelativeRotation());
 	}
 
-	GetCapsuleComponent()->SetCapsuleSize(25.f, 90.0f);
+	GetCapsuleComponent()->SetCapsuleSize(OriginalCapsuleRadius, OriginalCapsuleHeight); //OriginalCapsuleSize로 변경, 25.f, 90.0f
 	Movement->RestoreProneSpeedCommand();
 }
 
 void AQLCharacterPlayer::StandToProne()
 {
-	
 	UQLCharacterMovementComponent* Movement = Cast<UQLCharacterMovementComponent>(GetMovementComponent());
 
 	FVector TargetLocation = GetMesh()->GetSocketLocation(FName("ik_foot_rootSocket"));
-	SetActorLocation(TargetLocation);
+	SetActorLocation(TargetLocation); //발 중심지를 위치로 지정
 	if (IsLocallyControlled())
 	{
-		GetMesh()->SetRelativeLocation(FVector(0.0f, 0.f, -30.0f));
+		//클라이언트의 상대값 변경
+		GetMesh()->SetRelativeLocation(ProneMeshLoc); //ProneMeshLoc FVector(0.0f, 0.f, -30.0f)
 	}
 	else
 	{
-		CacheInitialMeshOffset(FVector(0.0f, 0.f, -30.0f), GetMesh()->GetRelativeRotation());
+		//변경된 상대값을 옵셋 설정
+		CacheInitialMeshOffset(ProneMeshLoc, GetMesh()->GetRelativeRotation());
 	}
-	GetCapsuleComponent()->SetCapsuleSize(25.f, 25.f);
-
-	Movement->ChangeProneSpeedCommand();
+	//캡슐 사이즈 지정 OriginalCapsuleRadius 25 ProneCapsuleHeight 25
+	GetCapsuleComponent()->SetCapsuleSize(OriginalCapsuleRadius, ProneCapsuleHeight);
+	Movement->ChangeProneSpeedCommand(); //Prone 속도 
 }

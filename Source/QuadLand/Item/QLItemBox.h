@@ -25,6 +25,8 @@ public:
 
 protected:
 	
+	float HitLen;
+
 	UPROPERTY(VisibleAnywhere, Category = Collision)
 	TObjectPtr<class UBoxComponent> Trigger;
 

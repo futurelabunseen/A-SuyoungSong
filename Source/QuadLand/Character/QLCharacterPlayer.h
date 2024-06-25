@@ -83,6 +83,25 @@ public:
 
 	void ServerRPCDetachBomb();
 
+	void StopAim();
+
+	bool IsMontagePlaying(class UAnimMontage* Montage) const;
+
+	uint8 ThrowBomb : 1;
+
+	UFUNCTION(Client,Unreliable)
+	void ClientRPCThrowBomb();
+
+protected:
+
+	FVector ProneMeshLoc;
+	float ProneCapsuleRadius;
+	float ProneCapsuleHeight;
+
+	FVector StandMeshLoc;
+	float OriginalCapsuleRadius;
+	float OriginalCapsuleHeight;
+
 protected:
 
 	uint8 bIsProning : 1;

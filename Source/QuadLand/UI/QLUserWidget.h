@@ -44,6 +44,8 @@ public:
 	void SettingNickname(const FString& InNickname);
 
 	void SettingStoneImg(class UTexture2D* StoneImg);
+	void ShowCoolTimeStamina();
+	void ResetStamina();
 
 protected:
 	virtual void NativeConstruct() override;
