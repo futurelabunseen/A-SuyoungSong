@@ -18,6 +18,8 @@ public:
 	AQLSpectatorPawn();
 
 protected:
+
+	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)

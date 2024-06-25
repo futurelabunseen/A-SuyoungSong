@@ -20,6 +20,8 @@ public:
 
 	void UpdateHPPercentage(float InHP,float InMaxHP);
 	void UpdateStaminaPercentage(float InStamina, float InMaxStamina);
+	void ShowCoolTimeStamina();
+	void ResetStamina();
 protected:
 
 	virtual void NativeConstruct() override;
@@ -37,4 +39,6 @@ protected:
 	float CurrentHP;
 
 	float MaxHP;
+
+	FLinearColor OriginalColor;
 };

@@ -25,11 +25,11 @@ void AQLAISpawner::BeginPlay()
 		UWorld* CurrentWorld = GetWorld();
 		AQLGameMode* GameMode = Cast<AQLGameMode>(CurrentWorld->GetAuthGameMode());
 
-		for (const auto& Entry : FActorRange(CurrentWorld))
+		for (const auto& Entry : FActorRange(CurrentWorld)) //월드에 배치된 PlayerStart를 다 가져온다.
 		{
 			APlayerStart* PlayerStart = Cast<APlayerStart>(Entry);
 
-			if (PlayerStart)
+			if (PlayerStart) 
 			{
 				//PlayerStart 위치에서 라인트레이스를 쏘고, APawn이 없다면 그 위치에 Pawn 생성
 				

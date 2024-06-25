@@ -6,7 +6,11 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
+#include "Player/QLPlayerState.h"
 #include "Player/QLPlayerController.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayTag/GamplayTags.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AQLSpectatorPawn::AQLSpectatorPawn()
 {
@@ -26,6 +30,13 @@ AQLSpectatorPawn::AQLSpectatorPawn()
 	}
 
 	bReplicates = true;
+}
+
+void AQLSpectatorPawn::BeginPlay()
+{
+
+	Super::BeginPlay();
+
 }
 
 void AQLSpectatorPawn::SetupPlayerInputComponent(UInputComponent* InInputComponent)

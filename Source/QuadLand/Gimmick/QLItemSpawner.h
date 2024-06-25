@@ -23,4 +23,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Collision)
 	TObjectPtr<class UBoxComponent> Trigger;
 
+	float Z;
+
 };

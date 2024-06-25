@@ -29,6 +29,11 @@ bool UQLGA_ReloadAmmo::CanActivateAbility(const FGameplayAbilitySpecHandle Handl
 	{
 		return false;
 	}
+
+	if (Source->HasMatchingGameplayTag(CHARACTER_EQUIP_BOMB))
+	{
+		return false;
+	}
 	return Result;
 }
 
@@ -48,19 +53,21 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	if (Source)
 	{
-		
-	//Reload 하는 애니메이션 동작 - Player
+
+		//Reload 하는 애니메이션 동작 - Player
 		float AnimSpeedRate = 1.0f;
 		UAbilityTask_PlayMontageAndWait* ReloadMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("ReloadMontage"), ReloadAnimMontage, AnimSpeedRate);
 		ReloadMontage->OnCompleted.AddDynamic(this, &UQLGA_ReloadAmmo::OnCompletedCallback);
 		ReloadMontage->OnInterrupted.AddDynamic(this, &UQLGA_ReloadAmmo::OnInterruptedCallback);
 		ReloadMontage->ReadyForActivation();
-	//Reload 하는 애니메이션 동작 - Mesh
+		//Reload 하는 애니메이션 동작 - Mesh
 
 	}
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
+	Player->StopAim();
+
 	if (IsLocallyControlled()) //클라이언트에서 검사하기 때문에 이렇게..체크 근데 사실 RPC아니고 HasAuthority로 하게되면되는데...
 	{
-		AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
 		Player->ServerRPCReload();
 	}
 }
@@ -76,15 +83,19 @@ void UQLGA_ReloadAmmo::OnCompletedCallback()
 	UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = Source->GetSet<UQLAS_WeaponStat>();
 	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ReloadAmmoEffect);
-	if (WeaponStat->GetMaxAmmoCnt()>0.0f&&EffectSpecHandle.IsValid())
-	{
-		float CurrentAmmoCnt = CurrentAmmoCnt = WeaponStat->GetAmmoCnt() - WeaponStat->GetCurrentAmmo(); //25 - 25 - 0 -> 0..!?
-		
-		CurrentAmmoCnt = (CurrentAmmoCnt < WeaponStat->GetMaxAmmoCnt()) ? CurrentAmmoCnt : WeaponStat->GetMaxAmmoCnt();
 
-		EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_AMMOCNT, WeaponStat->GetCurrentAmmo() + CurrentAmmoCnt);
+	if (WeaponStat->GetMaxAmmoCnt()>0.0f&&EffectSpecHandle.IsValid()) //현재 총알 최대개수가 0보다 크고, 이펙트 핸들러가 유효하다면,
+	{
+		float CurrentAmmoCnt = WeaponStat->GetAmmoCnt() - WeaponStat->GetCurrentAmmo(); //장전에 필요한 개수 = 장전 최대 개수(25) - 현재 이미 장정된 총알 개수(N)
+		
+		CurrentAmmoCnt = (CurrentAmmoCnt < WeaponStat->GetMaxAmmoCnt()) ? CurrentAmmoCnt : WeaponStat->GetMaxAmmoCnt(); 
+		//장전에 필요한 총알 개수가 현재 가지고 있는 총알 값보다 크다면, 장전에 필요한 개수만 장전
+		//그렇지 않다면, 최대 장전 개수 가져옴
+
+		EffectSpecHandle.Data->SetSetByCallerMagnitude(DATA_STAT_AMMOCNT, WeaponStat->GetCurrentAmmo() + CurrentAmmoCnt); //현재 개수만큼 이펙트 실행
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
 	}
+
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
 	if (IsLocallyControlled())
 	{

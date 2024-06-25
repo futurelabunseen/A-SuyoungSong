@@ -15,6 +15,7 @@
 #include "UI/QLDeathTimerWidget.h"
 #include "UI/QLLoadingPanel.h"
 #include "QuadLand.h"
+#include "GameplayTag/GamplayTags.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "Character/QLInventoryComponent.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
@@ -28,6 +29,7 @@
 #include "Game/QLGameInstance.h"
 #include "GameFramework/GameModeBase.h"
 #include "Game/QLGameMode.h"
+#include "GameFramework/PawnMovementComponent.h"
 
 AQLPlayerController::AQLPlayerController()
 {
@@ -162,6 +164,12 @@ void AQLPlayerController::ClientRPCLoose_Implementation()
 		SetInputMode(UIOnlyInputMode);
 		SetShowMouseCursor(true);
 		AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+		APawn *TmpPawn = GetPawn();
+
+		if (TmpPawn)
+		{
+			TmpPawn->GetMovementComponent()->StopActiveMovement();
+		}
 
 		if (PS)
 		{
@@ -239,6 +247,48 @@ void AQLPlayerController::SettingNickname()
 	}
 }
 
+void AQLPlayerController::InitWidget()
+{	//내생각에 서버만 하면됨
+	if (HUDs.Find(EHUDType::HUD))
+	{
+		UQLUserWidget* Widget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+
+		AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+		if (Widget && QLCharacter)
+		{
+			QLCharacter->OnChangeShootingMethod.BindUObject(Widget, &UQLUserWidget::VisibleShootingMethodUI);
+		}
+	}
+
+	//Map 위치도 재선정
+	if (HUDs.Find(EHUDType::Map))
+	{
+		UQLMap* Map = Cast<UQLMap>(HUDs[EHUDType::Map]);
+
+		Map->ResetPlayer();
+	}
+
+	if (HUDs.Find(EHUDType::Win))
+	{
+		UQLReturnToLobby* Win = Cast<UQLReturnToLobby>(HUDs[EHUDType::Win]);
+
+		if (Win)
+		{
+			Win->SetupUI();
+		}
+	}
+
+	if (HUDs.Find(EHUDType::Death))
+	{
+		UQLReturnToLobby* Loose = Cast<UQLReturnToLobby>(HUDs[EHUDType::Death]);
+
+		if (Loose)
+		{
+			Loose->SetupUI();
+		}
+	}
+}
+
 FString AQLPlayerController::ChangeTimeText()
 {
 	uint32 ProgressTime = GetServerTime() - StartTime;
@@ -283,9 +333,9 @@ void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)
 	if (GameMode != nullptr)
 	{
 		GameMode->SpawnPlayerPawn(this, Type);
-		ClientRPCCreateWidget(); 
+		ClientRPCCreateWidget();
 		AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
-	
+
 		if (QLCharacter)
 		{
 			QLCharacter->ServerRPCInitNickname(); //닉네임 결정
@@ -295,45 +345,7 @@ void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)
 
 void AQLPlayerController::ClientRPCCreateWidget_Implementation()
 {
-	//내생각에 서버만 하면됨
-	if (HUDs.Find(EHUDType::HUD))
-	{
-		UQLUserWidget* Widget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
-
-		AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
-		if (Widget && QLCharacter)
-		{
-			QLCharacter->OnChangeShootingMethod.BindUObject(Widget, &UQLUserWidget::VisibleShootingMethodUI);
-		}
-	}
-
-	//Map 위치도 재선정
-	if (HUDs.Find(EHUDType::Map))
-	{
-		UQLMap* Map = Cast<UQLMap>(HUDs[EHUDType::Map]);
-
-		Map->ResetPlayer();
-	}
-
-	if (HUDs.Find(EHUDType::Win))
-	{
-		UQLReturnToLobby* Win = Cast<UQLReturnToLobby>(HUDs[EHUDType::Win]);
-		
-		if (Win)
-		{
-			Win->SetupUI();
-		}
-	}
-
-	if (HUDs.Find(EHUDType::Death))
-	{
-		UQLReturnToLobby* Loose = Cast<UQLReturnToLobby>(HUDs[EHUDType::Death]);
-		
-		if (Loose)
-		{
-			Loose->SetupUI();
-		}
-	}
+	InitWidget();
 }
 
 
@@ -371,12 +383,14 @@ void AQLPlayerController::StopDeathSec()
 	{
 		GetWorld()->GetTimerManager().ClearTimer(DeathTimerHandle);
 		DeathTimerHandle.Invalidate();
+
+		UQLDeathTimerWidget* DeathTimerWidget = Cast<UQLDeathTimerWidget>(HUDs[EHUDType::DeathTimer]);
+		DeathTimerWidget->UpdateTimer(0);
 	}
 	//Delegate호출
 	
 	if (OnDeathCheckDelegate.IsBound())
 	{
-		QL_LOG(QLLog, Warning, TEXT("Dead"));
 		OnDeathCheckDelegate.Execute();
 	}
 }

@@ -7,6 +7,7 @@
 #include "GameData/WeaponType.h"
 #include "Components/PawnComponent.h"
 #include "Components/TimelineComponent.h"
+#include "GameplayTagContainer.h"
 #include "QLInputComponent.generated.h"
 
 
@@ -24,12 +25,15 @@ public:
 	virtual void BeginPlay() override;
 	void SetShowInventory(bool InVisible) { bShowInventory = InVisible; }
 	bool GetShowInventory() { return bShowInventory; }
-	
+
+	void StopAiming();
 protected:
 	//virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
 	void ShowInventory();
 	uint8 bShowInventory : 1;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	FGameplayTagContainer NotRunTag;
 protected:
 	//Look & Move Section
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
@@ -119,7 +123,6 @@ protected:
 	TObjectPtr<class UInputAction> AimAction;
 
 	void Aim();
-	void StopAiming();
 
 	UPROPERTY()
 	TObjectPtr<class UTimelineComponent> ZoomInTimeline;

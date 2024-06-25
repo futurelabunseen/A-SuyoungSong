@@ -239,6 +239,10 @@ void UQLInputComponent::BeginPlay()
 
 void UQLInputComponent::SetInventory()
 {
+	if (bIsVisibleMap|| bShowMenuUI)
+	{
+		return;
+	}
 
 	AQLPlayerController* PC = GetController<AQLPlayerController>();
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
@@ -380,8 +384,13 @@ void UQLInputComponent::FarmingItemPressed()
 		
 		if (bResult)
 		{
-			//몽타주 실행
-			Character->PlayAnimMontage(Character->PickupMontage);
+			//몽타주 실행, 실행중이지 않다면 실행
+
+			if (Character->IsMontagePlaying(Character->PickupMontage) == false)
+			{
+				Character->PlayAnimMontage(Character->PickupMontage);
+			}
+
 			switch (Item->Stat->ItemType)
 			{
 			case EItemType::Bomb:
@@ -703,14 +712,20 @@ void UQLInputComponent::SelectGunAttackType()
 		return;
 	}
 
+	if (Character->ThrowBomb)
+	{
+		return;
+	}
+	//만약 Bomb을 가지고있다면 일단 리턴
+
 	//총이 없어서 아무일도 하지않아도 Default임.
 	FGameplayTagContainer Tag(CHARACTER_EQUIP_GUNTYPEA);
-
 	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 	if (ASC->HasAnyMatchingGameplayTags(Tag) || Character->bHasGun == false)
 	{
 		return; //같은 경우만 체크하면된다.
 	}
+
 	PC->SwitchWeaponStyle(ECharacterAttackType::GunAttack);
 	Character->ServerRPCSwitchAttackType(ECharacterAttackType::GunAttack);
 }
@@ -793,7 +808,11 @@ void UQLInputComponent::GASInputPressed(int32 id)
 	{
 		return;
 	}
-
+	
+	if (ASC->HasAnyMatchingGameplayTags(NotRunTag))
+	{
+		return;
+	}
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
 	if (Spec)
 	{
@@ -824,6 +843,10 @@ void UQLInputComponent::GASInputReleased(int32 id)
 	uint8 InputAttackSpecNumber = GetInputNumber(id);
 
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
+	if (ASC->HasAnyMatchingGameplayTags(NotRunTag))
+	{
+		return;
+	}
 
 	if (Spec)
 	{
@@ -861,15 +884,15 @@ void UQLInputComponent::ShowMenuUI()
 
 	if (bShowMenuUI == false)
 	{
+		FInputModeUIOnly UIOnlyInputMode;
+		PC->SetInputMode(UIOnlyInputMode);
+		PC->SetShowMouseCursor(true);
 		PC->SetVisibilityHUD(EHUDType::Menu);
-		PC->bShowMouseCursor = true;
 		bShowMenuUI = true;
 	}
 	else
 	{
 		PC->CloseHUD(EHUDType::Menu);
-		PC->SetHiddenHUD(EHUDType::Menu);
-		PC->bShowMouseCursor = false;
 		bShowMenuUI = false;
 	}
 	
@@ -886,10 +909,6 @@ void UQLInputComponent::SetShowMenuUI()
 	if (bShowMenuUI)
 	{
 		PC->CloseHUD(EHUDType::Menu);
-		PC->SetHiddenHUD(EHUDType::Menu);
-		FInputModeUIOnly UIOnlyInputMode;
-		PC->SetInputMode(UIOnlyInputMode);
-		PC->SetShowMouseCursor(true);
 		bShowMenuUI = false;
 	}
 

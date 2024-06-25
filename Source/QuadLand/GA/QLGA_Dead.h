@@ -22,6 +22,7 @@ public:
 	
 	UFUNCTION()
 	void SetDeadAnim(FGameplayEventData Payload);
+
 protected:
 	void OnCompleted();
 

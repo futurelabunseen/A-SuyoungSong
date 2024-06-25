@@ -4,8 +4,8 @@
 #include "QLGA_Win.h"
 #include "Player/QLPlayerState.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/Character.h"
 #include "Player/QLPlayerController.h"
+#include "Character/QLCharacterPlayer.h"
 #include "AbilitySystemComponent.h"
 #include "QuadLand.h"
 #include "Player/QLPlayerState.h"
@@ -18,10 +18,15 @@ void UQLGA_Win::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	ACharacter* Character = Cast<ACharacter>(GetActorInfo().AvatarActor.Get());
-	Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-	Character->bUseControllerRotationYaw = false;
-
+	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+	
+	if (Character)
+	{
+		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+		Character->bUseControllerRotationYaw = false;
+		Character->StopAim();
+	}
+	
 	AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
 	
 	if (HasAuthority(&ActivationInfo))

@@ -32,6 +32,9 @@ public:
 	UFUNCTION(Server,Reliable)
 	void ServerRPCStopAttack();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPCStopAttack();
+
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastRPCShoot(AQLCharacterPlayer* Character);
 protected:

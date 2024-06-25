@@ -92,7 +92,7 @@ void AQLGameMode::SpawnAI()
 
 }
 
-void AQLGameMode::DeadNonPlayer(FName NonPlayerName)
+void AQLGameMode::Dead(FName NonPlayerName)
 {
 
 	if (PlayerDieStatus.Find(NonPlayerName) && PlayerDieStatus[NonPlayerName] == false)
@@ -203,21 +203,21 @@ void AQLGameMode::SpawnPlayerPawn(APlayerController* PC,int Type)
 	SpawnInfo.Owner = PC;
 	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	AActor *StartSpot = ChoosePlayerStart(PC);
+	AActor *StartSpot = ChoosePlayerStart(PC); //PlayerController가 시작위치 정하기
 
 	if (StartSpot)
 	{
 		UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
 	
-		AQLCharacterPlayer* ResultPawn = GetWorld()->SpawnActor<AQLCharacterPlayer>(DataManager->GetSkeletalMesh(Type), StartSpot->GetActorLocation(),StartSpot->GetActorRotation(), SpawnInfo);
+		//새로운 Pawn 생성
+		ACharacter* ResultPawn = GetWorld()->SpawnActor<ACharacter>(DataManager->GetSkeletalMesh(Type), StartSpot->GetActorLocation(),StartSpot->GetActorRotation(), SpawnInfo);
 
 		if (ResultPawn)
 		{
-			PC->Possess(ResultPawn);
+			PC->Possess(ResultPawn); 
 			PC->ClientRestart(ResultPawn);
 		}
 	}
-
 }
 
 void AQLGameMode::GameStart()

@@ -9,6 +9,7 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayTag/GamplayTags.h"
 #include "Character/QLCharacterBase.h"
+#include "Character/QLCharacterPlayer.h"
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "Engine/EngineTypes.h"
 #include "Item/QLWeaponComponent.h"
@@ -64,7 +65,7 @@ void AQLBomb::PlayGameplayCue(const AQLCharacterBase* Character)
 	}
 }
 
-void AQLBomb::ExplodesBomb(const AQLCharacterBase* Character)
+void AQLBomb::ExplodesBomb(AQLCharacterBase* Character)
 {
 
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(DetectionPlayer), false);
@@ -114,11 +115,18 @@ void AQLBomb::ExplodesBomb(const AQLCharacterBase* Character)
 		}
 	}
 
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(Character);
+	if (Player)
+	{
+		QL_LOG(QLLog, Log, TEXT("Current Bomb ÇØÁ¦"));
+		Player->ClientRPCThrowBomb();
+	}
 	PlayGameplayCue(Character);
 }
 
 void AQLBomb::SpawnFire(const AQLCharacterBase* Character)
 {
+
 	if (HasAuthority())
 	{
 		FCollisionQueryParams Params(SCENE_QUERY_STAT(FireCollision), false);

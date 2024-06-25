@@ -16,7 +16,7 @@
 #include "QuadLand.h"
 
 // Sets default values
-AQLItemBox::AQLItemBox()
+AQLItemBox::AQLItemBox() : HitLen(150.f)
 {
 
 	PrimaryActorTick.bCanEverTick = true;
@@ -65,15 +65,17 @@ AQLItemBox::AQLItemBox()
 
 void AQLItemBox::InitPosition(const FVector& Location)
 {
-	if (HasAuthority())
+	//생성은 서버에서만 이루어진다. 리플리케이션되어 있기 때문에 다른 동기화 없음
+	if (HasAuthority()) 
 	{
 		FCollisionQueryParams CollisionParams(SCENE_QUERY_STAT(GroundCheckLineTrace), false, this); //식별자 
 
 		FHitResult OutHitResult;
 
 		FVector StartLocation = Location;
-
-		FVector EndLocation = StartLocation + 150.0f * GetActorUpVector() * -1;
+		
+		//업벡터의 반대방향으로 라인트레이스를 쏜다.
+		FVector EndLocation = StartLocation + HitLen * GetActorUpVector() * -1;
 		bool bResult = GetWorld()->LineTraceSingleByChannel(
 			OutHitResult,
 			StartLocation,
@@ -82,17 +84,17 @@ void AQLItemBox::InitPosition(const FVector& Location)
 			CollisionParams
 		);
 
-		if (bResult)
+		if (bResult) //바닥이 있다면,
 		{
-			OutHitResult.Location.Z += GetZPos();
-			SetActorLocation(OutHitResult.Location);
+			OutHitResult.Location.Z += GetZPos(); //액터의 Collision의 2분의 1만큼 Z축에 더해준다.
+			SetActorLocation(OutHitResult.Location); //해당 액터를 위치시킴
 		}
 
 		AQLWeaponItemBox* WeaponBox = Cast<AQLWeaponItemBox>(this);
 
 		if (WeaponBox)
 		{
-			WeaponBox->SpawnBulletsAround();
+			WeaponBox->SpawnBulletsAround(); //해당 아이템 박스가 총일 경우, 주변에 총알을 따로 스폰한다.
 		}
 	}
 }
