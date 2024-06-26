@@ -7,6 +7,7 @@
 #include "AttributeSet/QLAS_WeaponStat.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
 #include "GameplayTag/GamplayTags.h"
+
 void UQLGE_DistanceDecayDamageCal::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
 {
 	Super::Execute_Implementation(ExecutionParams, OutExecutionOutput);

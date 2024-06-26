@@ -30,7 +30,7 @@ bool UQLGA_ReloadAmmo::CanActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return false;
 	}
 
-	if (Source->HasMatchingGameplayTag(CHARACTER_EQUIP_BOMB))
+	if (Source->HasAnyMatchingGameplayTags(StopTag))
 	{
 		return false;
 	}
@@ -42,7 +42,7 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 		//ASC를 가져온다.
 	//Attribute Set 을 가져와서 GetSet으로 가져온데, Ammo 값이 만빵이면 EndAbility 종료한다. 
-	
+
 	UAbilitySystemComponent* Source = GetAbilitySystemComponentFromActorInfo_Checked();
 	const UQLAS_WeaponStat* WeaponStat = Source->GetSet<UQLAS_WeaponStat>();
 	if (!WeaponStat || WeaponStat->GetMaxAmmoCnt() <= 0.0f)
@@ -53,7 +53,6 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	if (Source)
 	{
-
 		//Reload 하는 애니메이션 동작 - Player
 		float AnimSpeedRate = 1.0f;
 		UAbilityTask_PlayMontageAndWait* ReloadMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("ReloadMontage"), ReloadAnimMontage, AnimSpeedRate);
@@ -63,6 +62,7 @@ void UQLGA_ReloadAmmo::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 		//Reload 하는 애니메이션 동작 - Mesh
 
 	}
+
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
 	Player->StopAim();
 

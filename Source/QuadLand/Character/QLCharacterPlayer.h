@@ -246,7 +246,8 @@ public:
 	bool GetThrowBomb() { return bThrowBomb; }
 	UFUNCTION()
 	void OnPlayMontageNotifyBegin(FName NotifyName, const FBranchingPointNotifyPayload& BranchingPointPayload);
-	
+	UFUNCTION()
+	void OnPlayMontageNotifyEnd(UAnimMontage* Montage, bool bInterrupted);
 
 	uint8 bIsSemiAutomatic : 1;
 	friend class UQLInventoryComponent;

@@ -28,6 +28,9 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "GAS")
+	FGameplayTagContainer StopTag;
+	
+	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<class UGameplayEffect> ReloadAmmoEffect;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)

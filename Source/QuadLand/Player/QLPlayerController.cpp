@@ -24,6 +24,10 @@
 #include "Net/UnrealNetwork.h"
 #include "GameData/QLDataManager.h"
 #include "GameFramework/PlayerStart.h"
+#include "Engine/LocalPlayer.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputMappingContext.h"
 #include "Physics/QLCollision.h"
 #include "EngineUtils.h"
 #include "Game/QLGameInstance.h"
@@ -35,6 +39,7 @@ AQLPlayerController::AQLPlayerController()
 {
 	bStartGame = false;
 	bReadyGame = false;
+	bIsDanger = false;
 }
 
 void AQLPlayerController::BeginPlay()
@@ -85,15 +90,17 @@ void AQLPlayerController::ActivateDeathTimer(float Time)
 	if (IsLocalController())
 	{
 		SetVisibilityHUD(EHUDType::DeathTimer);
-		if (DeathTimerHandle.IsValid() == false)
-		{
-			CurrentDeathSec = Time;
-
-			GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &AQLPlayerController::ReduceDeathSec, 1.0f, true);
-		}
 	}
-	FTimerHandle StopTimer;
-	GetWorld()->GetTimerManager().SetTimer(StopTimer, this, &AQLPlayerController::StopDeathSec, Time + 1.0f);
+
+	if (DeathTimerHandle.IsValid() == false)
+	{
+		bIsDanger = true;
+		CurrentDeathSec = 10.0f;
+		//GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &AQLPlayerController::ReduceDeathSec, 1.0f, true);
+	}
+
+	//FTimerHandle StopTimer;
+	//GetWorld()->GetTimerManager().SetTimer(StopTimer, this, &AQLPlayerController::StopDeathSec, Time + 1.0f);
 }
 
 void AQLPlayerController::BlinkBloodWidget()
@@ -135,6 +142,14 @@ void AQLPlayerController::BlinkBag()
 
 void AQLPlayerController::Win()
 {
+	if (const auto PlayerController = Cast<APlayerController>(this))
+	{
+		if (const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->ClearAllMappings();
+		}
+	}
+
 	SetVisibilityHUD(EHUDType::Win);
 	UQLReturnToLobby* UserWidget = Cast<UQLReturnToLobby>(HUDs[EHUDType::Win]);
 
@@ -155,6 +170,14 @@ void AQLPlayerController::Win()
 
 void AQLPlayerController::ClientRPCLoose_Implementation()
 {
+	if (const auto PlayerController = Cast<APlayerController>(this))
+	{
+		if (const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->ClearAllMappings();
+		}
+	}
+
 	SetVisibilityHUD(EHUDType::Death);
 	UQLReturnToLobby* UserWidget = Cast<UQLReturnToLobby>(HUDs[EHUDType::Death]);
 
@@ -372,17 +395,27 @@ void AQLPlayerController::ClientRPCGameStart_Implementation()
 
 void AQLPlayerController::ReduceDeathSec()
 {
-	UQLDeathTimerWidget* DeathTimerWidget = Cast<UQLDeathTimerWidget>(HUDs[EHUDType::DeathTimer]);
-	DeathTimerWidget->UpdateTimer(CurrentDeathSec);
-	CurrentDeathSec--;
+	if (HUDs.Find(EHUDType::DeathTimer) == 0)
+	{
+		bIsDanger = false;
+		return;
+	}
+
+	int32 SecondsLeft = FMath::CeilToInt(CurrentDeathSec - ElapsedTime);
+
+	if (IsLocalController())
+	{
+		UQLDeathTimerWidget* DeathTimerWidget = Cast<UQLDeathTimerWidget>(HUDs[EHUDType::DeathTimer]);
+		DeathTimerWidget->UpdateTimer(SecondsLeft);
+	}
+	
+	//CurrentDeathSec--;
 }
 
 void AQLPlayerController::StopDeathSec()
 {
 	if (IsLocalController())
 	{
-		GetWorld()->GetTimerManager().ClearTimer(DeathTimerHandle);
-		DeathTimerHandle.Invalidate();
 
 		UQLDeathTimerWidget* DeathTimerWidget = Cast<UQLDeathTimerWidget>(HUDs[EHUDType::DeathTimer]);
 		DeathTimerWidget->UpdateTimer(0);
@@ -628,6 +661,20 @@ void AQLPlayerController::Tick(float DeltaTime)
 	{
 		SetHUDTime();
 	}
+
+	if (bIsDanger)
+	{
+		ElapsedTime += DeltaTime;
+		ReduceDeathSec();
+		if (ElapsedTime >= CheckInterval)
+		{
+			bIsDanger = false;
+			if (OnDeathCheckDelegate.IsBound())
+			{
+				OnDeathCheckDelegate.Execute();
+			}
+		}
+	}
 	
 	UpdateProgressTime();
 	ServerTimeCheck(DeltaTime);
@@ -672,3 +719,10 @@ void AQLPlayerController::SetHUDTime()
 	
 }
 
+void AQLPlayerController::ClientRPCOutLobby_Implementation()
+{
+	// 클라이언트에게 세션 종료 알림을 보냅니다.
+//	ClientReturnToMainMenuWithTextReason(FText());
+	
+	GetWorld()->ServerTravel(FString("/Game/QuadLand/Maps/Opening?listen"));
+}

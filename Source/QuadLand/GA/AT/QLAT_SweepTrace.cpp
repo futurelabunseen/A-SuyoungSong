@@ -80,5 +80,4 @@ void UQLAT_SweepTrace::OnCompletedCallback(const FGameplayAbilityTargetDataHandl
 void UQLAT_SweepTrace::InitSimulatedTask(UGameplayTasksComponent& InGameplayTasksComponent)
 {
 	Super::InitSimulatedTask(InGameplayTasksComponent);
-	UE_LOG(LogTemp, Log, TEXT("¿©±â ½ÇÇàµÅ?"));
 }

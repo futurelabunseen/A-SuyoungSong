@@ -129,6 +129,11 @@ void AQLCharacterNonPlayer::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 		ServerRPCDead();
 
 		AQLGameMode* GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
+		
+		if (ASC)
+		{
+			ASC->CancelAllAbilities();
+		}
 
 		if (GameMode)
 		{

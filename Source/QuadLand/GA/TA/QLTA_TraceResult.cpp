@@ -46,7 +46,7 @@ FGameplayAbilityTargetDataHandle AQLTA_TraceResult::MakeTargetData() const
 		SocketLocation,
 		SocketLocation,
 		FQuat::Identity,
-		CCHANNEL_QLACTION,
+		CCHANNEL_QLPUNCH,
 		FCollisionShape::MakeSphere(AttackRadius),
 		Params
 	);

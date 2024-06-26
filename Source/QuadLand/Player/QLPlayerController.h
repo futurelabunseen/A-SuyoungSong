@@ -46,6 +46,8 @@ public:
 		return HUDs[EHUDType::HUD];
 	}
 
+	UFUNCTION(Client,Reliable)
+	void ClientRPCOutLobby();
 	void CreateHUD();
 
 	/* 인벤토리 */
@@ -114,6 +116,9 @@ public:
 	FOnCoolTimeStamina CoolTimeStamina;
 	FOnResetStamina OnResetStamina;
 
+	uint8 bIsDanger : 1;
+	float ElapsedTime = 0.0f;
+	float CheckInterval = 10.0f; // 10초 간격
 protected:
 
 	FString DeathTime;

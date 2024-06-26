@@ -33,5 +33,8 @@
 
 #define STAT_STAMINA_STATUS_REDUCE FGameplayTag::RequestGameplayTag(FName("Stat.Stamina.Status.Reduce"))
 
+//Equip.Attacking
+#define WEAPON_STATE_ATTACKING FGameplayTag::RequestGameplayTag(FName("Equip.Attacking"))
+
 #define GAMEPLAYCUE_EFFECT_FIREWALL FGameplayTag::RequestGameplayTag(FName("GameplayCue.Effect.Firewall"))
 #define GAMEPLAYCUE_EFFECT_TRACEBYGUN FGameplayTag::RequestGameplayTag(FName("GameplayCue.Effect.TraceByGun"))

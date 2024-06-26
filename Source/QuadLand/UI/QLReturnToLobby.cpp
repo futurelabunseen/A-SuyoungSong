@@ -8,6 +8,7 @@
 #include "Player/QLPlayerController.h"
 #include "GameFramework/GameMode.h"
 #include "Components/TextBlock.h"
+#include "OnlineSubsystem.h"
 #include "QuadLand.h"
 
 void UQLReturnToLobby::SetupUI()
@@ -49,8 +50,18 @@ void UQLReturnToLobby::OnDestorySession(bool bWasSuccessful)
 		AGameMode* GameMode = World->GetAuthGameMode<AGameMode>();
 		if (GameMode)
 		{
-			//서버
-			GameMode->ReturnToMainMenuHost();
+			for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
+			{
+				AQLPlayerController* PC =Cast<AQLPlayerController>(It->Get());
+				if (PC && PC->GetNetMode() == NM_Client)
+				{
+					PC->ClientRPCOutLobby();
+				}
+			}
+
+			FTimerHandle OutTimer;
+
+			GetWorld()->GetTimerManager().SetTimer(OutTimer, this, &UQLReturnToLobby::DestoryServer, 3.f, false);
 		}
 		else
 		{
@@ -61,6 +72,14 @@ void UQLReturnToLobby::OnDestorySession(bool bWasSuccessful)
 		}
 	}
 
+}
+
+
+void UQLReturnToLobby::DestoryServer()
+{
+	// 서버에서 세션을 종료합니다.
+	AGameMode* GameMode = GetWorld()->GetAuthGameMode<AGameMode>();
+	GameMode->ReturnToMainMenuHost();
 }
 
 void UQLReturnToLobby::ReturnButtonClicked()

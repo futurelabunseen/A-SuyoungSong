@@ -7,6 +7,7 @@
 #include "AbilitySystemComponent.h"
 #include "GameData/QLPunchAttackData.h"
 #include "GameFramework/GameState.h"
+#include "QuadLand.h"
 #include "EngineUtils.h"
 
 UQLGA_AttackUsingPunch::UQLGA_AttackUsingPunch() : CurrentCombo(0), bHasNextPunchAttackCombo(0)
@@ -62,6 +63,8 @@ FName UQLGA_AttackUsingPunch::GetNextSection()
 
 void UQLGA_AttackUsingPunch::OnCompleted()
 {
+
+	QL_GASLOG(QLLog, Warning, TEXT("44444"));
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = true;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
@@ -69,6 +72,8 @@ void UQLGA_AttackUsingPunch::OnCompleted()
 
 void UQLGA_AttackUsingPunch::OnInterrupted()
 {
+
+	QL_GASLOG(QLLog, Warning, TEXT("333333"));
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = false;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);

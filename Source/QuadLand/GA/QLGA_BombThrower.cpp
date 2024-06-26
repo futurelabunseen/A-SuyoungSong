@@ -23,6 +23,8 @@
 UQLGA_BombThrower::UQLGA_BombThrower():ItemType(EItemType::Bomb)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	bGrapBomb = false;
+	bThrowBomb = false;
 }
 
 bool UQLGA_BombThrower::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, OUT FGameplayTagContainer* OptionalRelevantTags) const
@@ -31,6 +33,14 @@ bool UQLGA_BombThrower::CanActivateAbility(const FGameplayAbilitySpecHandle Hand
 	{
 		return false;
 	}
+
+	//캐릭터의 인벤토리에서 폭탄이 없으면 false
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+	if (Player->GetInventoryCnt(ItemType) <= 0)
+	{
+		return false;
+	}
+	
 	// Add additional conditions here
 	return true;
 }
@@ -38,15 +48,21 @@ bool UQLGA_BombThrower::CanActivateAbility(const FGameplayAbilitySpecHandle Hand
 void UQLGA_BombThrower::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
-	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
 
-	if (Player && IsLocallyControlled())
+	if (bGrapBomb == false)
 	{
-		USplineComponent* BombPath = Player->GetBombPath();
-		if (BombPath)
+		AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+
+		if (Player && IsLocallyControlled())
 		{
-			BombPath->SetHiddenInGame(false);
+			USplineComponent* BombPath = Player->GetBombPath();
+			if (BombPath)
+			{
+				BombPath->SetHiddenInGame(false);
+			}
 		}
+
+		bGrapBomb = true;
 	}
 }
 
@@ -63,15 +79,18 @@ void UQLGA_BombThrower::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
 	if (Player)
 	{
-		QL_GASLOG(QLLog, Log, TEXT("Throw"));
 		Player->ThrowBomb = true;
 	}
 
-	AnimSpeedRate = 1.0f;
-	GrapAndThrowMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("ThrowAnimMontage"), ThrowAnimMontage, AnimSpeedRate, FName("Grap"));
-	GrapAndThrowMontage->OnCompleted.AddDynamic(this, &UQLGA_BombThrower::OnCompletedCallback);
-	GrapAndThrowMontage->OnInterrupted.AddDynamic(this, &UQLGA_BombThrower::OnInterruptedCallback);
-	GrapAndThrowMontage->ReadyForActivation();
+
+	if (Player->IsMontagePlaying(ThrowAnimMontage) == false)
+	{
+		AnimSpeedRate = 1.0f;
+		GrapAndThrowMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("ThrowAnimMontage"), ThrowAnimMontage, AnimSpeedRate, FName("Grap"));
+		GrapAndThrowMontage->OnCompleted.AddDynamic(this, &UQLGA_BombThrower::OnCompletedCallback);
+		GrapAndThrowMontage->OnInterrupted.AddDynamic(this, &UQLGA_BombThrower::OnInterruptedCallback);
+		GrapAndThrowMontage->ReadyForActivation();
+	}
 }
 
 void UQLGA_BombThrower::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -83,13 +102,10 @@ void UQLGA_BombThrower::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_BOMB);
 
-	if (ASC->HasMatchingGameplayTag(CHARACTER_EQUIP_GUNTYPEA) == false)
+	FGameplayTagContainer Tag(CHARACTER_EQUIP_NON);
+	if (ASC->HasAnyMatchingGameplayTags(Tag) == false)
 	{
-		FGameplayTagContainer Tag(CHARACTER_EQUIP_NON);
-		if (ASC->HasAnyMatchingGameplayTags(Tag) == false)
-		{
-			ASC->AddLooseGameplayTags(Tag);
-		}
+		ASC->AddLooseGameplayTags(Tag);
 	}
 
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
@@ -99,24 +115,35 @@ void UQLGA_BombThrower::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		WeaponComp->ResetBomb();
 	}
+
+	QL_GASLOG(QLLog, Log, TEXT("Grap And Throw Reset"));
+	
+	bGrapBomb = false;
+	bThrowBomb = false;
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
 }
 
 void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {	
-	MontageJumpToSection(FName("Throw"));
-
-	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
-	Player->GetInventory()->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType));
-
-	if (Player)
+	if (bThrowBomb == false)
 	{
-		USplineComponent* BombPath = Player->GetBombPath();
-		if (BombPath)
+		QL_GASLOG(QLLog, Log, TEXT("Throw InputReleased"));
+		MontageJumpToSection(FName("Throw"));
+
+		AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+		Player->GetInventory()->ServerRPCRemoveItem(ItemType, Player->GetInventoryCnt(ItemType));
+
+		if (Player)
 		{
-			BombPath->SetHiddenInGame(true);
+			USplineComponent* BombPath = Player->GetBombPath();
+			if (BombPath)
+			{
+				BombPath->SetHiddenInGame(true);
+			}
 		}
+
+		bThrowBomb = true;
 	}
 }
 

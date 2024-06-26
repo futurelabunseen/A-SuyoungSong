@@ -67,6 +67,14 @@ bool UQLInventoryComponent::ServerRPCRemoveItem_Validate(EItemType ItemId, int32
 		UE_LOG(LogTemp, Warning, TEXT("The number of items does not match. %d %d"), InventoryItem[ItemId], ItemCnt);
 		return false;
 	}
+
+	if (InventoryItem[ItemId] < 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Not Use Item. %d %d"), InventoryItem[ItemId], ItemCnt);
+
+		return false;
+	}
+
 	return true;
 }
 
@@ -76,6 +84,12 @@ void UQLInventoryComponent::ServerRPCRemoveItem_Implementation(EItemType InItemI
 	if (PS == nullptr)
 	{
 		return;
+	}
+
+
+	if (InventoryItem[InItemId] <= 0)
+	{
+		return ;
 	}
 	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
 

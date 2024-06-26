@@ -12,3 +12,4 @@
 #define CCHANNEL_QLGROUND ECC_GameTraceChannel4
 #define CCHANNEL_QLFIRE ECC_GameTraceChannel5
 #define CCHANNEL_QLBOX ECC_GameTraceChannel6
+#define CCHANNEL_QLPUNCH ECC_GameTraceChannel7

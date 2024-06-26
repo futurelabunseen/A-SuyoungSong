@@ -58,12 +58,28 @@ void UQLAS_PlayerStat::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 
 	if ((GetHealth() <= 0.0f))
 	{
-		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+		TObjectPtr<UAbilitySystemComponent> ASC = GetOwningAbilitySystemComponent();
 
 		if (ASC)
 		{
 			FGameplayTagContainer TagContainer(CHARACTER_STATE_DEAD);
 			ASC->TryActivateAbilitiesByTag(TagContainer);
+			
+			GetWorld()->GetTimerManager().SetTimerForNextTick
+			(
+				[ASC]()
+				{
+					if (ASC)
+					{
+						FGameplayTagContainer TagContainer(CHARACTER_STATE_DEAD);
+
+						if (ASC->HasAnyMatchingGameplayTags(TagContainer) == false)
+						{
+							ASC->TryActivateAbilitiesByTag(TagContainer);
+						}
+					}
+				}
+			);
 		}
 	}
 }
