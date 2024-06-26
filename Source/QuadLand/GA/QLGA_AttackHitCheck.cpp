@@ -21,6 +21,21 @@ void UQLGA_AttackHitCheck::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
+	if (TriggerEventData == nullptr)
+	{
+		bool bReplicateEndAbility = true;
+		bool bWasCancelled = false;
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+		return;
+	}
+	if (TriggerEventData->OptionalObject == nullptr)
+	{
+		bool bReplicateEndAbility = true;
+		bool bWasCancelled = false;
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+		return;
+	}
+
 	ResultSocket = Cast<USkeletalMeshSocket>(TriggerEventData->OptionalObject);
 	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
 
@@ -38,6 +53,30 @@ void UQLGA_AttackHitCheck::EndAbility(const FGameplayAbilitySpecHandle Handle, c
 {
 	ResultSocket = nullptr;
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+bool UQLGA_AttackHitCheck::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, OUT FGameplayTagContainer* OptionalRelevantTags) const
+{
+
+	bool bResult = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+	
+	if (bResult == false)
+	{
+		return false;
+	}
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
+
+	if (SourceASC == nullptr)
+	{
+		return false;
+	}
+
+	if (SourceASC->HasMatchingGameplayTag(CHARACTER_EQUIP_GUNTYPEA))
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataHandle& TargetDataHandle)

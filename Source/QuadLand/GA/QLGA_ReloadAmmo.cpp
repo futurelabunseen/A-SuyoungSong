@@ -33,7 +33,14 @@ bool UQLGA_ReloadAmmo::CanActivateAbility(const FGameplayAbilitySpecHandle Handl
 	if (Source->HasAnyMatchingGameplayTags(StopTag))
 	{
 		return false;
+	}	
+	
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(ActorInfo->AvatarActor.Get());
+	if (Player && Player->GetIsJumping()) //Á¡ÇÁÇÒ ¶§ ÃÑÀ» ½ò ¼ö ¾ø´Ù.
+	{
+		return false;
 	}
+
 	return Result;
 }
 

@@ -35,6 +35,7 @@ void UQLGA_AttackUsingPunch::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 
 	if (Player)
 	{
+		Player->StopAim();
 		PunchAttackData = Player->GetPunchAttackData();
 		/*
 		현재 목표 : 연속으로 눌렀는지를 확인하기 위해서 Attack을 찾아서 Delegate 연결을 해주는 것을 목표로 한다.

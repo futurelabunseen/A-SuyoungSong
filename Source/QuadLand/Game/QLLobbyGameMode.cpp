@@ -84,10 +84,6 @@ void AQLLobbyGameMode::ReadyPlayer()
 		ReadyPlayerNum++;
 	}
 
-	if (ReadyPlayerNum == TotalPlayers)
-	{
-		GameStart();
-	}
 	//해당 플레이어에게 다른 플레이어가 선택중임을 UI 띄우기
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
 	{
@@ -110,7 +106,6 @@ void AQLLobbyGameMode::ShowTimeLimit()
 
 		if (PC->GetIsReady() == false)
 		{
-			UE_LOG(LogTemp, Log, TEXT(" No Select %s"), *PC->GetName());
 			PC->ClientRPCActivateTimeLimit();
 		}
 	}
