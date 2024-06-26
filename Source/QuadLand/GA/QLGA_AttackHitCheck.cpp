@@ -64,7 +64,7 @@ void UQLGA_AttackHitCheck::OnCompletedCallback(const FGameplayAbilityTargetDataH
 			}
 			else
 			{
-				//플레이어는 알필요가 없는데, AI는 누가 쐈는지 알 필요가 있음.
+				//플레이어는 알필요가 없는데, AI는 누가 때렸는지 알 필요 있음.
 				//AI는 SendGameplayEventToActor 실행
 				FGameplayEventData Payload;
 				Payload.Instigator = CurrentActorInfo->AvatarActor.Get();

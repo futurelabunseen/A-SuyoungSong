@@ -195,6 +195,7 @@ void UQLGA_AttackUsingGunByAutonomatic::ServerRPCStopAttack_Implementation()
 void UQLGA_AttackUsingGunByAutonomatic::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 
+//	QL_LOG(QLLog,Log,)
 	AQLCharacterPlayer* Character = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
 
 	Character->SetIsShooting(false);

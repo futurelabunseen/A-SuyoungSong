@@ -7,6 +7,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayTag/GamplayTags.h"
+#include "AttributeSet/QLAS_PlayerStat.h"
 
 UBTTask_Attack::UBTTask_Attack()
 {
@@ -30,8 +31,20 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	{
 		return EBTNodeResult::Failed;
 	}
+
+	if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_DEAD))
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	const UQLAS_PlayerStat *Stat = ASC->GetSet<UQLAS_PlayerStat>();
+
+	if (Stat->GetHealth() <= 0.0f)
+	{
+		return EBTNodeResult::Failed;
+	}
+
 	FGameplayTagContainer TagContainer(ControllingPawn->GetCurrentAttackTag());
 	ASC->TryActivateAbilitiesByTag(TagContainer);
-
 	return Type;
 }

@@ -27,6 +27,9 @@ public:
 
 protected:
 
+	uint8 bGrapBomb : 1;
+	uint8 bThrowBomb : 1;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AnimMontage)
 	TObjectPtr<class UAnimMontage> ThrowAnimMontage;
 

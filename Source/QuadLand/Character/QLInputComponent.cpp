@@ -293,7 +293,7 @@ void UQLInputComponent::SetInventory()
 
 void UQLInputComponent::Move(const FInputActionValue& Value)
 {
-
+	if (bShowInventory) return;
 	if (bShowMenuUI) return;
 	//이동 벡터
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
@@ -434,6 +434,8 @@ void UQLInputComponent::PressedJump()
 		return;
 	}
 
+	StopAiming();
+
 	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
 
 	if (DataManager)
@@ -501,8 +503,10 @@ void UQLInputComponent::PressedProne()
 	}
 
 	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+	FGameplayTagContainer Tag(CHARACTER_STATE_RELOAD);
+	Tag.AddTag(WEAPON_STATE_ATTACKING);
 
-	if (Movement->IsFalling()|| ASC==nullptr || ASC->HasMatchingGameplayTag(CHARACTER_STATE_RELOAD))
+	if (Movement->IsFalling()|| ASC==nullptr || ASC->HasAnyMatchingGameplayTags(Tag))
 	{
 		return;
 	}
@@ -593,9 +597,14 @@ void UQLInputComponent::Aim()
 		return;
 	}
 
-	UAbilitySystemComponent *ASC = Character->GetAbilitySystemComponent();
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 
 	if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_RUN))
+	{
+		return;
+	}
+
+	if (Character->GetIsJumping())
 	{
 		return;
 	}
@@ -691,9 +700,10 @@ void UQLInputComponent::SelectDefaultAttackType()
 		return;
 	}
 
-	//총이 없어서 아무일도 하지않아도 Default임.
+	//총이 없어서 아무일도 하지않아도 Default임. Reload중에 못바꿈
 	FGameplayTagContainer Tag(CHARACTER_EQUIP_NON);
-
+	Tag.AddTag(CHARACTER_STATE_RELOAD);
+	Tag.AddTag(WEAPON_STATE_ATTACKING);
 	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 
 	if (ASC->HasAnyMatchingGameplayTags(Tag))
@@ -723,6 +733,7 @@ void UQLInputComponent::SelectGunAttackType()
 
 	//총이 없어서 아무일도 하지않아도 Default임.
 	FGameplayTagContainer Tag(CHARACTER_EQUIP_GUNTYPEA);
+	Tag.AddTag(WEAPON_STATE_ATTACKING);
 	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 	if (ASC->HasAnyMatchingGameplayTags(Tag) || Character->bHasGun == false)
 	{
@@ -741,14 +752,18 @@ void UQLInputComponent::SelectBombAttackType()
 		return;
 	}
 
-	//총이 없어서 아무일도 하지않아도 Default임.
+	//총이 없어서 아무일도 하지않아도 Default임. 장전중에 폭탄으로 못바꿈.
 	FGameplayTagContainer Tag(CHARACTER_EQUIP_BOMB);
+	Tag.AddTag(CHARACTER_STATE_RELOAD);
+	Tag.AddTag(WEAPON_STATE_ATTACKING);
+
 	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 
-	if (ASC->HasAnyMatchingGameplayTags(Tag) || Character->GetInventoryCnt(EItemType::Bomb) == 0)
+	if (ASC->HasAnyMatchingGameplayTags(Tag) || Character->GetInventoryCnt(EItemType::Bomb) <= 0)
 	{
 		return;
 	}
+
 	Character->ServerRPCSwitchAttackType(ECharacterAttackType::BombAttack);
 
 }
@@ -762,7 +777,14 @@ void UQLInputComponent::ChangeShootingMethod()
 	{
 		return;
 	}
-	
+
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+
+	if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_RELOAD))
+	{
+		return;
+	}
+
 	if (Character->CurrentAttackType == ECharacterAttackType::GunAttack)
 	{
 		Character->bIsSemiAutomatic = false;
@@ -812,10 +834,15 @@ void UQLInputComponent::GASInputPressed(int32 id)
 		return;
 	}
 	
-	if (ASC->HasAnyMatchingGameplayTags(NotRunTag))
+	if (Character->CurrentAttackType == ECharacterAttackType::BombAttack)
 	{
-		return;
+		//이미 어빌리티가 실행 중이라면 return;
+		if (ASC->HasMatchingGameplayTag(WEAPON_STATE_ATTACKING))
+		{
+			return;
+		}
 	}
+
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
 	if (Spec)
 	{
@@ -846,10 +873,7 @@ void UQLInputComponent::GASInputReleased(int32 id)
 	uint8 InputAttackSpecNumber = GetInputNumber(id);
 
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
-	if (ASC->HasAnyMatchingGameplayTags(NotRunTag))
-	{
-		return;
-	}
+
 
 	if (Spec)
 	{

@@ -19,6 +19,7 @@ UQLInventory::UQLInventory(const FObjectInitializer& ObjectInitializer) : Super(
 void UQLInventory::AddItem(UObject* Item)
 {
 	ItemList->AddItem(Item);
+	ItemList->RequestRefresh();
 }
 
 void UQLInventory::UpdateItemEntry(UObject* InItem, int32 InItemCnt)
@@ -162,6 +163,7 @@ void UQLInventory::OnClickedItem()
 void UQLInventory::DeleteItem(UObject* Item)
 {
 	ItemList->RemoveItem(Item);
+	ItemList->RequestRefresh();
 }
 
 void UQLInventory::ClearAll() //리스폰 되면서 아이템 모두 사라짐

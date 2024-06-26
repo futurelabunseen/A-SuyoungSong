@@ -30,7 +30,7 @@ bool UQLGA_ReloadAmmo::CanActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return false;
 	}
 
-	if (Source->HasMatchingGameplayTag(CHARACTER_EQUIP_BOMB))
+	if (Source->HasAnyMatchingGameplayTags(StopTag))
 	{
 		return false;
 	}

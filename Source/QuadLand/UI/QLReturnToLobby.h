@@ -20,6 +20,7 @@ public:
 	UFUNCTION()
 	void OnDestorySession(bool bWasSuccessful);
 
+	void DestoryServer();
 	UFUNCTION()
 	void ReturnButtonClicked();
 
@@ -38,12 +39,11 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> ReturnLobbyButton;
+	UPROPERTY()
+	TObjectPtr<class APlayerController> PlayerController;
 
 	UPROPERTY()
 	TObjectPtr<class UMultiplayerSessionsSubsystem> MultiplayerSessionSubsystem;
-
-	UPROPERTY()
-	TObjectPtr<class APlayerController> PlayerController;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> TxtPhrase;

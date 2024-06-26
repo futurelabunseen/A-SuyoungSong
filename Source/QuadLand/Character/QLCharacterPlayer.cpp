@@ -47,9 +47,6 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	ASC = nullptr;
 	MovingThreshold = 3.0f;
 	CurrentAttackType = ECharacterAttackType::HookAttack; //default
-	StandMeshLoc = FVector(0.f, 0.f, -100.f);
-	OriginalCapsuleHeight = 90.f;
-	OriginalCapsuleRadius = 25.f;
 
 	ProneMeshLoc = FVector(0.f,0.f,-30.f);
 	ProneCapsuleRadius = OriginalCapsuleRadius;
@@ -232,7 +229,7 @@ void AQLCharacterPlayer::BeginPlay()
 	Weapon->Weapon->SetHiddenInGame(true); //Mesh 게임에서 안보이도록 해놓음
 
 	GetMesh()->GetAnimInstance()->OnPlayMontageNotifyBegin.AddDynamic(this, &AQLCharacterPlayer::OnPlayMontageNotifyBegin);
-
+	GetMesh()->GetAnimInstance()->OnMontageEnded.AddDynamic(this, &AQLCharacterPlayer::OnPlayMontageNotifyEnd);
 	if (!HorizontalRecoil || !VerticalRecoil)
 	{
 		return;
@@ -248,6 +245,9 @@ void AQLCharacterPlayer::BeginPlay()
 	RecoilTimeline.AddInterpFloat(VerticalRecoil, YRecoilCurve);
 
 	StartHeight = GetActorLocation().Z;
+
+	StandMeshLoc = GetMesh()->GetRelativeLocation();
+	GetCapsuleComponent()->GetUnscaledCapsuleSize(OriginalCapsuleRadius, OriginalCapsuleHeight);
 }
 
 void AQLCharacterPlayer::InitializeGAS()
@@ -967,8 +967,6 @@ void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranc
 
 	if (NotifyName == FName(TEXT("StartProneMontage")))
 	{
-		QL_LOG(QLLog, Log, TEXT("Start Prone"));
-
 		if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_PRONE) == false)
 		{
 			ASC->AddLooseGameplayTag(CHARACTER_STATE_PRONE);
@@ -986,6 +984,29 @@ void AQLCharacterPlayer::OnPlayMontageNotifyBegin(FName NotifyName, const FBranc
 		}
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 		//걷지 못하도록 MovementMode 변경
+	}
+}
+
+void AQLCharacterPlayer::OnPlayMontageNotifyEnd(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (Montage->GetName() == TEXT("M_Prone_To_Stand"))
+	{
+		if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_PRONE))
+		{
+			ASC->RemoveLooseGameplayTag(CHARACTER_STATE_PRONE);
+		}
+		//StopProneMontage가 알림오면, 움직일 수 있도록한다.
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	}
+	
+	if (Montage->GetName() == TEXT("M_Stand_To_Prone"))
+	{
+		if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_PRONE))
+		{
+			ASC->RemoveLooseGameplayTag(CHARACTER_STATE_PRONE);
+		}
+		//StopProneMontage가 알림오면, 움직일 수 있도록한다.
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
 }
 
