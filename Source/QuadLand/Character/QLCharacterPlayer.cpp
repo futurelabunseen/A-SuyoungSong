@@ -356,6 +356,17 @@ bool AQLCharacterPlayer::IsMontagePlaying(UAnimMontage* Montage) const
 	return false;
 }
 
+void AQLCharacterPlayer::StopMove()
+{
+	APlayerController* PC = Cast<APlayerController>(GetController());
+
+	if (PC)
+	{
+		DisableInput(PC);
+	}
+	GetCharacterMovement()->Velocity = FVector::ZeroVector;
+}
+
 void AQLCharacterPlayer::ClientRPCThrowBomb_Implementation()
 {
 	ThrowBomb = false;

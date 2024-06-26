@@ -22,6 +22,11 @@ void UQLGA_Win::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 	
 	if (Character)
 	{
+		if (Character->GetIsShooting())
+		{
+			Character->SetIsShooting(false);
+		}
+
 		Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 		Character->bUseControllerRotationYaw = false;
 		Character->StopAim();

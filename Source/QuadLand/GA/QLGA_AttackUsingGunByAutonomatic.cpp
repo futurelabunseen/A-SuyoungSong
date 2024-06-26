@@ -222,8 +222,6 @@ void UQLGA_AttackUsingGunByAutonomatic::CancelAbility(const FGameplayAbilitySpec
 		ServerRPCStopAttack();
 	}
 
-	OnCompleted();
-	
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 }
 

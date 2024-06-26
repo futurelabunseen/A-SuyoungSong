@@ -37,6 +37,11 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	if (DefaultCharacter)
 	{
 		AQLCharacterBase* Character = Cast<AQLCharacterBase>(GetActorInfo().AvatarActor.Get());
+		
+		if (Character->GetIsShooting())
+		{
+			Character->SetIsShooting(false);
+		}
 
 		if (Character)
 		{

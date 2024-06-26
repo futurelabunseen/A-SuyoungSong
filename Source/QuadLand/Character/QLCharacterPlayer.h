@@ -92,6 +92,9 @@ public:
 	UFUNCTION(Client,Unreliable)
 	void ClientRPCThrowBomb();
 
+
+	void StopMove();
+
 protected:
 
 	FVector ProneMeshLoc;

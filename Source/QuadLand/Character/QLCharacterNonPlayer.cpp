@@ -127,6 +127,7 @@ void AQLCharacterNonPlayer::Dead(const FGameplayTag CallbackTag, int32 NewCount)
 	if (NewCount == 1)
 	{
 		ServerRPCDead();
+		SetIsShooting(false);
 
 		AQLGameMode* GameMode = Cast<AQLGameMode>(GetWorld()->GetAuthGameMode());
 		

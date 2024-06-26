@@ -250,7 +250,7 @@ void UQLInputComponent::SetInventory()
 	{
 		return;
 	}
-
+	Character->StopMove();
 	FVector SearchLocation = Character->GetMesh()->GetSocketLocation(FName("ItemDetectionSocket"));
 
 	FCollisionQueryParams Params(TEXT("DetectionItem"), false, Character);
@@ -704,14 +704,20 @@ void UQLInputComponent::SelectDefaultAttackType()
 	FGameplayTagContainer Tag(CHARACTER_EQUIP_NON);
 	Tag.AddTag(CHARACTER_STATE_RELOAD);
 	Tag.AddTag(WEAPON_STATE_ATTACKING);
-	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 	if (ASC->HasAnyMatchingGameplayTags(Tag))
 	{
 		return; //같은 경우만 체크하면된다.
 	}
 
-	
+	FGameplayTagContainer StopTag(CHARACTER_EQUIP_BOMB);
+	if (ASC->HasMatchingGameplayTag(CHARACTER_EQUIP_BOMB))
+	{
+		ASC->CancelAbilities(&StopTag);
+		return;
+	}
+
 	Character->ServerRPCSwitchAttackType(ECharacterAttackType::HookAttack);
 }
 
@@ -734,6 +740,7 @@ void UQLInputComponent::SelectGunAttackType()
 	//총이 없어서 아무일도 하지않아도 Default임.
 	FGameplayTagContainer Tag(CHARACTER_EQUIP_GUNTYPEA);
 	Tag.AddTag(WEAPON_STATE_ATTACKING);
+
 	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 	if (ASC->HasAnyMatchingGameplayTags(Tag) || Character->bHasGun == false)
 	{
@@ -780,10 +787,13 @@ void UQLInputComponent::ChangeShootingMethod()
 
 	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 
-	if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_RELOAD))
+	if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_RELOAD) || ASC->HasMatchingGameplayTag(WEAPON_STATE_ATTACKING))
 	{
 		return;
 	}
+
+	FGameplayTagContainer StopTag(CHARACTER_EQUIP_GUNTYPEA);
+	ASC->CancelAbilities(&StopTag);
 
 	if (Character->CurrentAttackType == ECharacterAttackType::GunAttack)
 	{
@@ -794,7 +804,10 @@ void UQLInputComponent::ChangeShootingMethod()
 		Character->bIsSemiAutomatic = true;
 	}
 
-	Character->OnChangeShootingMethod.ExecuteIfBound(Character->bIsSemiAutomatic,false);
+	if (Character->OnChangeShootingMethod.IsBound())
+	{
+		Character->OnChangeShootingMethod.ExecuteIfBound(Character->bIsSemiAutomatic, false);
+	}
 	ServerRPCChangeShootingMethod();
 }
 
@@ -869,11 +882,13 @@ void UQLInputComponent::GASInputReleased(int32 id)
 	{
 		return;
 	}
+
 	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+	
+	
 	uint8 InputAttackSpecNumber = GetInputNumber(id);
 
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputAttackSpecNumber);
-
 
 	if (Spec)
 	{

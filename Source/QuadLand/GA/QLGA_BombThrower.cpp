@@ -80,8 +80,8 @@ void UQLGA_BombThrower::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	if (Player)
 	{
 		Player->ThrowBomb = true;
+		Player->StopAim();
 	}
-
 
 	if (Player->IsMontagePlaying(ThrowAnimMontage) == false)
 	{
@@ -128,7 +128,6 @@ void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, c
 {	
 	if (bThrowBomb == false)
 	{
-		QL_GASLOG(QLLog, Log, TEXT("Throw InputReleased"));
 		MontageJumpToSection(FName("Throw"));
 
 		AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
@@ -145,6 +144,40 @@ void UQLGA_BombThrower::InputReleased(const FGameplayAbilitySpecHandle Handle, c
 
 		bThrowBomb = true;
 	}
+}
+
+void UQLGA_BombThrower::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+
+	TrackDrawer = nullptr;
+	GrapAndThrowMontage = nullptr;
+
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+
+
+	if (ASC->HasMatchingGameplayTag(CHARACTER_EQUIP_BOMB))
+	{
+		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_BOMB);
+	}
+
+	FGameplayTagContainer Tag(CHARACTER_EQUIP_NON);
+	if (ASC->HasMatchingGameplayTag(CHARACTER_EQUIP_NON) == false)
+	{
+		ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
+	}
+
+	AQLCharacterPlayer* Player = Cast<AQLCharacterPlayer>(GetActorInfo().AvatarActor.Get());
+
+	UQLWeaponComponent* WeaponComp = Player->GetWeapon();
+	if (WeaponComp)
+	{
+		WeaponComp->ResetBomb();
+	}
+
+	bGrapBomb = false;
+	bThrowBomb = false;
+
 }
 
 void UQLGA_BombThrower::OnCompletedCallback()
