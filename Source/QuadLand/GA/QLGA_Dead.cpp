@@ -61,9 +61,12 @@ void UQLGA_Dead::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 
-			FTimerHandle SpawnTimerHandle;
+			//if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_DANGER) == false)
+			{
+				FTimerHandle SpawnTimerHandle;
 
-			GetWorld()->GetTimerManager().SetTimer(SpawnTimerHandle, this, &UQLGA_Dead::OnCompleted, 5.0f, false);
+				GetWorld()->GetTimerManager().SetTimer(SpawnTimerHandle, this, &UQLGA_Dead::OnCompleted, 5.0f, false);
+			}
 		}
 
 		DefaultCharacter->SetActorEnableCollision(false);
@@ -111,14 +114,20 @@ void UQLGA_Dead::OnCompleted()
 
 	if (PS)
 	{
+
+		QL_GASLOG(QLLog, Log, TEXT("11111111"));
 		AQLPlayerController* PC = Cast<AQLPlayerController>(Character->GetController());
 		FGameplayTagContainer TagContainer(CHARACTER_STATE_DANGER);
 
 		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
-		if (PS->GetHasLifeStone() || ASC->HasAnyMatchingGameplayTags(TagContainer)) //가지고 있다면 죽은것
+		if (PS->GetHasLifeStone() || ASC->HasMatchingGameplayTag(CHARACTER_STATE_DANGER)) //가지고 있다면 죽은것
 		{
+			QL_GASLOG(QLLog, Log, TEXT("222222222"));
+
 			if (PC && HasAuthority(&CurrentActivationInfo))
 			{
+				QL_GASLOG(QLLog, Log, TEXT("3333333"));
+
 				FTransform Transform = Character->GetActorTransform();
 				FActorSpawnParameters Params;
 				AQLSpectatorPawn* SpectatorPawn = GetWorld()->SpawnActor<AQLSpectatorPawn>(SpectatorPawnClass, Transform, Params);
@@ -135,6 +144,8 @@ void UQLGA_Dead::OnCompleted()
 		}
 		else
 		{
+			QL_GASLOG(QLLog, Log, TEXT("444444"));
+
 			FTimerHandle RespawnTimer;
 			GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &UQLGA_Dead::RespawnTimeFunc, 3.f, false);
 		}
@@ -159,16 +170,26 @@ void UQLGA_Dead::RespawnTimeFunc()
 		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 		if (ASC && ASC->HasMatchingGameplayTag(CHARACTER_STATE_DANGER))
 		{
-
 			bool bReplicateEndAbility = true;
-			bool bWasCancelled = true;
-
+			bool bWasCancelled = false;
+			FTransform Transform = Character->GetActorTransform();
+			FActorSpawnParameters Params;
+			QL_GASLOG(QLLog, Log, TEXT("555555555"));
+			if (GameMode)
+			{
+				QL_GASLOG(QLLog, Log, TEXT("666666666"));
+				AQLSpectatorPawn* SpectatorPawn = GetWorld()->SpawnActor<AQLSpectatorPawn>(SpectatorPawnClass, Transform, Params);
+				GameMode->Dead(FName(PS->GetName()));
+				PC->Possess(Cast<APawn>(SpectatorPawn));
+			}
+			
 			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 			return;
 		}
 
 		if (GameMode)
 		{
+			QL_GASLOG(QLLog, Log, TEXT("7777777777"));
 			GameMode->SpawnPlayerPawn(PC, PS->GetGenderType());
 		}
 	}

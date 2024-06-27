@@ -111,6 +111,7 @@ public:
 
 	void ResetUI();
 	void CloseAllUI();
+	void PlayCanSound();
 
 
 	FOnCoolTimeStamina CoolTimeStamina;

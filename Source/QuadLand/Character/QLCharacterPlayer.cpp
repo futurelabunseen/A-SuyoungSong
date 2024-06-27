@@ -37,8 +37,11 @@
 #include "Game/QLGameMode.h"
 #include "UI/QLNicknameWidget.h"
 #include "Components/WidgetComponent.h"
+#include "Sound/SoundCue.h"
+#include "Particles/ParticleSystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "QuadLand.h"
+
 
 AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer.SetDefaultSubobjectClass<UQLCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)), bHasNextPunchAttackCombo(0), CurrentCombo(0),  MaxArmLength(300.0f), bPressedFarmingKey(0), FarmingTraceDist(200.f)//, bIsTurning(false)
@@ -365,6 +368,12 @@ void AQLCharacterPlayer::StopMove()
 		DisableInput(PC);
 	}
 	GetCharacterMovement()->Velocity = FVector::ZeroVector;
+}
+
+void AQLCharacterPlayer::PlayCanSound()
+{
+	if (Sounds.Num() == 0) return;
+	UGameplayStatics::PlaySoundAtLocation(GetMesh(), Sounds[0],GetActorLocation());
 }
 
 void AQLCharacterPlayer::ClientRPCThrowBomb_Implementation()

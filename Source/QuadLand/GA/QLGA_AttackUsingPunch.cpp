@@ -64,19 +64,15 @@ FName UQLGA_AttackUsingPunch::GetNextSection()
 
 void UQLGA_AttackUsingPunch::OnCompleted()
 {
-
-	QL_GASLOG(QLLog, Warning, TEXT("44444"));
 	bool bReplicateEndAbility = true;
-	bool bWasCancelled = true;
+	bool bWasCancelled = false;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UQLGA_AttackUsingPunch::OnInterrupted()
 {
-
-	QL_GASLOG(QLLog, Warning, TEXT("333333"));
 	bool bReplicateEndAbility = true;
-	bool bWasCancelled = false;
+	bool bWasCancelled = true;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 

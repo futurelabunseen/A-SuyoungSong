@@ -45,6 +45,7 @@ void UQLGA_Danger::OnCompleted()
 	if (ASC)
 	{
 		ASC->AddLooseGameplayTag(CHARACTER_STATE_DANGER); //2°³¸¦ ºÎÂø
+		
 		ASC->TryActivateAbilitiesByTag(TagContainer);
 	}
 
