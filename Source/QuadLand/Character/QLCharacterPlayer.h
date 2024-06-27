@@ -94,6 +94,7 @@ public:
 
 
 	void StopMove();
+	void PlayCanSound();
 
 protected:
 
@@ -108,6 +109,10 @@ protected:
 protected:
 
 	uint8 bIsProning : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Sound)
+	TArray<TObjectPtr<class USoundCue>> Sounds;
+
 protected:
 
 	virtual FVector GetVelocity() const override;

@@ -143,8 +143,21 @@ void UQLInventory::RemoveAllNearbyItemEntries()
 void UQLInventory::OnClickedItem()
 {
 	UQLItemData* ItemEntry = Cast<UQLItemData>(ItemList->GetSelectedItem());
+	
+	if (ItemEntry == nullptr)
+	{
+		return;
+	}
+
+	AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetOwningPlayer());
 
 	UE_LOG(LogTemp, Warning, TEXT("%d"), ItemEntry);
+
+	if (ItemEntry->ItemType == EItemType::HPRecoveryItem)
+	{
+		//소리 나온다.
+		PC->PlayCanSound();
+	}
 	if (ItemEntry)
 	{
 		//해당 플레이어 컨트롤러에게 id-cnt값 전달
@@ -154,7 +167,6 @@ void UQLInventory::OnClickedItem()
 		//Implementation -> 아이템 사용 -> cnt 개수 차감
 		//해당 id - cnt 개수 하나 차감 -> ClientRPC 전송
 		//Inventory Update
-		AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetOwningPlayer());
 		PC->RemoveItemEntry(ItemEntry->ItemType);
 		UE_LOG(LogTemp, Warning, TEXT("Current Selected"));
 	}

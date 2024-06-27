@@ -178,6 +178,11 @@ void AQLPlayerController::ClientRPCLoose_Implementation()
 		}
 	}
 
+	if (HUDs.Find(EHUDType::Death) == 0)
+	{
+		return;
+	}
+
 	SetVisibilityHUD(EHUDType::Death);
 	UQLReturnToLobby* UserWidget = Cast<UQLReturnToLobby>(HUDs[EHUDType::Death]);
 
@@ -725,4 +730,14 @@ void AQLPlayerController::ClientRPCOutLobby_Implementation()
 //	ClientReturnToMainMenuWithTextReason(FText());
 	
 	GetWorld()->ServerTravel(FString("/Game/QuadLand/Maps/Opening?listen"));
+}
+
+void AQLPlayerController::PlayCanSound()
+{
+	AQLCharacterPlayer* TmpCharacter = Cast<AQLCharacterPlayer>(GetPawn());
+
+	if (TmpCharacter)
+	{
+		TmpCharacter->PlayCanSound();
+	}
 }
