@@ -171,16 +171,25 @@ void UQLGA_Dead::RespawnTimeFunc()
 		if (ASC && ASC->HasMatchingGameplayTag(CHARACTER_STATE_DANGER))
 		{
 			bool bReplicateEndAbility = true;
-			bool bWasCancelled = true;
-
+			bool bWasCancelled = false;
+			FTransform Transform = Character->GetActorTransform();
+			FActorSpawnParameters Params;
+			QL_GASLOG(QLLog, Log, TEXT("555555555"));
+			if (GameMode)
+			{
+				QL_GASLOG(QLLog, Log, TEXT("666666666"));
+				AQLSpectatorPawn* SpectatorPawn = GetWorld()->SpawnActor<AQLSpectatorPawn>(SpectatorPawnClass, Transform, Params);
+				GameMode->Dead(FName(PS->GetName()));
+				PC->Possess(Cast<APawn>(SpectatorPawn));
+			}
+			
 			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 			return;
 		}
 
 		if (GameMode)
 		{
-			QL_GASLOG(QLLog, Log, TEXT("555555555"));
-
+			QL_GASLOG(QLLog, Log, TEXT("7777777777"));
 			GameMode->SpawnPlayerPawn(PC, PS->GetGenderType());
 		}
 	}

@@ -22,7 +22,6 @@ void UQLGA_Danger::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	if (PC)
 	{
-		QL_GASLOG(QLLog, Warning, TEXT("this?"));
 		if (PC->OnDeathCheckDelegate.IsBound() == false)
 		{
 			PC->OnDeathCheckDelegate.BindUObject(this, &UQLGA_Danger::OnCompleted);
@@ -47,7 +46,6 @@ void UQLGA_Danger::OnCompleted()
 	{
 		ASC->AddLooseGameplayTag(CHARACTER_STATE_DANGER); //2°³¸¦ ºÎÂø
 		
-		QL_GASLOG(QLLog, Warning, TEXT("this?"));
 		ASC->TryActivateAbilitiesByTag(TagContainer);
 	}
 
