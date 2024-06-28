@@ -250,6 +250,18 @@ void UQLInputComponent::SetInventory()
 	{
 		return;
 	}
+
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+	if (ASC == nullptr)
+	{
+		return;
+	}
+
+	if (ASC->HasMatchingGameplayTag(CHARACTER_STATE_DEAD))
+	{
+		return;
+	}
+
 	Character->StopMove();
 	FVector SearchLocation = Character->GetMesh()->GetSocketLocation(FName("ItemDetectionSocket"));
 
@@ -293,7 +305,6 @@ void UQLInputComponent::SetInventory()
 
 void UQLInputComponent::Move(const FInputActionValue& Value)
 {
-	if (bShowInventory) return;
 	if (bShowMenuUI) return;
 	//¿Ãµø ∫§≈Õ
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();

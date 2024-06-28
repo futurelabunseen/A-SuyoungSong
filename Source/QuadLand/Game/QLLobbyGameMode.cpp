@@ -16,7 +16,7 @@ AQLLobbyGameMode::AQLLobbyGameMode()
 
 	bIsFirstCondition = false;
 	ReadyPlayerNum = 0;
-	TotalPlayers = 4; //초반엔 4명이지만, 10초 이상 지난 후에는 현재 존재하는 플레이어 수로 확정하게 된다.
+	TotalPlayers = 2; //초반엔 4명이지만, 10초 이상 지난 후에는 현재 존재하는 플레이어 수로 확정하게 된다.
 }
 
 void AQLLobbyGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
@@ -48,15 +48,13 @@ void AQLLobbyGameMode::ConfirmPlayerCount()
 {
 	int32 NumberOfPlayers = GameState.Get()->PlayerArray.Num();
 	
-	TotalPlayers = NumberOfPlayers;
-
-	if (ReadyPlayerNum == TotalPlayers)
+	if (ReadyPlayerNum >= NumberOfPlayers)
 	{
 		GameStart();
 	}
 
-	GetWorld()->GetTimerManager().SetTimer(TimeLimitTimer, this, &AQLLobbyGameMode::ShowTimeLimit, LimitTime, false);
 
+	//GetWorld()->GetTimerManager().SetTimer(TimeLimitTimer, this, &AQLLobbyGameMode::ShowTimeLimit, LimitTime, false);
 	//같지 않으면 레디 안한 플레이어 컨트롤러한테 제한 시간을 부여 
 	
 }
@@ -79,11 +77,12 @@ void AQLLobbyGameMode::GameStart()
 
 void AQLLobbyGameMode::ReadyPlayer()
 {
-	if (ReadyPlayerNum < TotalPlayers)
-	{
-		ReadyPlayerNum++;
-	}
+	ReadyPlayerNum++;
 
+	if (ReadyPlayerNum >= TotalPlayers)
+	{
+		ConfirmPlayerCount();
+	}
 	//해당 플레이어에게 다른 플레이어가 선택중임을 UI 띄우기
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; It++)
 	{
