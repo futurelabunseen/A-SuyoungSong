@@ -445,12 +445,18 @@ void AQLPlayerState::CoolTimeStamina(const FGameplayTag CallbackTag, int32 NewCo
         {
             PC->CoolTimeStamina.ExecuteIfBound();
         }
-        GetWorld()->GetTimerManager().SetTimer(CoolTimer, FTimerDelegate::CreateLambda([&]()
+
+        TObjectPtr<UAbilitySystemComponent> SourceASC = GetAbilitySystemComponent();
+        GetWorld()->GetTimerManager().SetTimer(CoolTimer, FTimerDelegate::CreateLambda([SourceASC]()
             {
-                if (ASC)
+                if (SourceASC)
                 {
                     FGameplayTagContainer Tag(CHARACTER_STATE_NOTRUN);
-                    ASC->RemoveLooseGameplayTags(Tag);
+
+                    if (SourceASC->HasMatchingGameplayTag(CHARACTER_STATE_NOTRUN))
+                    {
+                        SourceASC->RemoveLooseGameplayTags(Tag);
+                    }
                 }
             }
         ), 10.0f, false);
