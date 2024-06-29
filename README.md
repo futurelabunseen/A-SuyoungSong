@@ -10,7 +10,7 @@
 |개발 인원|1인 개발|
 |사용 에디터|Unreal Engine 5.2.1|
 |게임 영상|[Youtube](https://youtu.be/7dDOaXCgpPM?si=ZmH3YlUCN4XMGDfP)|
-|게임 다운로드|[Google Drive](https://drive.google.com/file/d/1eHhdjX-D9ZwFZI3gP_IYpxXHOQJqc6xw/view?usp=sharing)|
+|게임 다운로드|[Google Drive](https://drive.google.com/file/d/1D4OBhuT28q80ipwx2FkUMdyI91aTU1au/view?usp=sharing)|
 
 ## 프로젝트 소개 </br>
 ### 멀티 플레이 요소
