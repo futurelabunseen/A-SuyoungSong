@@ -12,6 +12,24 @@
 |게임 영상|[Youtube](https://youtu.be/7dDOaXCgpPM?si=ZmH3YlUCN4XMGDfP)|
 |게임 다운로드|[Google Drive](https://drive.google.com/file/d/1D4OBhuT28q80ipwx2FkUMdyI91aTU1au/view?usp=sharing)|
 
+## 게임 플레이 </br>
+|조작|내용|
+|------|---|
+|WASD|이동|
+|마우스 좌측|공격|
+|마우스 우측 더블 클릭|아이템 사용|
+|Shift|뛰기|
+|Space|점프|
+|Tab|인벤토리|
+|1/2/3|무기 교체|
+|F|상호 작용|
+|G|무기 버리기|
+|C|웅크리기|
+|Z|엎드리기|
+|H|생명석 보관/줍기|
+|B|단발/연사|
+|M|맵|
+
 ## 프로젝트 소개 </br>
 ### 멀티 플레이 요소
 * 인벤토리 시스템 </br>
