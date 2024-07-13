@@ -13,6 +13,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Abilities/GameplayAbility.h"
 #include "Components/SplineComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/CapsuleComponent.h"
 
 #include "GameplayTag/GamplayTags.h"
@@ -118,6 +119,11 @@ AQLCharacterPlayer::AQLCharacterPlayer(const FObjectInitializer& ObjectInitializ
 	BombPath->SetupAttachment(GetMesh(), TEXT("Bomb"));
 	BombPath->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 	BombPath->SetHiddenInGame(true); //Bomb을 들지않았을 때에는 보이지않는다.
+
+	InventoryOverlap = CreateDefaultSubobject<USphereComponent>(TEXT("InventoryOverlap"));
+	InventoryOverlap->InitSphereRadius(SearchRange);
+	InventoryOverlap->SetupAttachment(GetMesh(), TEXT("ik_foot_root"));
+	InventoryOverlap->SetCollisionProfileName(CPROFILE_QLINTERECTIONITEM); //나중에 변경 예정 -> object가 추가 되고 등등..
 }
 /// <summary>
 /// PossessedBy 자체가 서버에서만 호출되기 때문에, 아래 Ability System 등록은 서버에서만 수행
@@ -137,7 +143,6 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 		ASC->RegisterGameplayTagEvent(CHARACTER_EQUIP_BOMB, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::ResetBomb);
 		ASC->RegisterGameplayTagEvent(CHARACTER_STATE_RELOAD, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AQLCharacterPlayer::UpdateAmmo);
 	}
-
 	InitNickname();	
 
 	GetWorld()->GetTimerManager().SetTimerForNextTick
@@ -248,7 +253,6 @@ void AQLCharacterPlayer::BeginPlay()
 	RecoilTimeline.AddInterpFloat(VerticalRecoil, YRecoilCurve);
 
 	StartHeight = GetActorLocation().Z;
-
 	StandMeshLoc = GetMesh()->GetRelativeLocation();
 	GetCapsuleComponent()->GetUnscaledCapsuleSize(OriginalCapsuleRadius, OriginalCapsuleHeight);
 }
@@ -583,6 +587,46 @@ void AQLCharacterPlayer::UpdateAmmoTemp()
 		QLInventory->InventoryItem[EItemType::Ammo] = 0;
 		ClientRPCUpdateAmmoUI();
 	}
+}
+
+void AQLCharacterPlayer::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult)
+{
+	AQLItemBox* HitItem = Cast<AQLItemBox>(OtherActor);
+
+	if (HitItem == nullptr)
+	{
+		return;
+	}
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
+	ItemData->CurrentItemCnt = 1;
+	PC->UpdateNearbyItemEntry(ItemData);
+}
+
+void AQLCharacterPlayer::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	AQLItemBox* HitItem = Cast<AQLItemBox>(OtherActor);
+
+	if (HitItem == nullptr)
+	{
+		return;
+	}
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
+	
+	PC->RemoveNearbyItemEntry(ItemData);
 }
 
 
@@ -924,6 +968,17 @@ void AQLCharacterPlayer::InitNickname()
 	if (PS)
 	{
 		SetNickname(PS->GetPlayerName());
+	}
+	if (InventoryOverlap)
+	{
+		if (InventoryOverlap->OnComponentBeginOverlap.IsBound()==false)
+		{
+			InventoryOverlap->OnComponentBeginOverlap.AddDynamic(this, &AQLCharacterPlayer::OnOverlapBegin);
+		}
+		if (InventoryOverlap->OnComponentEndOverlap.IsBound() == false)
+		{
+			InventoryOverlap->OnComponentEndOverlap.AddDynamic(this, &AQLCharacterPlayer::OnOverlapEnd);
+		}
 	}
 }
 

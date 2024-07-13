@@ -93,6 +93,7 @@ public:
 
 	FOnDeathCheckDelegate OnDeathCheckDelegate;
 	void RemoveAllNearbyItemEntries(); //傈何 力芭
+	void RemoveNearbyItemEntry(UObject* Item); //傈何 力芭
 	uint8 bReadyGame : 1;
 
 	UFUNCTION(Client,Reliable)

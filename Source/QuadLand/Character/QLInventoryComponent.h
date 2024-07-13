@@ -36,7 +36,7 @@ public:
 	void UseItem(EItemType ItemId); //아이템을 사용
 	void AddInventoryByDraggedItem(EItemType ItemId, int32 ItemCnt);
 	void AddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt);
-
+	virtual void BeginPlay() override;
 public:
 
 	UFUNCTION(NetMulticast,Unreliable)

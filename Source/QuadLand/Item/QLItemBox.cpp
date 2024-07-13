@@ -58,7 +58,7 @@ AQLItemBox::AQLItemBox() : HitLen(150.f)
 	Trigger->OnComponentBeginOverlap.AddDynamic(this, &AQLItemBox::OnOverlapBegin);
 	Trigger->OnComponentEndOverlap.AddDynamic(this, &AQLItemBox::OnEndOverlap);
 
-	NetCullDistanceSquared = 4000000.0f;
+	NetCullDistanceSquared = 10000000.0f;
 	AlertComponent->SetHiddenInGame(true);
 }
 
