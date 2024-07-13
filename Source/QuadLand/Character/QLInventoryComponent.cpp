@@ -4,6 +4,7 @@
 #include "Character/QLInventoryComponent.h"
 #include "Player/QLPlayerController.h"
 #include "Player/QLPlayerState.h"
+#include "Components/SphereComponent.h"
 #include "Character/QLCharacterPlayer.h"
 #include "GameData/QLDataManager.h"
 #include "Interface/QLGetItemStat.h"
@@ -249,7 +250,6 @@ void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EI
 
 void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt)
 {
-
 	if (!HasAuthority())
 	{
 		if (InventoryItem.Find(ItemId))
@@ -270,6 +270,17 @@ void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId, int32 ItemC
 	}
 	//Server RPC 전송 -> Server 아이템 생성 및 아이템 조정 
 	ServerRPCAddGroundByDraggedItem(ItemId, ItemCnt);
+}
+
+void UQLInventoryComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
+	if (Character == nullptr)
+	{
+		return;
+	}
 }
 
 void UQLInventoryComponent::MulticastRPCItemMotion_Implementation(EItemType ItemId)

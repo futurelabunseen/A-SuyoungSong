@@ -139,8 +139,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UQLInventoryComponent> QLInventory;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory)
+	TObjectPtr<class USphereComponent> InventoryOverlap; //Inv
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPrivateAccess = "true"))
-	float SearchRange;
+	float SearchRange = 80.f;
 
 	UFUNCTION(Server, Unreliable)
 	void ServerRPCSwitchAttackType(ECharacterAttackType InputKey);
@@ -296,5 +299,15 @@ public:
 
 	UFUNCTION(Client,Unreliable)
 	void ClientRPCUpdateAmmoUI();
+
+protected:
+	
+	//Inventory Overlap
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult);
+
+
+	UFUNCTION()
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 };

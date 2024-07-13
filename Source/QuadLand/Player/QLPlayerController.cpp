@@ -218,7 +218,7 @@ void AQLPlayerController::CloseInventroy()
 
 	if (InventoryUI)
 	{
-		InventoryUI->RemoveAllNearbyItemEntries(); //傈何 力芭
+		//InventoryUI->RemoveAllNearbyItemEntries(); //傈何 力芭
 		CloseHUD(EHUDType::Inventory);
 	}
 }
@@ -739,5 +739,17 @@ void AQLPlayerController::PlayCanSound()
 	if (TmpCharacter)
 	{
 		TmpCharacter->PlayCanSound();
+	}
+}
+
+void AQLPlayerController::RemoveNearbyItemEntry(UObject *Item)
+{
+	if (IsLocalController())
+	{
+		UQLInventory* InventoryUI = Cast<UQLInventory>(HUDs[EHUDType::Inventory]);
+		if (InventoryUI)
+		{
+			InventoryUI->RemoveNearbyItemEntry(Item);
+		}
 	}
 }

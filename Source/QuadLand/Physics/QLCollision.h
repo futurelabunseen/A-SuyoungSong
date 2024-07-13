@@ -5,6 +5,7 @@
 #define CPROFILE_QLTRIGGER TEXT("QLTrigger")
 #define CPROFILE_QLPHYSICS TEXT("QLPhysicsActor")
 #define CPROFILE_QLWEAPON TEXT("QLWeapon")
+#define CPROFILE_QLINTERECTIONITEM TEXT("QLInteractionItem")
 
 #define CCHANNEL_QLACTION ECC_GameTraceChannel1
 #define CCHANNEL_QLITEMACTION ECC_GameTraceChannel2

@@ -262,39 +262,39 @@ void UQLInputComponent::SetInventory()
 		return;
 	}
 
-	Character->StopMove();
-	FVector SearchLocation = Character->GetMesh()->GetSocketLocation(FName("ItemDetectionSocket"));
+	//Character->StopMove();
+	//FVector SearchLocation = Character->GetMesh()->GetSocketLocation(FName("ItemDetectionSocket"));
 
-	FCollisionQueryParams Params(TEXT("DetectionItem"), false, Character);
+	//FCollisionQueryParams Params(TEXT("DetectionItem"), false, Character);
 
-	TArray<FHitResult> NearbyItems;
+	//TArray<FHitResult> NearbyItems;
 
-	bool bResult = GetWorld()->SweepMultiByChannel(
-		NearbyItems,
-		SearchLocation,
-		SearchLocation,
-		FQuat::Identity,
-		CCHANNEL_QLITEMACTION,
-		FCollisionShape::MakeSphere(Character->SearchRange),
-		Params
-	);
+	//bool bResult = GetWorld()->SweepMultiByChannel(
+	//	NearbyItems,
+	//	SearchLocation,
+	//	SearchLocation,
+	//	FQuat::Identity,
+	//	CCHANNEL_QLITEMACTION,
+	//	FCollisionShape::MakeSphere(Character->SearchRange),
+	//	Params
+	//);
 
-	if (bResult)
-	{
-		for (const auto& NearbyItem : NearbyItems)
-		{
-			AQLItemBox* HitItem = Cast<AQLItemBox>(NearbyItem.GetActor());
-			if (HitItem)
-			{
-				UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
-				if (ItemData->ItemType != EItemType::Weapon)
-				{
-					ItemData->CurrentItemCnt = 1;
-					PC->UpdateNearbyItemEntry(ItemData);
-				}
-			}
-		}
-	}
+	//if (bResult)
+	//{
+	//	for (const auto& NearbyItem : NearbyItems)
+	//	{
+	//		AQLItemBox* HitItem = Cast<AQLItemBox>(NearbyItem.GetActor());
+	//		if (HitItem)
+	//		{
+	//			UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
+	//			if (ItemData->ItemType != EItemType::Weapon)
+	//			{
+	//				ItemData->CurrentItemCnt = 1;
+	//				PC->UpdateNearbyItemEntry(ItemData);
+	//			}
+	//		}
+	//	}
+	//}
 
 	FInputModeUIOnly UIOnlyInputMode;
 	PC->SetVisibilityHUD(EHUDType::Inventory);
