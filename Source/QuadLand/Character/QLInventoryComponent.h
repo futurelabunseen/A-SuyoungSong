@@ -19,6 +19,7 @@ class QUADLAND_API UQLInventoryComponent : public UPawnComponent
 public:
 	UQLInventoryComponent(const FObjectInitializer& ObjectInitializer);
 	
+	virtual void BeginPlay() override;
 	int GetInventoryCnt(EItemType ItemType);
 protected:
 
@@ -28,15 +29,27 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item, Meta = (AllowPrivateAccess = "true"))
 	TMap<EItemType, TObjectPtr<class UAnimMontage>> ItemMontage;
-
 	uint8 bIsSetVisibleInventory : 1;
+
+protected:
+	//주변 아이템을 관리할 변수타입
+	TMap<EItemType, TArray<TObjectPtr<AActor>>> NearbyItems; //주변 아이템을 관리하기 위한 변수 타입.
+
+	//Inventory Overlap
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult);
+
+
+	UFUNCTION()
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 
 public:
 	void AddItem(EItemType ItemId, int32 ItemCnt);
 	void UseItem(EItemType ItemId); //아이템을 사용
-	void AddInventoryByDraggedItem(EItemType ItemId, int32 ItemCnt);
-	void AddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt);
-	virtual void BeginPlay() override;
+	void AddInventoryByDraggedItem(EItemType ItemId);
+	void AddGroundByDraggedItem(EItemType ItemId,int32 ItemCnt);
+
 public:
 
 	UFUNCTION(NetMulticast,Unreliable)
@@ -52,7 +65,7 @@ public:
 public:
 	//RPC Section - Add
 	UFUNCTION(Server, Reliable)
-	void ServerRPCAddInventoryByDraggedItem(EItemType ItemId, int32 ItemCnt);
+	void ServerRPCAddInventoryByDraggedItem(EItemType ItemId);
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCAddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt);

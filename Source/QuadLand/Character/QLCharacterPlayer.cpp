@@ -589,47 +589,6 @@ void AQLCharacterPlayer::UpdateAmmoTemp()
 	}
 }
 
-void AQLCharacterPlayer::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult)
-{
-	AQLItemBox* HitItem = Cast<AQLItemBox>(OtherActor);
-
-	if (HitItem == nullptr)
-	{
-		return;
-	}
-	AQLPlayerController* PC = GetController<AQLPlayerController>();
-
-	if (PC == nullptr)
-	{
-		return;
-	}
-
-	UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
-	ItemData->CurrentItemCnt = 1;
-	PC->UpdateNearbyItemEntry(ItemData);
-}
-
-void AQLCharacterPlayer::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	AQLItemBox* HitItem = Cast<AQLItemBox>(OtherActor);
-
-	if (HitItem == nullptr)
-	{
-		return;
-	}
-	AQLPlayerController* PC = GetController<AQLPlayerController>();
-
-	if (PC == nullptr)
-	{
-		return;
-	}
-
-	UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
-	
-	PC->RemoveNearbyItemEntry(ItemData);
-}
-
-
 void AQLCharacterPlayer::ClientRPCUpdateAmmoUI_Implementation()
 {
 	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
@@ -968,17 +927,6 @@ void AQLCharacterPlayer::InitNickname()
 	if (PS)
 	{
 		SetNickname(PS->GetPlayerName());
-	}
-	if (InventoryOverlap)
-	{
-		if (InventoryOverlap->OnComponentBeginOverlap.IsBound()==false)
-		{
-			InventoryOverlap->OnComponentBeginOverlap.AddDynamic(this, &AQLCharacterPlayer::OnOverlapBegin);
-		}
-		if (InventoryOverlap->OnComponentEndOverlap.IsBound() == false)
-		{
-			InventoryOverlap->OnComponentEndOverlap.AddDynamic(this, &AQLCharacterPlayer::OnOverlapEnd);
-		}
 	}
 }
 

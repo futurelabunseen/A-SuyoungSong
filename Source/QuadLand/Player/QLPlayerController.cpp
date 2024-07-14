@@ -550,14 +550,14 @@ void AQLPlayerController::UpdateEquipBombUI(bool InVisible)
 	}
 }
 
-void AQLPlayerController::AddInventoryByDraggedItem(EItemType ItemIdx, int32 CurrentItemCnt)
+void AQLPlayerController::AddInventoryByDraggedItem(EItemType ItemIdx)
 {
 	//PlayerÀü´Þ
 	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 
 	if (QLCharacter)
 	{
-		QLCharacter->GetInventory()->AddInventoryByDraggedItem(ItemIdx, CurrentItemCnt);
+		QLCharacter->GetInventory()->AddInventoryByDraggedItem(ItemIdx);
 	}
 }
 
