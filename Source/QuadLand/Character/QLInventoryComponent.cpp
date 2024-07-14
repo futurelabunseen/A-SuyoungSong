@@ -20,6 +20,67 @@ UQLInventoryComponent::UQLInventoryComponent(const FObjectInitializer& ObjectIni
 }
 
 
+void UQLInventoryComponent::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult)
+{
+	AQLItemBox* HitItem = Cast<AQLItemBox>(OtherActor);
+
+	if (HitItem == nullptr)
+	{
+		return;
+	}
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
+	ItemData->CurrentItemCnt = 1;
+
+	if (NearbyItems.Find(ItemData->ItemType))
+	{
+		NearbyItems[ItemData->ItemType].Push(OtherActor);
+	}
+	else
+	{
+		//임시로, TArray를 생성해서, NearbyItems 자료구조에 삽입할 수 있도록 한다.
+		TArray<TObjectPtr<AActor>> ActorArray;
+		ActorArray.Add(OtherActor);
+		NearbyItems.Add(ItemData->ItemType, ActorArray);
+	}
+
+	PC->UpdateNearbyItemEntry(ItemData);
+}
+
+void UQLInventoryComponent::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	AQLItemBox* HitItem = Cast<AQLItemBox>(OtherActor);
+
+	if (HitItem == nullptr)
+	{
+		return;
+	}
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+
+	if (PC == nullptr)
+	{
+		return;
+	}
+
+	UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
+
+	QL_SUBLOG(QLLog, Log, TEXT("No Remove Actor, Current Cnt %d"), NearbyItems[ItemData->ItemType].Num());
+	if (NearbyItems.Find(ItemData->ItemType))
+	{
+		NearbyItems[ItemData->ItemType].Remove(OtherActor);
+	}
+
+	QL_SUBLOG(QLLog, Log, TEXT("Remove Actor -1, Current Cnt %d"), NearbyItems[ItemData->ItemType].Num());
+
+	PC->RemoveNearbyItemEntry(ItemData);
+}
+
 void UQLInventoryComponent::AddItem(EItemType ItemId, int32 ItemCnt)
 {
 	if (InventoryItem.Find(ItemId))
@@ -151,7 +212,7 @@ void UQLInventoryComponent::ClientRPCRemoveItem_Implementation(EItemType InItemI
 }
 
 
-void UQLInventoryComponent::AddInventoryByDraggedItem(EItemType InItemId, int32 InItemCnt)
+void UQLInventoryComponent::AddInventoryByDraggedItem(EItemType InItemId)
 {
 	AQLPlayerController* PC = GetController<AQLPlayerController>();
 
@@ -162,19 +223,22 @@ void UQLInventoryComponent::AddInventoryByDraggedItem(EItemType InItemId, int32 
 
 	if (!HasAuthority())
 	{
-		AddItem(InItemId,InItemCnt);
+		//현재 개수 
+		AddItem(InItemId, NearbyItems[InItemId].Num());
 	}
-	//UI변경
+
+	///UI변경
 	if (InItemId == EItemType::Bomb)
 	{
 		PC->UpdateEquipBombUI(true);
 	}
-	//실제로 아이템이 있는지 검사하기 위해서 서버에게 요청해야함;
+	////실제로 아이템이 있는지 검사하기 위해서 서버에게 요청해야함;
 	PC->BlinkBag();
-	ServerRPCAddInventoryByDraggedItem(InItemId, InItemCnt);
+	ServerRPCAddInventoryByDraggedItem(InItemId);
+	NearbyItems[InItemId].Empty(); //주변에 있는 ItemId에 대해서 개수를 모두 없앤다. -> Why? Inventory안에 넣었으니깐.
 }
 
-void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EItemType ItemId, int32 ItemCnt)
+void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EItemType ItemId)
 {
 	AQLPlayerController* PC = GetController<AQLPlayerController>();
 
@@ -183,69 +247,32 @@ void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EI
 	{
 		return;
 	}
-	bool bResult = false;
-	FVector SearchLocation = Character->GetMesh()->GetSocketLocation(FName("ItemDetectionSocket"));
-	//서버에서만 적용
-	FCollisionQueryParams Params(TEXT("DetectionItem"), false, Character);
-
-	TArray<FHitResult> NearbyItems;
-	//ItemDetectionSocket
-	bResult = GetWorld()->SweepMultiByChannel(
-		NearbyItems,
-		SearchLocation,
-		SearchLocation,
-		FQuat::Identity,
-		CCHANNEL_QLITEMACTION,
-		FCollisionShape::MakeSphere(Character->SearchRange),
-		Params
-	);
-
-	if (bResult)
+	if (NearbyItems[ItemId].Num() == 0)
 	{
-		bool IsNotFound = true;
-		for (const auto& NearbyItem : NearbyItems)
-		{
-			AQLItemBox* HitItem = Cast<AQLItemBox>(NearbyItem.GetActor());
-			if (HitItem)
-			{
-				//인벤토리에 Item 정보를 전송
-				UQLItemData* ItemData = CastChecked<UQLItemData>(HitItem->Stat);
-				if (ItemData->ItemType == ItemId)
-				{
-					HitItem->SetLifeSpan(0.3f);
-					//같으면 추가한다.
-					if (InventoryItem.Find(ItemId))
-					{
-						IsNotFound = false;
-						InventoryItem[ItemId]++;
-					}
-
-					if (ItemId == EItemType::Ammo)
-					{
-						AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-						if (PS == nullptr)
-						{
-							return;
-						}
-						UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
-
-						UQLItemData* Data = DataManager->GetItem(ItemId);
-						IQLGetItemStat* ItemStat = CastChecked<IQLGetItemStat>(Data);
-						PS->SetAmmoStat(ItemStat->GetStat());
-					}
-				}
-			}
-		}
-
-		if (IsNotFound)
-		{
-			InventoryItem.Add(ItemId, ItemCnt);
-		}
+		return;
 	}
-	else
+
+	for (const auto& NearbyItem : NearbyItems[ItemId])
 	{
-		ClientRPCRollbackInventory(ItemId, ItemCnt);
+		NearbyItem->SetLifeSpan(0.3f);
 	}
+
+	if (ItemId == EItemType::Ammo)
+	{
+		AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+		if (PS == nullptr)
+		{
+			return;
+		}
+		UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+		UQLItemData* Data = DataManager->GetItem(ItemId);
+		IQLGetItemStat* ItemStat = CastChecked<IQLGetItemStat>(Data);
+		PS->SetAmmoStat(ItemStat->GetStat() * NearbyItems[ItemId].Num()); //총알의 개수 * 현재 주운 총알 개수 그리고 Empty로 리셋시켜준다.
+	}
+
+	AddItem(ItemId, NearbyItems[ItemId].Num());
+
+	NearbyItems[ItemId].Empty(); //모두 없앤다.
 }
 
 void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt)
@@ -262,7 +289,6 @@ void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId, int32 ItemC
 		}
 	}
 	//UI변경
-	// 
 	if (ItemId == EItemType::Bomb)
 	{
 		AQLPlayerController* PC = GetController<AQLPlayerController>();
@@ -280,6 +306,17 @@ void UQLInventoryComponent::BeginPlay()
 	if (Character == nullptr)
 	{
 		return;
+	}
+	if (Character->InventoryOverlap)
+	{
+		if (Character->InventoryOverlap->OnComponentBeginOverlap.IsBound() == false)
+		{
+			Character->InventoryOverlap->OnComponentBeginOverlap.AddDynamic(this, &UQLInventoryComponent::OnOverlapBegin);
+		}
+		if (Character->InventoryOverlap->OnComponentEndOverlap.IsBound() == false)
+		{
+			Character->InventoryOverlap->OnComponentEndOverlap.AddDynamic(this, &UQLInventoryComponent::OnOverlapEnd);
+		}
 	}
 }
 

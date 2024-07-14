@@ -90,7 +90,7 @@ void UQLInventory::UpdateInventoryByDraggedItem(UObject* InItem)
 	}
 
 	//현재 증가된 개수를 전달해야함.
-	PC->AddInventoryByDraggedItem(InItemInfo->ItemType, AddedItemCnt);
+	PC->AddInventoryByDraggedItem(InItemInfo->ItemType); //추가된 개수를 전달할 필요없음.
 	ItemList->RegenerateAllEntries();
 }
 
