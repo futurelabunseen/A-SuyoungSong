@@ -59,7 +59,7 @@ public:
 
 	void AddInventoryByDraggedItem(EItemType ItemIdx);
 	void RemoveItemEntry(EItemType ItemIdx); //선택된 arr값 - id를 넘겨서 제거하자
-	void AddGroundByDraggedItem(EItemType ItemIdx, int32 CurrentItemCnt);
+	void AddGroundByDraggedItem(EItemType ItemIdx);
 	void ConcealLifeStone(bool InVisible);
 
 	virtual void OnPossess(APawn* aPawn) override;
