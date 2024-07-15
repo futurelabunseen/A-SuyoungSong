@@ -878,7 +878,7 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 	Location.Y -= 30.0f;
 	FActorSpawnParameters Params;
 	AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(Weapon->GroundWeapon, Location, FRotator::ZeroRotator, Params);
-	GroundItem->SetPhysics();
+	GroundItem->PlaceOnTheGround();
 	CurrentAttackType = ECharacterAttackType::HookAttack;
 
 	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());

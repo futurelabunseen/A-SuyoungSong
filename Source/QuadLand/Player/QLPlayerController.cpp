@@ -573,14 +573,14 @@ void AQLPlayerController::RemoveItemEntry(EItemType ItemIdx)
 
 }
 
-void AQLPlayerController::AddGroundByDraggedItem(EItemType ItemIdx, int32 CurrentItemCnt)
+void AQLPlayerController::AddGroundByDraggedItem(EItemType ItemIdx)
 {
 	//PlayerÀü´Þ
 	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
 
 	if (QLCharacter)
 	{
-		QLCharacter->GetInventory()->AddGroundByDraggedItem(ItemIdx, CurrentItemCnt);
+		QLCharacter->GetInventory()->AddGroundByDraggedItem(ItemIdx);
 	}
 }
 

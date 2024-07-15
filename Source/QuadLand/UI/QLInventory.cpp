@@ -96,11 +96,11 @@ void UQLInventory::UpdateInventoryByDraggedItem(UObject* InItem)
 
 void UQLInventory::UpdateNearbyItemEntryByDraggedItem(UObject* InItem)
 {
-	GroundItem->AddItem(InItem);
+	//GroundItem->AddItem(InItem);
 	UQLItemData* InItemInfo = Cast<UQLItemData>(InItem);
 	//PC»£√‚
 	AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetOwningPlayer());
-	PC->AddGroundByDraggedItem(InItemInfo->ItemType, InItemInfo->CurrentItemCnt);
+	PC->AddGroundByDraggedItem(InItemInfo->ItemType);
 }
 
 
@@ -121,6 +121,7 @@ void UQLInventory::UpdateNearbyItemEntry(UObject* InItem)
 			break;
 		}
 	}
+	UE_LOG(LogTemp, Warning, TEXT("UpdateNearbyItemEntry %d"), InItemInfo->CurrentItemCnt);
 
 	if (IsNotFound == true)
 	{
@@ -133,6 +134,7 @@ void UQLInventory::UpdateNearbyItemEntry(UObject* InItem)
 void UQLInventory::RemoveNearbyItemEntry(UObject* InItem)
 {
 	GroundItem->RemoveItem(InItem);
+	GroundItem->RequestRefresh();
 }
 
 void UQLInventory::RemoveAllNearbyItemEntries()

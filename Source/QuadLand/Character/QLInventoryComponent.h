@@ -48,7 +48,7 @@ public:
 	void AddItem(EItemType ItemId, int32 ItemCnt);
 	void UseItem(EItemType ItemId); //아이템을 사용
 	void AddInventoryByDraggedItem(EItemType ItemId);
-	void AddGroundByDraggedItem(EItemType ItemId,int32 ItemCnt);
+	void AddGroundByDraggedItem(EItemType ItemId);
 
 public:
 
@@ -68,7 +68,7 @@ public:
 	void ServerRPCAddInventoryByDraggedItem(EItemType ItemId);
 
 	UFUNCTION(Server, Reliable)
-	void ServerRPCAddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt);
+	void ServerRPCAddGroundByDraggedItem(EItemType ItemId);
 
 	UFUNCTION(Client, Reliable)
 	void ClientRPCAddItem(EItemType ItemId, int32 ItemCnt);

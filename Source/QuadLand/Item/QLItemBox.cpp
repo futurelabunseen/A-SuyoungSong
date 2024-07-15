@@ -99,7 +99,7 @@ void AQLItemBox::InitPosition(const FVector& Location)
 	}
 }
 
-void AQLItemBox::SetPhysics()
+void AQLItemBox::PlaceOnTheGround()
 {
 	FCollisionQueryParams CollisionParams(SCENE_QUERY_STAT(GroundCheckLineTrace), false, this); //½Äº°ÀÚ 
 
@@ -118,6 +118,7 @@ void AQLItemBox::SetPhysics()
 
 	if (bResult)
 	{
+		QL_LOG(QLLog, Warning, TEXT("Current Trace %s is Fail"),*(OutHitResult.GetActor()->GetName()));
 		FVector Location = OutHitResult.Location;
 		Location.Z += GetZPos();
 		SetActorLocation(Location);

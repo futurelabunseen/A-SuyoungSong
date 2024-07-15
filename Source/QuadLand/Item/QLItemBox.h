@@ -18,7 +18,7 @@ public:
 	class USkeletalMeshComponent* GetMesh() const { return Mesh; }
 
 	void InitPosition(const FVector &Location);
-	void SetPhysics();
+	void PlaceOnTheGround();
 	float GetZPos();
 
 	virtual void Tick(float DeltaTime) override;

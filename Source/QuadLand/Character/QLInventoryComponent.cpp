@@ -275,28 +275,6 @@ void UQLInventoryComponent::ServerRPCAddInventoryByDraggedItem_Implementation(EI
 	NearbyItems[ItemId].Empty(); //모두 없앤다.
 }
 
-void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId, int32 ItemCnt)
-{
-	if (!HasAuthority())
-	{
-		if (InventoryItem.Find(ItemId))
-		{
-			InventoryItem[ItemId] -= ItemCnt;
-		}
-		else
-		{
-			return;
-		}
-	}
-	//UI변경
-	if (ItemId == EItemType::Bomb)
-	{
-		AQLPlayerController* PC = GetController<AQLPlayerController>();
-		PC->UpdateEquipBombUI(false);
-	}
-	//Server RPC 전송 -> Server 아이템 생성 및 아이템 조정 
-	ServerRPCAddGroundByDraggedItem(ItemId, ItemCnt);
-}
 
 void UQLInventoryComponent::BeginPlay()
 {
@@ -336,8 +314,30 @@ void UQLInventoryComponent::MulticastRPCItemMotion_Implementation(EItemType Item
 	}
 }
 
+void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId)
+{
+	if (!HasAuthority())
+	{
+		if (InventoryItem.Find(ItemId))
+		{
+			InventoryItem[ItemId] = 0; //땅에 버리게 되면, 모든 아이템이 버려지기 때문에 0을 유지
+		}
+		else
+		{
+			return;
+		}
+	}
+	//UI변경
+	if (ItemId == EItemType::Bomb)
+	{
+		AQLPlayerController* PC = GetController<AQLPlayerController>();
+		PC->UpdateEquipBombUI(false);
+	}
+	//Server RPC 전송 -> Server 아이템 생성 및 아이템 조정 
+	ServerRPCAddGroundByDraggedItem(ItemId);
+}
 
-void UQLInventoryComponent::ServerRPCAddGroundByDraggedItem_Implementation(EItemType ItemId, int32 ItemCnt)
+void UQLInventoryComponent::ServerRPCAddGroundByDraggedItem_Implementation(EItemType ItemId)
 {
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 
@@ -349,12 +349,11 @@ void UQLInventoryComponent::ServerRPCAddGroundByDraggedItem_Implementation(EItem
 	if (InventoryItem.Find(ItemId))
 	{
 		RemainingItemCnt = InventoryItem[ItemId];
-		InventoryItem[ItemId] -= ItemCnt;
-		UE_LOG(LogTemp, Warning, TEXT("Current Server Item Cnt %d"), InventoryItem[ItemId]);
+		InventoryItem[ItemId] = 0;
+		UE_LOG(LogTemp, Warning, TEXT("Current Server Item Cnt %d"), RemainingItemCnt);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Error / is not valid %d"), ItemCnt);
 		return;
 	}
 
@@ -370,7 +369,7 @@ void UQLInventoryComponent::ServerRPCAddGroundByDraggedItem_Implementation(EItem
 		FActorSpawnParameters Params;
 		Params.Owner = Character;
 		AQLItemBox* GroundItem = GetWorld()->SpawnActor<AQLItemBox>(DataManager->GetItemBoxClass(ItemId), Location, FRotator::ZeroRotator, Params);
-		GroundItem->SetPhysics();
+		GroundItem->PlaceOnTheGround();
 
 		if (ItemId == EItemType::Ammo)
 		{
