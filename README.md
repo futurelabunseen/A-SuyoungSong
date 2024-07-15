@@ -7,6 +7,7 @@
 |------|---|
 |게임 장르|3인칭, 배틀 로얄, 멀티 플레이, GAS, BT|
 |개발 기간|24.03.21 ~ 24.06.27|
+|리팩토링 기간|24.07.13 ~ 24.07.27|
 |개발 인원|1인 개발|
 |사용 에디터|Unreal Engine 5.2.1|
 |게임 영상|[Youtube](https://youtu.be/7dDOaXCgpPM?si=ZmH3YlUCN4XMGDfP)|
