@@ -299,4 +299,10 @@ public:
 
 	UFUNCTION(Client,Unreliable)
 	void ClientRPCUpdateAmmoUI();
+
+
+protected:
+	
+	UPROPERTY()
+	TObjectPtr<class AQLHUD> LocalHUD;
 };

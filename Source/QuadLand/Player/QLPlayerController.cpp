@@ -13,7 +13,6 @@
 #include "UI/QLBloodWidget.h"
 #include "UI/QLReturnToLobby.h"
 #include "UI/QLDeathTimerWidget.h"
-#include "UI/QLLoadingPanel.h"
 #include "QuadLand.h"
 #include "GameplayTag/GamplayTags.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
@@ -22,18 +21,16 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Interface/QLAISpawnerInterface.h"
 #include "Net/UnrealNetwork.h"
-#include "GameData/QLDataManager.h"
-#include "GameFramework/PlayerStart.h"
 #include "Engine/LocalPlayer.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "Physics/QLCollision.h"
 #include "EngineUtils.h"
-#include "Game/QLGameInstance.h"
 #include "GameFramework/GameModeBase.h"
 #include "Game/QLGameMode.h"
 #include "GameFramework/PawnMovementComponent.h"
+#include "HUD/QLHUD.h"
 
 AQLPlayerController::AQLPlayerController()
 {
@@ -46,10 +43,10 @@ void AQLPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HUDs.Num() == 0)
-	{
-		CreateHUD();
-	}
+	//if (HUDs.Num() == 0)
+	//{
+	//	CreateHUD();
+	//}
 }
 
 void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
@@ -71,10 +68,10 @@ void AQLPlayerController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
 
-	if (IsLocalController()&&HUDs.Num() == 0)
-	{
-		CreateHUD();
-	}
+	//if (IsLocalController()&&HUDs.Num() == 0)
+	//{
+	//	CreateHUD();
+	//}
 }
 
 void AQLPlayerController::CloseHUD(EHUDType UItype)
@@ -264,16 +261,16 @@ void AQLPlayerController::RemoveAllNearbyItemEntries()
 
 }
 
-void AQLPlayerController::SettingNickname()
-{
-	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-
-	if (PS)
-	{
-		UQLUserWidget* UserWidget = Cast< UQLUserWidget>(HUDs[EHUDType::HUD]);
-		UserWidget->SettingNickname(PS->GetPlayerName());
-	}
-}
+//void AQLPlayerController::SettingNickname()
+//{
+//	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+//
+//	if (PS)
+//	{
+//		UQLUserWidget* UserWidget = Cast< UQLUserWidget>(HUDs[EHUDType::HUD]);
+//		UserWidget->SettingNickname(PS->GetPlayerName());
+//	}
+//}
 
 void AQLPlayerController::InitWidget()
 {	//내생각에 서버만 하면됨
@@ -377,16 +374,16 @@ void AQLPlayerController::ClientRPCCreateWidget_Implementation()
 }
 
 
-void AQLPlayerController::InitStoneTexture(int GemType)
-{
-	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
-	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
-
-	if (UserWidget)
-	{
-		UserWidget->SettingStoneImg(DataManager->GemTexture(GemType));
-	}
-}
+//void AQLPlayerController::InitStoneTexture(int GemType)
+//{
+//	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+//	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
+//
+//	if (UserWidget)
+//	{
+//		UserWidget->SettingStoneImg(DataManager->GemTexture(GemType));
+//	}
+//}
 
 void AQLPlayerController::ClientRPCUpdateLivePlayer_Implementation(int16 InLivePlayer)
 {
@@ -446,62 +443,62 @@ void AQLPlayerController::ClientRPCShowLifestoneWidget_Implementation(float Time
 
 void AQLPlayerController::CreateHUD()
 {
-	if (HUDClass.Num() == 0) return;
+	//if (HUDClass.Num() == 0) return;
 
-	if (!IsLocalPlayerController())
-	{
-		return;
-	}
-	
-	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-	if (!PS)
-	{
-		QL_LOG(QLNetLog, Warning, TEXT("PlayerState is not founded"));
-		return;
-	}
+	//if (!IsLocalPlayerController())
+	//{
+	//	return;
+	//}
+	//
+	//AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
+	//if (!PS)
+	//{
+	//	QL_LOG(QLNetLog, Warning, TEXT("PlayerState is not founded"));
+	//	return;
+	//}
 
-	for (const auto &HUD : HUDClass)
-	{
+	//for (const auto &HUD : HUDClass)
+	//{
 
-		UUserWidget *Widget = CreateWidget<UUserWidget>(this, HUD.Value);
-		
-		if (EHUDType::Blood == HUD.Key)
-		{
-			Widget->AddToViewport();
-		}
-		else
-		{
-			Widget->AddToViewport(5);
-		}
-		Widget->SetVisibility(ESlateVisibility::Visible);
-		HUDs.Add(HUD.Key, Widget);
-	}
+	//	UUserWidget *Widget = CreateWidget<UUserWidget>(this, HUD.Value);
+	//	
+	//	if (EHUDType::Blood == HUD.Key)
+	//	{
+	//		Widget->AddToViewport();
+	//	}
+	//	else
+	//	{
+	//		Widget->AddToViewport(5);
+	//	}
+	//	Widget->SetVisibility(ESlateVisibility::Visible);
+	//	HUDs.Add(HUD.Key, Widget);
+	//}
 
-	UQLUserWidget *Widget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+	//UQLUserWidget *Widget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
 
-	if (Widget)
-	{
-		Widget->ChangedAmmoCnt(PS->GetCurrentAmmoCnt());
-		Widget->ChangedRemainingAmmo(PS->GetMaxAmmoCnt()); //임시값 삽입
-		Widget->ChangedHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
-		Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
-		SettingNickname();
-	}
+	//if (Widget)
+	//{
+	//	Widget->ChangedAmmoCnt(PS->GetCurrentAmmoCnt());
+	//	Widget->ChangedRemainingAmmo(PS->GetMaxAmmoCnt()); //임시값 삽입
+	//	Widget->ChangedHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
+	//	Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
+	//	SettingNickname();
+	//}
 
-	SetHiddenHUD(EHUDType::Inventory);
-	SetHiddenHUD(EHUDType::Map);
-	SetHiddenHUD(EHUDType::DeathTimer);
-	SetHiddenHUD(EHUDType::Blood);
-	SetHiddenHUD(EHUDType::Menu);
-	SetHiddenHUD(EHUDType::KeyGuide);
-	SetHiddenHUD(EHUDType::Win);
-	SetHiddenHUD(EHUDType::Death);
-	UQLGameInstance* GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
+	//SetHiddenHUD(EHUDType::Inventory);
+	//SetHiddenHUD(EHUDType::Map);
+	//SetHiddenHUD(EHUDType::DeathTimer);
+	//SetHiddenHUD(EHUDType::Blood);
+	//SetHiddenHUD(EHUDType::Menu);
+	//SetHiddenHUD(EHUDType::KeyGuide);
+	//SetHiddenHUD(EHUDType::Win);
+	//SetHiddenHUD(EHUDType::Death);
+	//UQLGameInstance* GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
 
-	if (GameInstance)
-	{
-		InitStoneTexture(GameInstance->GetGemMatType());
-	}
+	//if (GameInstance)
+	//{
+	//	InitStoneTexture(GameInstance->GetGemMatType());
+	//}
 
 }
 
@@ -694,34 +691,31 @@ void AQLPlayerController::SetHUDTime()
 
 		if (SecondsLeft >= 0 && CountDownInt != SecondsLeft)
 		{
-			if (HUDs.Find(EHUDType::Loading) != nullptr)
-			{
-				UQLLoadingPanel* UserWidget = Cast<UQLLoadingPanel>(HUDs[EHUDType::Loading]);
-				if (UserWidget)
-				{
-					UserWidget->SetTxtRemainingTime(SecondsLeft);
+			AQLHUD* LocalHUD = GetHUD<AQLHUD>();
 
-					if (SecondsLeft == 0)
+			if (LocalHUD)
+			{
+				if (IsLocalController())
+				{
+					LocalHUD->UpdateLoadingSec(SecondsLeft);
+				}
+				if (SecondsLeft == 0)
+				{
+					IQLAISpawnerInterface* AISpawnerInterface = GetWorld()->GetAuthGameMode<IQLAISpawnerInterface>();
+
+					if (AISpawnerInterface)
 					{
-						IQLAISpawnerInterface* AISpawnerInterface = GetWorld()->GetAuthGameMode<IQLAISpawnerInterface>();
-						
-						if (AISpawnerInterface)
-						{
-							AISpawnerInterface->SpawnAI();
-						}
-						if (HUDs.Find(EHUDType::Loading))
-						{
-							SetHiddenHUD(EHUDType::Loading);
-						}
-						bStartGame = true;
-						StartTime = GetServerTime();
+						AISpawnerInterface->SpawnAI();
 					}
+					LocalHUD->SetHiddenHUD(EHUDType::Loading);
+					bStartGame = true;
+					StartTime = GetServerTime();
+
 				}
 			}
 		}
 		CountDownInt = SecondsLeft;
 	}
-	
 }
 
 void AQLPlayerController::ClientRPCOutLobby_Implementation()
