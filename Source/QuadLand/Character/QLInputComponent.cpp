@@ -23,6 +23,7 @@
 #include "Sound/SoundCue.h"
 #include "Item/QLItemBox.h"
 #include "GameplayTag/GamplayTags.h"
+#include "HUD/QLHUD.h"
 #include "QuadLand.h"
 
 UQLInputComponent::UQLInputComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), bShowMenuUI(false)
@@ -162,7 +163,7 @@ UQLInputComponent::UQLInputComponent(const FObjectInitializer& ObjectInitializer
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void UQLInputComponent::InitPlayerImputComponent(UInputComponent* InputComponent)
+void UQLInputComponent::InitPlayerInputComponent(UInputComponent* InputComponent)
 {
 	AQLCharacterPlayer* Character = GetPawn<AQLCharacterPlayer>();
 
@@ -202,8 +203,14 @@ void UQLInputComponent::InitPlayerImputComponent(UInputComponent* InputComponent
 		EnhancedInputComponent->BindAction(WeaponSwitcherAction[ECharacterAttackType::BombAttack], ETriggerEvent::Completed, this, &UQLInputComponent::SelectBombAttackType);
 	
 		InitGASInputComponent(InputComponent);
-
 	}	
+
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+
+	if (PC)
+	{
+		LocalHUD = Cast<AQLHUD>(PC->GetHUD());
+	}
 }
 
 void UQLInputComponent::InitGASInputComponent(UInputComponent* InputComponent)
@@ -264,7 +271,11 @@ void UQLInputComponent::SetInventory()
 
 	Character->StopMove();
 	FInputModeUIOnly UIOnlyInputMode;
-	PC->SetVisibilityHUD(EHUDType::Inventory);
+	if (LocalHUD)
+	{
+		LocalHUD->SetVisibilityHUD(EHUDType::Inventory);
+	}
+
 	PC->bShowMouseCursor = true;
 	PC->SetInputMode(UIOnlyInputMode);
 }

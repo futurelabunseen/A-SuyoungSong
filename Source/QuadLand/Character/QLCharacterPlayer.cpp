@@ -41,6 +41,7 @@
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "HUD/QLHUD.h"
 #include "QuadLand.h"
 
 
@@ -205,9 +206,11 @@ void AQLCharacterPlayer::OnRep_Controller()
 
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
 
-	if (PlayerController->HUDNum() == 0)
+	LocalHUD = Cast<AQLHUD>(PlayerController->GetHUD());
+	if (LocalHUD && LocalHUD->HUDNum() == 0)
 	{
-		PlayerController->CreateHUD();
+		QL_LOG(QLLog, Log, TEXT("Current HUD"));
+		LocalHUD->CreateHUD();
 	}
 
 	TObjectPtr<AQLCharacterPlayer> Character = this;
@@ -302,7 +305,7 @@ void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);	
 
-	QLInputComponent->InitPlayerImputComponent(PlayerInputComponent);
+	QLInputComponent->InitPlayerInputComponent(PlayerInputComponent);
 }
 
 void AQLCharacterPlayer::SetCharacterControl()
@@ -325,8 +328,11 @@ void AQLCharacterPlayer::SetCharacterControl()
 
 		if (HasAuthority() && PlayerController->HUDNum() == 0)
 		{
-			PlayerController->CreateHUD();
-			PlayerController->ClientRPCCreateWidget();
+			LocalHUD = Cast<AQLHUD>(PlayerController->GetHUD());
+			if (LocalHUD)
+			{
+				LocalHUD->CreateHUD();
+			}
 		}
 	}
 

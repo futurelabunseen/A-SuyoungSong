@@ -28,12 +28,12 @@ public:
 	void Inventory();
 	UFUNCTION(BlueprintCallable)
 	void SetVisibilityHUD(EHUDType UItype);
-
+	
+	UFUNCTION(BlueprintCallable)
+	void SetHiddenHUD(EHUDType UItype);
 	int HUDNum() {
 		return HUDs.Num();
 	}
-	UFUNCTION(BlueprintCallable)
-	void SetHiddenHUD(EHUDType UItype);
 
 	const class UUserWidget* GetCrossHairUIWidget() const 
 	{
@@ -79,7 +79,7 @@ public:
 
 	void BlinkBag();
 
-	void InitStoneTexture(int GemType);
+//	void InitStoneTexture(int GemType);
 	void Win();
 	UFUNCTION(Client,Reliable)
 	void ClientRPCLoose();
@@ -99,7 +99,7 @@ public:
 	UFUNCTION(Client,Reliable)
 	void ClientRPCUpdateLivePlayer(int16 InLivePlayer); //GameMode로부터 ClientRPC로 전달받음.
 
-	void SettingNickname();
+//	void SettingNickname();
 
 	UFUNCTION(Client, Reliable)
 	void ClientRPCCreateWidget();
@@ -178,6 +178,7 @@ private:
 	float StartTime = 0.f;
 	void SetHUDTime();
 	uint8 bStartGame : 1;
+
 
 
 

@@ -20,13 +20,19 @@ public:
 	// Sets default values for this component's properties
 	UQLInputComponent(const FObjectInitializer& ObjectInitializer);
 
-	void InitPlayerImputComponent(class UInputComponent* InputComponent);
+	void InitPlayerInputComponent(class UInputComponent* InputComponent);
 	void InitGASInputComponent(class UInputComponent* InputComponent);
 	virtual void BeginPlay() override;
 	void SetShowInventory(bool InVisible) { bShowInventory = InVisible; }
 	bool GetShowInventory() { return bShowInventory; }
 
 	void StopAiming();
+
+protected:
+
+	/*UserWidget 접근을 편하게 하기 위해, HUD를 포인터로 가지고 있는다.*/
+	UPROPERTY()
+	TObjectPtr<class AQLHUD> LocalHUD;
 protected:
 	//virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction);
 	void ShowInventory();
@@ -98,7 +104,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AnimMontage)
 	TObjectPtr<class UAnimMontage> ToStand;
-
 
 	UPROPERTY()
 	TObjectPtr<class UTimelineComponent> CameraDownTimeline;
