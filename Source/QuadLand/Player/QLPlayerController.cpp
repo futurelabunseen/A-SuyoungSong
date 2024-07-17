@@ -7,12 +7,9 @@
 #include "Player/QLPlayerState.h"
 #include "Character/QLCharacterPlayer.h"
 #include "UI/QLPlayerHUDWidget.h"
-#include "UI/QLUserWidget.h"
 #include "UI/QLInventory.h"
-#include "UI/QLMap.h"
-#include "UI/QLBloodWidget.h"
 #include "UI/QLReturnToLobby.h"
-#include "UI/QLDeathTimerWidget.h"
+
 #include "QuadLand.h"
 #include "GameplayTag/GamplayTags.h"
 #include "AttributeSet/QLAS_PlayerStat.h"
@@ -39,16 +36,6 @@ AQLPlayerController::AQLPlayerController()
 	bIsDanger = false;
 }
 
-void AQLPlayerController::BeginPlay()
-{
-	Super::BeginPlay();
-
-	//if (HUDs.Num() == 0)
-	//{
-	//	CreateHUD();
-	//}
-}
-
 void AQLPlayerController::SetHiddenHUD(EHUDType UItype)
 {
 	if (IsLocalController() && HUDs.Find(UItype))
@@ -64,16 +51,6 @@ void AQLPlayerController::SetVisibilityHUD(EHUDType UItype)
 	}
 }
 
-void AQLPlayerController::OnPossess(APawn* aPawn)
-{
-	Super::OnPossess(aPawn);
-
-	//if (IsLocalController()&&HUDs.Num() == 0)
-	//{
-	//	CreateHUD();
-	//}
-}
-
 void AQLPlayerController::CloseHUD(EHUDType UItype)
 {	
 	FInputModeGameOnly GameOnlyInputMode;
@@ -81,62 +58,23 @@ void AQLPlayerController::CloseHUD(EHUDType UItype)
 	bShowMouseCursor = false;
 	SetInputMode(GameOnlyInputMode);
 }
-
 void AQLPlayerController::ActivateDeathTimer(float Time)
 {
 	if (IsLocalController())
 	{
-		SetVisibilityHUD(EHUDType::DeathTimer);
+		AQLHUD* LocalHUD = Cast<AQLHUD>(GetHUD());
+		if (LocalHUD)
+		{
+			LocalHUD->SetVisibilityHUD(EHUDType::DeathTimer);
+		}
 	}
 
 	if (DeathTimerHandle.IsValid() == false)
 	{
 		bIsDanger = true;
 		CurrentDeathSec = 10.0f;
-		//GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &AQLPlayerController::ReduceDeathSec, 1.0f, true);
-	}
-
-	//FTimerHandle StopTimer;
-	//GetWorld()->GetTimerManager().SetTimer(StopTimer, this, &AQLPlayerController::StopDeathSec, Time + 1.0f);
-}
-
-void AQLPlayerController::BlinkBloodWidget()
-{
-	SetVisibilityHUD(EHUDType::Blood);
-	UQLBloodWidget* Widget = Cast<UQLBloodWidget>(HUDs[EHUDType::Blood]);
-
-	if (Widget)
-	{
-		Widget->BlinkWidget();
-	}
-	FTimerHandle CancelTimer;
-
-	GetWorld()->GetTimerManager().SetTimer(CancelTimer, this,&AQLPlayerController::CancelBloodWidget, 3.0f, false);
-
-}
-
-void AQLPlayerController::CancelBloodWidget()
-{
-	UQLBloodWidget* Widget = Cast<UQLBloodWidget>(HUDs[EHUDType::Blood]);
-
-	if (Widget)
-	{
-		Widget->CancelWidget();
-	}
-	SetHiddenHUD(EHUDType::Blood);
-
-}
-
-void AQLPlayerController::BlinkBag()
-{
-	UQLUserWidget* UserWidget = Cast< UQLUserWidget>(HUDs[EHUDType::HUD]);
-
-	if (UserWidget)
-	{
-		UserWidget->BlinkBag();
 	}
 }
-
 void AQLPlayerController::Win()
 {
 	if (const auto PlayerController = Cast<APlayerController>(this))
@@ -215,33 +153,17 @@ void AQLPlayerController::CloseInventroy()
 
 	if (InventoryUI)
 	{
-		//InventoryUI->RemoveAllNearbyItemEntries(); //전부 제거
 		CloseHUD(EHUDType::Inventory);
-	}
-}
-
-void AQLPlayerController::SwitchWeaponStyle(ECharacterAttackType AttackType)
-{
-	UQLUserWidget* UserWidget = Cast< UQLUserWidget>(HUDs[EHUDType::HUD]);
-
-	if (UserWidget)
-	{
-		UserWidget->SwitchWeaponStyle(AttackType);
 	}
 }
 
 void AQLPlayerController::SetUpdateLivePlayer(int16 InLivePlayer)
 {
-	if (HUDs.Find(EHUDType::HUD) == 0)
-	{
-		return;
-	}
+	AQLHUD* LocalHUD = Cast<AQLHUD>(GetHUD());
 
-	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
-
-	if (UserWidget)
+	if (LocalHUD)
 	{
-		UserWidget->UpdateLivePlayer(InLivePlayer);
+		LocalHUD->SetUpdateLivePlayer(InLivePlayer);
 	}
 }
 
@@ -259,59 +181,6 @@ void AQLPlayerController::RemoveAllNearbyItemEntries()
 		InventoryUI->RemoveAllNearbyItemEntries(); //전부 제거
 	}
 
-}
-
-//void AQLPlayerController::SettingNickname()
-//{
-//	AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-//
-//	if (PS)
-//	{
-//		UQLUserWidget* UserWidget = Cast< UQLUserWidget>(HUDs[EHUDType::HUD]);
-//		UserWidget->SettingNickname(PS->GetPlayerName());
-//	}
-//}
-
-void AQLPlayerController::InitWidget()
-{	//내생각에 서버만 하면됨
-	if (HUDs.Find(EHUDType::HUD))
-	{
-		UQLUserWidget* Widget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
-
-		AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
-		if (Widget && QLCharacter)
-		{
-			QLCharacter->OnChangeShootingMethod.BindUObject(Widget, &UQLUserWidget::VisibleShootingMethodUI);
-		}
-	}
-
-	//Map 위치도 재선정
-	if (HUDs.Find(EHUDType::Map))
-	{
-		UQLMap* Map = Cast<UQLMap>(HUDs[EHUDType::Map]);
-
-		Map->ResetPlayer();
-	}
-
-	if (HUDs.Find(EHUDType::Win))
-	{
-		UQLReturnToLobby* Win = Cast<UQLReturnToLobby>(HUDs[EHUDType::Win]);
-
-		if (Win)
-		{
-			Win->SetupUI();
-		}
-	}
-
-	if (HUDs.Find(EHUDType::Death))
-	{
-		UQLReturnToLobby* Loose = Cast<UQLReturnToLobby>(HUDs[EHUDType::Death]);
-
-		if (Loose)
-		{
-			Loose->SetupUI();
-		}
-	}
 }
 
 FString AQLPlayerController::ChangeTimeText()
@@ -335,11 +204,11 @@ void AQLPlayerController::ResetUI()
 		InventoryUI->ClearAll();
 	}
 
-	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
-	if (UserWidget)
+	AQLHUD* LocalHUD = Cast<AQLHUD>(GetHUD());
+
+	if (LocalHUD)
 	{
-		UserWidget->UpdateEquipWeaponUI(false);
-		UserWidget->UpdateEquipBombUI(false);
+		LocalHUD->ResetUI();
 	}
 }
 
@@ -348,6 +217,13 @@ void AQLPlayerController::CloseAllUI()
 	for (const auto HUD : HUDs)
 	{
 		HUD.Value->SetVisibility(ESlateVisibility::Hidden);
+	}
+
+	AQLHUD* LocalHUD = Cast<AQLHUD>(GetHUD());
+
+	if (LocalHUD)
+	{
+		LocalHUD->CloseAllUI();
 	}
 }
 
@@ -368,22 +244,40 @@ void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)
 	}
 }
 
+void AQLPlayerController::InitWidget()
+{
+	if (HUDs.Find(EHUDType::Win))
+	{
+		UQLReturnToLobby* Win = Cast<UQLReturnToLobby>(HUDs[EHUDType::Win]);
+
+		if (Win)
+		{
+			Win->SetupUI();
+		}
+	}
+
+	if (HUDs.Find(EHUDType::Death))
+	{
+		UQLReturnToLobby* Loose = Cast<UQLReturnToLobby>(HUDs[EHUDType::Death]);
+
+		if (Loose)
+		{
+			Loose->SetupUI();
+		}
+	}
+
+	AQLHUD* LocalHUD = Cast<AQLHUD>(GetHUD());
+
+	if (LocalHUD)
+	{
+		LocalHUD->InitWidget();
+	}
+}
 void AQLPlayerController::ClientRPCCreateWidget_Implementation()
 {
 	InitWidget();
 }
 
-
-//void AQLPlayerController::InitStoneTexture(int GemType)
-//{
-//	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
-//	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
-//
-//	if (UserWidget)
-//	{
-//		UserWidget->SettingStoneImg(DataManager->GemTexture(GemType));
-//	}
-//}
 
 void AQLPlayerController::ClientRPCUpdateLivePlayer_Implementation(int16 InLivePlayer)
 {
@@ -397,33 +291,29 @@ void AQLPlayerController::ClientRPCGameStart_Implementation()
 
 void AQLPlayerController::ReduceDeathSec()
 {
-	if (HUDs.Find(EHUDType::DeathTimer) == 0)
-	{
-		bIsDanger = false;
-		return;
-	}
-
 	int32 SecondsLeft = FMath::CeilToInt(CurrentDeathSec - ElapsedTime);
+	AQLHUD* LocalHUD = Cast<AQLHUD>(GetHUD());
 
-	if (IsLocalController())
+	if (LocalHUD)
 	{
-		UQLDeathTimerWidget* DeathTimerWidget = Cast<UQLDeathTimerWidget>(HUDs[EHUDType::DeathTimer]);
-		DeathTimerWidget->UpdateTimer(SecondsLeft);
+		LocalHUD->ReduceDeathSec(SecondsLeft);
 	}
-	
-	//CurrentDeathSec--;
 }
+
 
 void AQLPlayerController::StopDeathSec()
 {
 	if (IsLocalController())
 	{
+		AQLHUD* LocalHUD = Cast<AQLHUD>(GetHUD());
 
-		UQLDeathTimerWidget* DeathTimerWidget = Cast<UQLDeathTimerWidget>(HUDs[EHUDType::DeathTimer]);
-		DeathTimerWidget->UpdateTimer(0);
+		if (LocalHUD)
+		{
+			LocalHUD->ReduceDeathSec(0);
+		}
 	}
 	//Delegate호출
-	
+
 	if (OnDeathCheckDelegate.IsBound())
 	{
 		OnDeathCheckDelegate.Execute();
@@ -433,75 +323,38 @@ void AQLPlayerController::StopDeathSec()
 
 void AQLPlayerController::ClientRPCShowLifestoneWidget_Implementation(float Timer)
 {
-	UQLMap *Map = Cast<UQLMap>(HUDs[EHUDType::Map]);
+	AQLHUD* LocalHUD = Cast<AQLHUD>(GetHUD());
 
-	if (Map)
+	if (LocalHUD)
 	{
-		Map->ShowLifestoneBox(Timer);
+		LocalHUD->ShowStoneUI(Timer);
 	}
 }
 
 void AQLPlayerController::CreateHUD()
 {
-	//if (HUDClass.Num() == 0) return;
+	if (HUDClass.Num() == 0) return;
 
-	//if (!IsLocalPlayerController())
-	//{
-	//	return;
-	//}
-	//
-	//AQLPlayerState* PS = GetPlayerState<AQLPlayerState>();
-	//if (!PS)
-	//{
-	//	QL_LOG(QLNetLog, Warning, TEXT("PlayerState is not founded"));
-	//	return;
-	//}
+	if (!IsLocalPlayerController())
+	{
+		return;
+	}
+	
+	for (const auto &HUD : HUDClass)
+	{
+		UUserWidget *Widget = CreateWidget<UUserWidget>(GetWorld(), HUD.Value);
+		Widget->AddToViewport(5);
+		Widget->SetVisibility(ESlateVisibility::Visible);
+		HUDs.Add(HUD.Key, Widget);
+	}
 
-	//for (const auto &HUD : HUDClass)
-	//{
-
-	//	UUserWidget *Widget = CreateWidget<UUserWidget>(this, HUD.Value);
-	//	
-	//	if (EHUDType::Blood == HUD.Key)
-	//	{
-	//		Widget->AddToViewport();
-	//	}
-	//	else
-	//	{
-	//		Widget->AddToViewport(5);
-	//	}
-	//	Widget->SetVisibility(ESlateVisibility::Visible);
-	//	HUDs.Add(HUD.Key, Widget);
-	//}
-
-	//UQLUserWidget *Widget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
-
-	//if (Widget)
-	//{
-	//	Widget->ChangedAmmoCnt(PS->GetCurrentAmmoCnt());
-	//	Widget->ChangedRemainingAmmo(PS->GetMaxAmmoCnt()); //임시값 삽입
-	//	Widget->ChangedHPPercentage(PS->GetHealth(), PS->GetMaxHealth());
-	//	Widget->ChangedStaminaPercentage(PS->GetStamina(), PS->GetMaxStamina());
-	//	SettingNickname();
-	//}
-
-	//SetHiddenHUD(EHUDType::Inventory);
-	//SetHiddenHUD(EHUDType::Map);
-	//SetHiddenHUD(EHUDType::DeathTimer);
-	//SetHiddenHUD(EHUDType::Blood);
-	//SetHiddenHUD(EHUDType::Menu);
-	//SetHiddenHUD(EHUDType::KeyGuide);
-	//SetHiddenHUD(EHUDType::Win);
-	//SetHiddenHUD(EHUDType::Death);
-	//UQLGameInstance* GameInstance = Cast<UQLGameInstance>(GetWorld()->GetGameInstance());
-
-	//if (GameInstance)
-	//{
-	//	InitStoneTexture(GameInstance->GetGemMatType());
-	//}
+	SetHiddenHUD(EHUDType::Story);
+	SetHiddenHUD(EHUDType::Inventory);
+	SetHiddenHUD(EHUDType::Menu);
+	SetHiddenHUD(EHUDType::Win);
+	SetHiddenHUD(EHUDType::Death);
 
 }
-
 void AQLPlayerController::UpdateNearbyItemEntry(UObject* Item)
 {
 	if (IsLocalController())
@@ -523,27 +376,6 @@ void AQLPlayerController::UpdateItemEntry(UObject* Item, int32 CurrentItemCnt)
 		{
 			InventoryUI->UpdateItemEntry(Item, CurrentItemCnt);
 		}
-	}
-}
-
-
-void AQLPlayerController::UpdateEquipWeaponUI(bool InVisible)
-{
-	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
-	
-	if (UserWidget)
-	{
-		UserWidget->UpdateEquipWeaponUI(InVisible);
-	}
-}
-
-void AQLPlayerController::UpdateEquipBombUI(bool InVisible)
-{
-	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
-
-	if (UserWidget)
-	{
-		UserWidget->UpdateEquipBombUI(InVisible);
 	}
 }
 
@@ -581,15 +413,6 @@ void AQLPlayerController::AddGroundByDraggedItem(EItemType ItemIdx)
 	}
 }
 
-void AQLPlayerController::ConcealLifeStone(bool InVisible)
-{
-	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
-
-	if (UserWidget)
-	{
-		UserWidget->ConcealLifeStone(InVisible);
-	}
-}
 
 void AQLPlayerController::ServerRPCRequestServerTime_Implementation(float TimeOfClientRequest)
 {
@@ -630,20 +453,18 @@ void AQLPlayerController::ServerTimeCheck(float DeltaTime)
 
 void AQLPlayerController::UpdateProgressTime()
 {
-	if (HUDs.Find(EHUDType::HUD) == 0) return;
+	uint32 ProgressTime = GetServerTime() - StartTime;
 
-	UQLUserWidget* UserWidget = Cast<UQLUserWidget>(HUDs[EHUDType::HUD]);
+	int32 Minutes = FMath::FloorToInt(ProgressTime / 60.f);
+	int32 Seconds = ProgressTime - Minutes * 60;
 
-	if (UserWidget)
+	FString ProgressTimeText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+	AQLHUD* LocalHUD = Cast<AQLHUD>(GetHUD());
+	if (LocalHUD)
 	{
-		uint32 ProgressTime = GetServerTime() - StartTime;
-
-		int32 Minutes = FMath::FloorToInt(ProgressTime / 60.f);
-		int32 Seconds = ProgressTime - Minutes * 60;
-
-		FString ProgressTimeText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
-		UserWidget->UpdateProgressTime(ProgressTimeText);
+		LocalHUD->UpdateProgressTime(ProgressTimeText);
 	}
+
 }
 
 float AQLPlayerController::GetServerTime()
@@ -708,6 +529,7 @@ void AQLPlayerController::SetHUDTime()
 						AISpawnerInterface->SpawnAI();
 					}
 					LocalHUD->SetHiddenHUD(EHUDType::Loading);
+					SetVisibilityHUD(EHUDType::Story);
 					bStartGame = true;
 					StartTime = GetServerTime();
 

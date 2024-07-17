@@ -271,11 +271,7 @@ void UQLInputComponent::SetInventory()
 
 	Character->StopMove();
 	FInputModeUIOnly UIOnlyInputMode;
-	if (LocalHUD)
-	{
-		LocalHUD->SetVisibilityHUD(EHUDType::Inventory);
-	}
-
+	PC->SetVisibilityHUD(EHUDType::Inventory);
 	PC->bShowMouseCursor = true;
 	PC->SetInputMode(UIOnlyInputMode);
 }
@@ -383,7 +379,7 @@ void UQLInputComponent::FarmingItemPressed()
 			switch (Item->Stat->ItemType)
 			{
 			case EItemType::Bomb:
-				PC->UpdateEquipBombUI(true);
+				LocalHUD->UpdateEquipBombUI(true);
 				break;
 			}
 
@@ -656,7 +652,7 @@ void UQLInputComponent::PutWeapon()
 	}
 	else
 	{
-		PC->UpdateEquipWeaponUI(false);
+		LocalHUD->UpdateEquipWeaponUI(false);
 	}
 
 	Character->ServerRPCPuttingWeapon();
@@ -665,15 +661,19 @@ void UQLInputComponent::PutWeapon()
 
 void UQLInputComponent::SetMap()
 {
-	AQLPlayerController* PC = GetController<AQLPlayerController>();
+	if (LocalHUD == nullptr)
+	{
+		return;
+	}
+
 	if (bIsVisibleMap)
 	{
-		PC->SetHiddenHUD(EHUDType::Map);
+		LocalHUD->SetHiddenHUD(EHUDType::Map);
 		bIsVisibleMap = false;
 	}
 	else
 	{
-		PC->SetVisibilityHUD(EHUDType::Map);
+		LocalHUD->SetVisibilityHUD(EHUDType::Map);
 		bIsVisibleMap = true;
 	}
 }
@@ -736,7 +736,7 @@ void UQLInputComponent::SelectGunAttackType()
 		return; //같은 경우만 체크하면된다.
 	}
 
-	PC->SwitchWeaponStyle(ECharacterAttackType::GunAttack);
+	LocalHUD->SwitchWeaponStyle(ECharacterAttackType::GunAttack);
 	Character->ServerRPCSwitchAttackType(ECharacterAttackType::GunAttack);
 }
 

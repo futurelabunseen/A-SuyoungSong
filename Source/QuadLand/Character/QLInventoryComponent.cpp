@@ -12,6 +12,7 @@
 #include "Physics/QLCollision.h"
 #include "UI/QLUserWidget.h"
 #include "Item/QLItemBox.h"
+#include "HUD/QLHUD.h"
 #include "QuadLand.h"
 
 UQLInventoryComponent::UQLInventoryComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -191,8 +192,8 @@ void UQLInventoryComponent::ServerRPCRemoveItem_Implementation(EItemType InItemI
 void UQLInventoryComponent::ClientRPCRemoveItem_Implementation(EItemType InItemId, int32 ItemCnt)
 {
 	AQLPlayerController* PC = GetController<AQLPlayerController>();
-
-	if (PC == nullptr)
+	AQLHUD* HUD = Cast<AQLHUD>(PC->GetHUD());
+	if (PC == nullptr || HUD == nullptr)
 	{
 		return;
 	}
@@ -206,7 +207,7 @@ void UQLInventoryComponent::ClientRPCRemoveItem_Implementation(EItemType InItemI
 
 	if (InItemId == EItemType::Bomb && InventoryItem[InItemId] <= 0)
 	{
-		PC->UpdateEquipBombUI(false);
+		HUD->UpdateEquipBombUI(false);
 	}
 	PC->UpdateItemEntry(ItemData, ItemCnt);
 }
@@ -215,8 +216,8 @@ void UQLInventoryComponent::ClientRPCRemoveItem_Implementation(EItemType InItemI
 void UQLInventoryComponent::AddInventoryByDraggedItem(EItemType InItemId)
 {
 	AQLPlayerController* PC = GetController<AQLPlayerController>();
-
-	if (PC == nullptr)
+	AQLHUD* HUD = Cast<AQLHUD>(PC->GetHUD());
+	if (PC == nullptr || HUD == nullptr)
 	{
 		return;
 	}
@@ -230,10 +231,15 @@ void UQLInventoryComponent::AddInventoryByDraggedItem(EItemType InItemId)
 	///UI변경
 	if (InItemId == EItemType::Bomb)
 	{
-		PC->UpdateEquipBombUI(true);
+		HUD->UpdateEquipBombUI(true);
 	}
 	////실제로 아이템이 있는지 검사하기 위해서 서버에게 요청해야함;
-	PC->BlinkBag();
+
+	AQLHUD* LocalHUD = Cast<AQLHUD>(PC->GetHUD());
+	if (LocalHUD)
+	{
+		LocalHUD->BlinkBag();
+	}
 	ServerRPCAddInventoryByDraggedItem(InItemId);
 	NearbyItems[InItemId].Empty(); //주변에 있는 ItemId에 대해서 개수를 모두 없앤다. -> Why? Inventory안에 넣었으니깐.
 }
@@ -316,6 +322,12 @@ void UQLInventoryComponent::MulticastRPCItemMotion_Implementation(EItemType Item
 
 void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId)
 {
+	AQLPlayerController* PC = GetController<AQLPlayerController>();
+	AQLHUD* HUD = Cast<AQLHUD>(PC->GetHUD());
+	if (PC == nullptr || HUD == nullptr)
+	{
+		return;
+	}
 	if (!HasAuthority())
 	{
 		if (InventoryItem.Find(ItemId))
@@ -330,8 +342,7 @@ void UQLInventoryComponent::AddGroundByDraggedItem(EItemType ItemId)
 	//UI변경
 	if (ItemId == EItemType::Bomb)
 	{
-		AQLPlayerController* PC = GetController<AQLPlayerController>();
-		PC->UpdateEquipBombUI(false);
+		HUD->UpdateEquipBombUI(false);
 	}
 	//Server RPC 전송 -> Server 아이템 생성 및 아이템 조정 
 	ServerRPCAddGroundByDraggedItem(ItemId);
@@ -408,7 +419,11 @@ void UQLInventoryComponent::ClientRPCAddItem_Implementation(EItemType ItemId, in
 	}
 	PC->UpdateItemEntry(ItemData, ItemData->CurrentItemCnt);
 
-	PC->BlinkBag();
+	AQLHUD* LocalHUD = Cast<AQLHUD>(PC->GetHUD());
+	if (LocalHUD)
+	{
+		LocalHUD->BlinkBag();
+	}
 }
 
 void UQLInventoryComponent::ClientRPCRollbackInventory_Implementation(EItemType InItemId, int32 ItemCnt)

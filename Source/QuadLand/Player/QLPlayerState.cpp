@@ -16,6 +16,7 @@
 #include "Gimmick/QLLifestoneStorageBox.h"
 #include "Character/QLCharacterBase.h"
 #include "Character/QLCharacterPlayer.h"
+#include "HUD/QLHUD.h"
 #include "Player/QLLobbyPlayerState.h"
 #include "Game/QLGameInstance.h"
 #include "GameFramework/GameMode.h"
@@ -162,33 +163,19 @@ void AQLPlayerState::OnChangedStamina(const FOnAttributeChangeData& Data)
 {
     float CurrentStamina = Data.NewValue;
 
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //�������� PC�� ����
-
-    if (PC && PC->IsLocalController())
+    if (UpdateStaminaDelegate.IsBound())
     {
-        //Player�� QLPlayerHpBarWidget ������
-        UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        if (Widget)
-        {
-            Widget->ChangedStaminaPercentage(CurrentStamina, GetMaxStamina());
-        }
+        UpdateStaminaDelegate.Execute(CurrentStamina, GetMaxStamina());
     }
 }
 
 void AQLPlayerState::OnChangedMaxStamina(const FOnAttributeChangeData& Data)
 {
     float CurrentMaxStamina = Data.NewValue;
-
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //�������� PC�� ����
-
-    if (PC && PC->IsLocalController())
+    
+    if (UpdateStaminaDelegate.IsBound())
     {
-        //Player�� QLPlayerHpBarWidget ������
-        UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        if (Widget)
-        {
-            Widget->ChangedStaminaPercentage(GetStamina(), CurrentMaxStamina);
-        }
+        UpdateStaminaDelegate.Execute(GetStamina(), CurrentMaxStamina);
     }
 }
 
@@ -197,16 +184,9 @@ void AQLPlayerState::OnChangedHp(const FOnAttributeChangeData& Data)
 
     float CurrentHP = Data.NewValue;
 
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //�������� PC�� ����
-    
-    if (PC && PC->IsLocalController())
+    if (UpdateHPDelegate.IsBound())
     {
-        //Player�� QLPlayerHpBarWidget ������
-        UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        if (Widget)
-        {
-            Widget->ChangedHPPercentage(CurrentHP, GetMaxHealth());
-        }
+        UpdateHPDelegate.Execute(CurrentHP, GetMaxHealth());
     }
 }
 
@@ -215,34 +195,18 @@ void AQLPlayerState::OnChangedMaxHp(const FOnAttributeChangeData& Data)
     //������ ���ԵǸ� ������ ����(������)
     float MaxHp = Data.NewValue;
 
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //�������� PC�� ����
-
-    if (PC && PC->IsLocalController())
+    if (UpdateHPDelegate.IsBound())
     {
-        //Player�� QLPlayerHUDWidget ������ -> �̸������ؾ��� ���̺��δ�;;
-        UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-
-        if (Widget)
-        {
-            Widget->ChangedHPPercentage(GetHealth(), MaxHp);
-        }
+        UpdateHPDelegate.Execute(GetHealth(), MaxHp);
     }
 }
 
 void AQLPlayerState::OnChangedAmmoCnt(const FOnAttributeChangeData& Data)
 {
     float CurrentAmmo = Data.NewValue;
-
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //�������� PC�� ����
-
-    if (PC && PC->IsLocalController())
+    if (UpdateAmmoDelegate.IsBound())
     {
-        //Player�� QLPlayerHUDWidget ������ -> �̸������ؾ��� ���̺��δ�;;
-        UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        if (Widget)
-        {
-            Widget->ChangedAmmoCnt(CurrentAmmo);
-        }
+        UpdateAmmoDelegate.Execute(CurrentAmmo);
     }
 }
 
@@ -250,16 +214,10 @@ void AQLPlayerState::OnChangedMaxAmmoCnt(const FOnAttributeChangeData& Data)
 {
     float MaxAmmo = Data.NewValue;
 
-    AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //�������� PC�� ����
-
-    if (PC && PC->IsLocalController())
+    //Player�� QLPlayerHUDWidget ������ -> �̸������ؾ��� ���̺��δ�;;
+    if (UpdateRemainingDelegate.IsBound())
     {
-        //Player�� QLPlayerHUDWidget ������ -> �̸������ؾ��� ���̺��δ�;;
-        UQLUserWidget* Widget = Cast<UQLUserWidget>(PC->GetPlayerUIWidget());
-        if (Widget)
-        {
-            Widget->ChangedRemainingAmmo(MaxAmmo);
-        }
+        UpdateRemainingDelegate.Execute(MaxAmmo);
     }
 }
 
@@ -306,14 +264,15 @@ void AQLPlayerState::MulticastRPCUpdateStorageWidget_Implementation(FName InNick
 void AQLPlayerState::ClientRPCConcealLifeStoneUI_Implementation()
 {
     AQLPlayerController* PC = Cast<AQLPlayerController>(GetOwner()); //�������� PC�� ����
+    AQLHUD* HUD = Cast<AQLHUD>(PC->GetHUD());
 
-    if (PC && bHasLifeStone)
+    if (HUD && bHasLifeStone)
     {
-        PC->ConcealLifeStone(false);
+        HUD->ConcealLifeStone(false);
     }
     else
     {
-        PC->ConcealLifeStone(true);
+        HUD->ConcealLifeStone(true);
     }
 }
 
