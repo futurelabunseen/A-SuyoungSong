@@ -11,6 +11,10 @@
 /**
  * 
  */
+DECLARE_DELEGATE_TwoParams(FUpdateHPDelegate, float, float);
+DECLARE_DELEGATE_TwoParams(FUpdateStaminaDelegate, float, float);
+DECLARE_DELEGATE_OneParam(FUpdateAmmoDelegate, float);
+DECLARE_DELEGATE_OneParam(FUpdateRemainingAmmoDelegate, float);
 UCLASS()
 class QUADLAND_API AQLPlayerState : public APlayerState, public IAbilitySystemInterface
 {
@@ -20,8 +24,6 @@ public:
 	AQLPlayerState();
 
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
-
 	void SetAmmoStat(float AmmoCnt);
 	void BulletWaste(float DiscardedCount);
 	void SetWeaponStat(const class UQLWeaponStat* Stat);
@@ -81,6 +83,13 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCInitType(int InGenderType, int InGemType);
+
+public:
+	/*UI ¿¬°á Delegate*/
+	FUpdateAmmoDelegate UpdateAmmoDelegate;
+	FUpdateHPDelegate UpdateHPDelegate;
+	FUpdateStaminaDelegate UpdateStaminaDelegate;
+	FUpdateRemainingAmmoDelegate UpdateRemainingDelegate;
 
 protected:
 

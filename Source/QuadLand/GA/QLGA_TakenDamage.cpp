@@ -9,6 +9,7 @@
 #include "AI/QLAIController.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayTag/GamplayTags.h"
+#include "HUD/QLHUD.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "QuadLand.h"
 
@@ -27,7 +28,11 @@ void UQLGA_TakenDamage::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 	if (IsLocallyControlled() && PC)
 	{
-		PC->BlinkBloodWidget();
+		AQLHUD* LocalHUD = Cast<AQLHUD>(PC->GetHUD());
+		if (LocalHUD)
+		{
+			LocalHUD->BlinkBloodWidget();
+		}
 	}
 	
 	

@@ -206,10 +206,14 @@ void AQLCharacterPlayer::OnRep_Controller()
 
 	AQLPlayerController* PlayerController = Cast<AQLPlayerController>(GetController());
 
+	if (PlayerController && PlayerController->HUDNum() == 0)
+	{
+		PlayerController->CreateHUD();
+	}
+
 	LocalHUD = Cast<AQLHUD>(PlayerController->GetHUD());
 	if (LocalHUD && LocalHUD->HUDNum() == 0)
 	{
-		QL_LOG(QLLog, Log, TEXT("Current HUD"));
 		LocalHUD->CreateHUD();
 	}
 
@@ -326,12 +330,17 @@ void AQLCharacterPlayer::SetCharacterControl()
 			}
 		}
 
-		if (HasAuthority() && PlayerController->HUDNum() == 0)
+		if (HasAuthority())
 		{
 			LocalHUD = Cast<AQLHUD>(PlayerController->GetHUD());
-			if (LocalHUD)
+			if (LocalHUD && LocalHUD->HUDNum() == 0)
 			{
 				LocalHUD->CreateHUD();
+			}
+
+			if (PlayerController->HUDNum() == 0)
+			{
+				PlayerController->CreateHUD();
 			}
 		}
 	}
@@ -519,8 +528,7 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 
 		if (IsLocallyControlled())
 		{
-			AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
-			PC->UpdateEquipWeaponUI(true);
+			LocalHUD->UpdateEquipWeaponUI(true);
 		}
 	}
 	
@@ -740,6 +748,11 @@ void AQLCharacterPlayer::ResetNotEquip(const FGameplayTag CallbackTag, int32 New
 
 	AQLPlayerController* PC = GetController<AQLPlayerController>();
 
+	if (LocalHUD == nullptr)
+	{
+		LocalHUD = Cast<AQLHUD>(PC->GetHUD());
+	}
+
 	if (ASC&& NewCount == 1)
 	{
 		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA);
@@ -747,7 +760,7 @@ void AQLCharacterPlayer::ResetNotEquip(const FGameplayTag CallbackTag, int32 New
 		CurrentAttackType = ECharacterAttackType::HookAttack;
 		if (IsLocallyControlled())
 		{
-			PC->SwitchWeaponStyle(CurrentAttackType);
+			LocalHUD->SwitchWeaponStyle(CurrentAttackType);
 		}
 	}
 }
@@ -756,6 +769,10 @@ void AQLCharacterPlayer::ResetEquipTypeA(const FGameplayTag CallbackTag, int32 N
 {
 
 	AQLPlayerController* PC = GetController<AQLPlayerController>();
+	if (LocalHUD == nullptr)
+	{
+		LocalHUD = Cast<AQLHUD>(PC->GetHUD());
+	}
 	if (ASC&& NewCount == 1)
 	{
 		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
@@ -773,7 +790,7 @@ void AQLCharacterPlayer::ResetEquipTypeA(const FGameplayTag CallbackTag, int32 N
 		{
 			if (bHasGun == false)
 			{
-				PC->SwitchWeaponStyle(CurrentAttackType); //만약 연사이면 연사로 변경해야함.
+				LocalHUD->SwitchWeaponStyle(CurrentAttackType);
 			}
 		}
 	}
@@ -783,6 +800,11 @@ void AQLCharacterPlayer::ResetBomb(const FGameplayTag CallbackTag, int32 NewCoun
 {
 
 	AQLPlayerController* PC = GetController<AQLPlayerController>();
+	if (LocalHUD == nullptr)
+	{
+		LocalHUD = Cast<AQLHUD>(PC->GetHUD());
+	}
+
 	if (ASC&& NewCount == 1)
 	{
 		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
@@ -793,7 +815,7 @@ void AQLCharacterPlayer::ResetBomb(const FGameplayTag CallbackTag, int32 NewCoun
 		{
 			if (GetInventoryCnt(EItemType::Bomb))
 			{
-				PC->SwitchWeaponStyle(CurrentAttackType);
+				LocalHUD->SwitchWeaponStyle(CurrentAttackType);
 			}
 		}
 	}

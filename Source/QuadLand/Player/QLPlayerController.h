@@ -24,8 +24,6 @@ class QUADLAND_API AQLPlayerController : public APlayerController
 public:
 	AQLPlayerController();
 
-	virtual void BeginPlay() override;
-	void Inventory();
 	UFUNCTION(BlueprintCallable)
 	void SetVisibilityHUD(EHUDType UItype);
 	
@@ -33,17 +31,6 @@ public:
 	void SetHiddenHUD(EHUDType UItype);
 	int HUDNum() {
 		return HUDs.Num();
-	}
-
-	const class UUserWidget* GetCrossHairUIWidget() const 
-	{
-		if (HUDs.Find(EHUDType::CrossHair) == 0) return nullptr;
-		return HUDs[EHUDType::CrossHair]; 
-	}
-	class UUserWidget* GetPlayerUIWidget() const
-	{ 
-		if (HUDs.Find(EHUDType::HUD) == 0) return nullptr;
-		return HUDs[EHUDType::HUD];
 	}
 
 	UFUNCTION(Client,Reliable)
@@ -54,30 +41,22 @@ public:
 	void UpdateNearbyItemEntry(UObject* Item); //아이템이 생김 - Stat을 넘기자
 	void UpdateItemEntry(UObject* Item, int32 CurrentItemCnt);
 
-	void UpdateEquipWeaponUI(bool InVisible);
-	void UpdateEquipBombUI(bool InVisible);
 
 	void AddInventoryByDraggedItem(EItemType ItemIdx);
 	void RemoveItemEntry(EItemType ItemIdx); //선택된 arr값 - id를 넘겨서 제거하자
 	void AddGroundByDraggedItem(EItemType ItemIdx);
-	void ConcealLifeStone(bool InVisible);
+	void UpdateProgressTime();
 
-	virtual void OnPossess(APawn* aPawn) override;
 	UFUNCTION(BlueprintCallable)
 	void CloseHUD(EHUDType UItype);
 
 	UFUNCTION(Client,Unreliable)
 	void ClientRPCShowLifestoneWidget(float Timer);
-	
-	void ActivateDeathTimer(float Time);
 
 	UFUNCTION(Client, Reliable)
 	void ClientRPCGameStart();
 
-	void BlinkBloodWidget();
-	void CancelBloodWidget();
-
-	void BlinkBag();
+	void ActivateDeathTimer(float Time);
 
 //	void InitStoneTexture(int GemType);
 	void Win();
@@ -87,7 +66,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CloseInventroy();
 
-	void SwitchWeaponStyle(ECharacterAttackType AttackType);
 	void SetUpdateLivePlayer(int16 InLivePlayer);
 	void SettingDeathTime();
 
@@ -162,8 +140,6 @@ protected:
 
 	void ServerTimeCheck(float DeltaTime);
 
-	//경쟁 시간 체크
-	void UpdateProgressTime();
 public:
 
 	virtual float GetServerTime();
@@ -178,8 +154,5 @@ private:
 	float StartTime = 0.f;
 	void SetHUDTime();
 	uint8 bStartGame : 1;
-
-
-
 
 };

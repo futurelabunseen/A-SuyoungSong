@@ -5,11 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
 #include "UI/QLUIType.h"
+#include "GameData/WeaponType.h"
 #include "QLHUD.generated.h"
 
 /**
  * 
  */
+
+
 UCLASS()
 class QUADLAND_API AQLHUD : public AHUD
 {
@@ -30,9 +33,42 @@ public:
 	int HUDNum() {
 		return HUDs.Num();
 	}
+	
+	class UUserWidget* GetPlayerUIWidget() const
+	{
+		if (HUDs.Find(EHUDType::HUD) == 0) return nullptr;
+		return HUDs[EHUDType::HUD];
+	}
 
+	void ResetUI();
+	void CloseAllUI();
+	void InitWidget();
+
+	void ReduceDeathSec(float Time);
+	void ShowStoneUI(float Time);
+	void SwitchWeaponStyle(ECharacterAttackType AttackType);
+	void SetUpdateLivePlayer(int16 InLivePlayer);
+	void UpdateEquipWeaponUI(bool InVisible);
+	void UpdateEquipBombUI(bool InVisible);
+	void ConcealLifeStone(bool InVisible);
+	//경쟁 시간 체크
+	void UpdateProgressTime(const FString &ProgressTime);
 	/*PlayerController에서 로딩된 초를 업데이트하는 용도*/
 	void UpdateLoadingSec(float Time);
+
+	void BlinkBloodWidget();
+	void CancelBloodWidget();
+
+	void BlinkBag();
+
+protected:
+
+	/*Attribute Set - Widget 연결을 위한 함수*/
+	void ChangedAmmoCnt(float CurrentAmmo);
+	void ChangedHPPercentage(float Hp,float MaxHp);
+	void ChangedStaminaPercentage(float Stamina, float MaxStamina);
+	void ChangedRemainingAmmoCnt(float RemainigAmmo);
+
 protected:
 	/*보석 관련 HUD 변경*/
 	void InitStoneTexture(int GemType);
