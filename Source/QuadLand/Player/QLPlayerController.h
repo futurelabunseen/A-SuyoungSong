@@ -32,6 +32,7 @@ public:
 	int HUDNum() {
 		return HUDs.Num();
 	}
+	virtual void SetPawn(APawn* InPawn) override;
 
 	UFUNCTION(Client,Reliable)
 	void ClientRPCOutLobby();
@@ -154,5 +155,10 @@ private:
 	float StartTime = 0.f;
 	void SetHUDTime();
 	uint8 bStartGame : 1;
+
+protected:
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Player, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class AQLCharacterPlayer> LocalPawn;
 
 };

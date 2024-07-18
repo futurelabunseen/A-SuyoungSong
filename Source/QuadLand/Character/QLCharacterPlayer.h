@@ -223,8 +223,6 @@ protected:
 
 	UFUNCTION()
 	void InitializeGAS();
-	UFUNCTION()
-	void ServerInitializeGAS();
 protected:
 
 	UFUNCTION(Server,WithValidation, Reliable)
@@ -305,4 +303,12 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<class AQLHUD> LocalHUD;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Player, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class AQLPlayerController> PC;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Player, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class AQLPlayerState> PS;
+
 };
