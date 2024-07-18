@@ -235,8 +235,8 @@ void AQLPlayerController::ServerRPCInitPawn_Implementation(int Type)
 	{
 		GameMode->SpawnPlayerPawn(this, Type);
 		ClientRPCCreateWidget();
-		AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
-
+		AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn()); //서버에서 등록
+		
 		if (QLCharacter)
 		{
 			QLCharacter->ServerRPCInitNickname(); //닉네임 결정
@@ -381,35 +381,26 @@ void AQLPlayerController::UpdateItemEntry(UObject* Item, int32 CurrentItemCnt)
 
 void AQLPlayerController::AddInventoryByDraggedItem(EItemType ItemIdx)
 {
-	//Player전달
-	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
-
-	if (QLCharacter)
+	if (LocalPawn)
 	{
-		QLCharacter->GetInventory()->AddInventoryByDraggedItem(ItemIdx);
+		LocalPawn->GetInventory()->AddInventoryByDraggedItem(ItemIdx);
 	}
 }
 
 void AQLPlayerController::RemoveItemEntry(EItemType ItemIdx)
 {
-	//Player전달
-	AQLCharacterPlayer* QLCharacter =Cast<AQLCharacterPlayer>(GetPawn());
-
-	if (QLCharacter)
+	if (LocalPawn)
 	{
-		QLCharacter->GetInventory()->UseItem(ItemIdx);
+		LocalPawn->GetInventory()->UseItem(ItemIdx);
 	}
 
 }
 
 void AQLPlayerController::AddGroundByDraggedItem(EItemType ItemIdx)
 {
-	//Player전달
-	AQLCharacterPlayer* QLCharacter = Cast<AQLCharacterPlayer>(GetPawn());
-
-	if (QLCharacter)
+	if (LocalPawn)
 	{
-		QLCharacter->GetInventory()->AddGroundByDraggedItem(ItemIdx);
+		LocalPawn->GetInventory()->AddGroundByDraggedItem(ItemIdx);
 	}
 }
 
@@ -550,11 +541,9 @@ void AQLPlayerController::ClientRPCOutLobby_Implementation()
 
 void AQLPlayerController::PlayCanSound()
 {
-	AQLCharacterPlayer* TmpCharacter = Cast<AQLCharacterPlayer>(GetPawn());
-
-	if (TmpCharacter)
+	if (LocalPawn)
 	{
-		TmpCharacter->PlayCanSound();
+		LocalPawn->PlayCanSound();
 	}
 }
 
@@ -568,4 +557,11 @@ void AQLPlayerController::RemoveNearbyItemEntry(UObject *Item)
 			InventoryUI->RemoveNearbyItemEntry(Item);
 		}
 	}
+}
+
+void AQLPlayerController::SetPawn(APawn* InPawn)
+{
+	Super::SetPawn(InPawn);
+
+	LocalPawn = Cast<AQLCharacterPlayer>(InPawn);
 }

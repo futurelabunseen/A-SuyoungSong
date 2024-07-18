@@ -146,19 +146,20 @@ void AQLCharacterPlayer::PossessedBy(AController* NewController)
 	}
 	InitNickname();	
 
+	TObjectPtr<AQLPlayerController> LocalPC = Cast<AQLPlayerController>(NewController);
+
 	GetWorld()->GetTimerManager().SetTimerForNextTick
 	(
-		[NewController]()
+		[LocalPC]()
 		{
-			AQLPlayerController* PC = Cast<AQLPlayerController>(NewController);
-
-			if (PC)
+			if (LocalPC)
 			{
-				PC->InitWidget();
+				LocalPC->InitWidget();
 			}
 		}
 	);
-	
+	PC = LocalPC; //서버에서 대입
+	QL_LOG(QLLog, Warning, TEXT("Current LocalPlayerController is %d"), IsValid(PC));
 }
 
 //Client Only 
@@ -168,7 +169,6 @@ void AQLCharacterPlayer::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 
 	AQLPlayerState* QLPlayerState = GetPlayerState<AQLPlayerState>();
-
 	if (QLPlayerState)
 	{
 		ASC = Cast<UAbilitySystemComponent>(QLPlayerState->GetAbilitySystemComponent());
@@ -208,7 +208,10 @@ void AQLCharacterPlayer::OnRep_Controller()
 
 	if (PlayerController && PlayerController->HUDNum() == 0)
 	{
+		PC = PlayerController; //클라이언트 대입
 		PlayerController->CreateHUD();
+
+		QL_LOG(QLLog, Warning, TEXT("Current LocalPlayerController is %d"), IsValid(PC));
 	}
 
 	LocalHUD = Cast<AQLHUD>(PlayerController->GetHUD());
@@ -292,18 +295,18 @@ void AQLCharacterPlayer::InitializeGAS()
 	ASC->RemoveLooseGameplayTags(TagContainer); //모두 초기화
 	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_NON);
 	
-	AQLPlayerController* PC = GetController<AQLPlayerController>();
 	if (PC)
 	{
 		PC->ResetUI();
 	}
+
+	AQLPlayerState* LocalPS = GetPlayerState<AQLPlayerState>();
+
+	if (LocalPS)
+	{
+		PS = LocalPS;
+	}
 }
-
-void AQLCharacterPlayer::ServerInitializeGAS()
-{
-
-}
-
 
 void AQLCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -380,7 +383,6 @@ bool AQLCharacterPlayer::IsMontagePlaying(UAnimMontage* Montage) const
 
 void AQLCharacterPlayer::StopMove()
 {
-	APlayerController* PC = Cast<APlayerController>(GetController());
 
 	if (PC)
 	{
@@ -420,9 +422,6 @@ void AQLCharacterPlayer::FarmingItem()
 		FCollisionShape::MakeSphere(30.0f),
 		Params);
 
-
-	AQLPlayerController* PC = Cast<AQLPlayerController>(GetController());
-
 	if (!PC)
 	{
 		return;
@@ -446,7 +445,7 @@ void AQLCharacterPlayer::FarmingItem()
 
 void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 {
-
+	if (PS == nullptr) return;
 	if (InItem == nullptr) return;
 	if (bHasGun) return; 
 
@@ -454,7 +453,6 @@ void AQLCharacterPlayer::EquipWeapon(AQLItem* InItem)
 	UQLItemData* InItemInfo = Item->Stat;
 	//Mesh 위치는 소켓 
 	UQLWeaponStat* WeaponStat = CastChecked<UQLWeaponStat>(InItemInfo); //부착
-	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
 
 	if (ASC->HasMatchingGameplayTag(CHARACTER_EQUIP_GUNTYPEA))
 	{
@@ -510,6 +508,7 @@ void AQLCharacterPlayer::ServerRPCFarming_Implementation()
 
 void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* WeaponStat)
 {
+
 	ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
 	ASC->AddLooseGameplayTag(CHARACTER_EQUIP_GUNTYPEA); //이것도 변경되어야할사항...
 
@@ -528,6 +527,7 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 
 		if (IsLocallyControlled())
 		{
+			LocalHUD = Cast<AQLHUD>(PC->GetHUD());
 			LocalHUD->UpdateEquipWeaponUI(true);
 		}
 	}
@@ -536,10 +536,8 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 
 void AQLCharacterPlayer::HasLifeStone(AQLItem* ItemInfo)
 {
-	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-
 	AQLPlayerState* ItemOwner = Cast<AQLPlayerState>(ItemInfo->GetOwner());
-	if (ItemOwner == nullptr)
+	if (ItemOwner == nullptr || PS == nullptr)
 	{
 		return;
 	}
@@ -576,9 +574,11 @@ void AQLCharacterPlayer::GetAmmo(AQLItem* ItemInfo)
 		UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
 
 		UQLAmmoData* AmmoItem = Cast<UQLAmmoData>(ItemData);
-		AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-		PS->SetAmmoStat(AmmoItem->AmmoCnt);
-		GetItem(ItemInfo);
+		if (PS)
+		{
+			PS->SetAmmoStat(AmmoItem->AmmoCnt);
+			GetItem(ItemInfo);
+		}
 	}
 	
 }
@@ -610,10 +610,12 @@ void AQLCharacterPlayer::ClientRPCUpdateAmmoUI_Implementation()
 	if (DataManager)
 	{
 		UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
-		AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
 
-		PC->UpdateItemEntry(ItemData, 0);
-		QLInventory->InventoryItem[EItemType::Ammo] = 0;
+		if (PC)
+		{
+			PC->UpdateItemEntry(ItemData, 0);
+			QLInventory->InventoryItem[EItemType::Ammo] = 0;
+		}
 	}
 	
 }
@@ -621,11 +623,10 @@ void AQLCharacterPlayer::ClientRPCUpdateAmmoUI_Implementation()
 
 void AQLCharacterPlayer::UpdateAmmo(const FGameplayTag CallbackTag, int32 NewCount)
 {
+	if (PS == nullptr || PC == nullptr) return;
+
 	if (QLInventory->GetInventoryCnt(EItemType::Ammo))
 	{
-		AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-		AQLPlayerController* PC = CastChecked<AQLPlayerController>(GetController());
-
 		UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
 
 		UQLItemData* ItemData = DataManager->GetItem(EItemType::Ammo);
@@ -712,9 +713,6 @@ void AQLCharacterPlayer::MulticastRPCSwitchAttackType_Implementation(ECharacterA
 
 void AQLCharacterPlayer::ServerRPCSwitchAttackType_Implementation(ECharacterAttackType InputKey)
 {
-
-	AQLPlayerState* PS = Cast<AQLPlayerState>(GetPlayerState());
-
 	if (PS == nullptr)
 	{
 		return;
@@ -745,12 +743,9 @@ void AQLCharacterPlayer::ServerRPCSwitchAttackType_Implementation(ECharacterAtta
 
 void AQLCharacterPlayer::ResetNotEquip(const FGameplayTag CallbackTag, int32 NewCount)
 {
-
-	AQLPlayerController* PC = GetController<AQLPlayerController>();
-
-	if (LocalHUD == nullptr)
+	if (PC == nullptr)
 	{
-		LocalHUD = Cast<AQLHUD>(PC->GetHUD());
+		return;
 	}
 
 	if (ASC&& NewCount == 1)
@@ -760,6 +755,10 @@ void AQLCharacterPlayer::ResetNotEquip(const FGameplayTag CallbackTag, int32 New
 		CurrentAttackType = ECharacterAttackType::HookAttack;
 		if (IsLocallyControlled())
 		{
+			if (LocalHUD == nullptr)
+			{
+				LocalHUD = Cast<AQLHUD>(PC->GetHUD());
+			}
 			LocalHUD->SwitchWeaponStyle(CurrentAttackType);
 		}
 	}
@@ -768,11 +767,11 @@ void AQLCharacterPlayer::ResetNotEquip(const FGameplayTag CallbackTag, int32 New
 void AQLCharacterPlayer::ResetEquipTypeA(const FGameplayTag CallbackTag, int32 NewCount)
 {
 
-	AQLPlayerController* PC = GetController<AQLPlayerController>();
-	if (LocalHUD == nullptr)
+	if (PC == nullptr)
 	{
-		LocalHUD = Cast<AQLHUD>(PC->GetHUD());
+		return;
 	}
+
 	if (ASC&& NewCount == 1)
 	{
 		ASC->RemoveLooseGameplayTag(CHARACTER_EQUIP_NON);
@@ -788,6 +787,10 @@ void AQLCharacterPlayer::ResetEquipTypeA(const FGameplayTag CallbackTag, int32 N
 
 		if (IsLocallyControlled())
 		{
+			if (LocalHUD == nullptr)
+			{
+				LocalHUD = Cast<AQLHUD>(PC->GetHUD());
+			}
 			if (bHasGun == false)
 			{
 				LocalHUD->SwitchWeaponStyle(CurrentAttackType);
@@ -799,10 +802,9 @@ void AQLCharacterPlayer::ResetEquipTypeA(const FGameplayTag CallbackTag, int32 N
 void AQLCharacterPlayer::ResetBomb(const FGameplayTag CallbackTag, int32 NewCount)
 {
 
-	AQLPlayerController* PC = GetController<AQLPlayerController>();
-	if (LocalHUD == nullptr)
+	if (PC == nullptr)
 	{
-		LocalHUD = Cast<AQLHUD>(PC->GetHUD());
+		return;
 	}
 
 	if (ASC&& NewCount == 1)
@@ -813,6 +815,10 @@ void AQLCharacterPlayer::ResetBomb(const FGameplayTag CallbackTag, int32 NewCoun
 
 		if (IsLocallyControlled())
 		{
+			if (LocalHUD == nullptr)
+			{
+				LocalHUD = Cast<AQLHUD>(PC->GetHUD());
+			}
 			if (GetInventoryCnt(EItemType::Bomb))
 			{
 				LocalHUD->SwitchWeaponStyle(CurrentAttackType);
@@ -900,6 +906,8 @@ bool AQLCharacterPlayer::ServerRPCPuttingWeapon_Validate()
 
 void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 {
+	if (PS == nullptr) return;
+
 	// Multicast 위치 or Server 위치하고 Replicated할지.. 
 	FVector Location = GetActorLocation();
 	Location.X -= 30.0f;
@@ -911,8 +919,6 @@ void AQLCharacterPlayer::ServerRPCPuttingWeapon_Implementation()
 
 	UQLDataManager* DataManager = UGameInstance::GetSubsystem<UQLDataManager>(GetWorld()->GetGameInstance());
 
-	AQLPlayerState* PS = CastChecked<AQLPlayerState>(GetPlayerState());
-	
 	const UQLWeaponStat* WeaponStat = DataManager->GetWeaponStat(CurrentAttackType);
 
 	if (WeaponStat)
@@ -951,7 +957,6 @@ int AQLCharacterPlayer::GetInventoryCnt(EItemType ItemType)
 
 void AQLCharacterPlayer::InitNickname()
 {
-	AQLPlayerState* PS = Cast<AQLPlayerState>(GetPlayerState());
 	if (PS)
 	{
 		SetNickname(PS->GetPlayerName());
@@ -968,7 +973,6 @@ void AQLCharacterPlayer::StopAim()
 
 void AQLCharacterPlayer::ServerRPCInitNickname_Implementation()
 {
-	AQLPlayerState* PS = Cast<AQLPlayerState>(GetPlayerState());
 	if (PS)
 	{
 		MulticastRPCInitNickname(PS->GetPlayerName());
