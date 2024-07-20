@@ -38,7 +38,7 @@ void AQLLobbyGameMode::PostLogin(APlayerController* NewPC)
 
 	int32 NumberOfPlayers = GameState.Get()->PlayerArray.Num();
 
-	if (NumberOfPlayers >= 2)
+	//if (NumberOfPlayers >= 2)
 	{
 		GetWorld()->GetTimerManager().SetTimer(WaitTimeCheckTimer, this, &AQLLobbyGameMode::ConfirmPlayerCount, WaitTimeCheckTime, false);
 	}
