@@ -28,7 +28,7 @@ void AQLHUD::SetHiddenHUD(EHUDType UItype)
 {
 	if (HUDs.Find(UItype))
 	{
-		HUDs[UItype]->SetVisibility(ESlateVisibility::Hidden);
+		HUDs[UItype]->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 void AQLHUD::SetVisibilityHUD(EHUDType UItype)
