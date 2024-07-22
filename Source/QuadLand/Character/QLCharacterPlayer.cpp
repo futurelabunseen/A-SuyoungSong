@@ -527,8 +527,13 @@ void AQLCharacterPlayer::MulticastRPCFarming_Implementation(UQLWeaponStat* Weapo
 
 		if (IsLocallyControlled())
 		{
+			PC = GetController<AQLPlayerController>();
 			LocalHUD = Cast<AQLHUD>(PC->GetHUD());
-			LocalHUD->UpdateEquipWeaponUI(true);
+			
+			if (LocalHUD)
+			{
+				LocalHUD->UpdateEquipWeaponUI(true);
+			}
 		}
 	}
 	

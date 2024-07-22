@@ -29,8 +29,8 @@ void UQLSwitchWeaponWidget::NativeConstruct()
 		IMGBomb->SetRenderScale(DeactiveBombScale);
 	}
 
-	IMGBomb->SetVisibility(ESlateVisibility::Hidden);
-	IMGGun->SetVisibility(ESlateVisibility::Hidden);
+	IMGBomb->SetVisibility(ESlateVisibility::Collapsed);
+	IMGGun->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UQLSwitchWeaponWidget::SwitchWeaponStyle(ECharacterAttackType AttackType)
@@ -85,7 +85,7 @@ void UQLSwitchWeaponWidget::UpdateEquipWeaponUI(bool bIsVisible)
 	}
 	else
 	{
-		IMGGun->SetVisibility(ESlateVisibility::Hidden);
+		IMGGun->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
@@ -97,7 +97,7 @@ void UQLSwitchWeaponWidget::UpdateEquipBombUI(bool bIsVisible)
 	}
 	else
 	{
-		IMGBomb->SetVisibility(ESlateVisibility::Hidden);
+		IMGBomb->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
